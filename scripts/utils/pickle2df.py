@@ -51,7 +51,7 @@ class PatentsPickle2DataFrame(object):
 
         self.__data_frame.drop(indexes_to_delete, inplace=True)
         self.__data_frame.reset_index(inplace=True, drop=True)
-        print(f'{self.__data_frame.shape[0]:,} patents with ' + cpc_in + ' CPC classification will be analysed')
+        print(f'{self.__data_frame.shape[0]:,} patents with {cpc_in} CPC classification will be analysed')
 
     def randomsample(self, random_seed, num_of_random_samples, in_date_order=False):
         if in_date_order:
