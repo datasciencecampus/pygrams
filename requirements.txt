@@ -4,7 +4,5 @@ scipy
 wordcloud
 pandas
 tqdm
-lxml
-bs4
 nltk
 scikit-learn

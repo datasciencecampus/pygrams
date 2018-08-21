@@ -1,0 +1,18 @@
+language: python
+python:
+  - "3.6"
+
+install:
+  # command to install dependencies
+  - python setup.py install
+  # also need to download punkt tokeniser data
+  - travis_wait 30 python -m nltk.downloader punkt
+
+script:
+  # for codecov support
+  - pip install pytest pytest-cov
+  # command to run tests
+  - pytest --cov=./
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
