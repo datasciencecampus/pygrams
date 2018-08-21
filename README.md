@@ -1,6 +1,6 @@
-[![build status](
-  http://img.shields.io/travis/datasciencecampus/patent_app_detect/master.svg?style=flat)](
- https://travis-ci.org/datasciencecampus/patent_app_detect)
+[![build status](http://img.shields.io/travis/datasciencecampus/patent_app_detect/master.svg?style=flat)](https://travis-ci.org/datasciencecampus/patent_app_detect)
+[![codecov](https://codecov.io/gh/datasciencecampus/patent_app_detect/branch/master/graph/badge.svg)](https://codecov.io/gh/datasciencecampus/patent_app_detect)
+[![LICENSE.](https://img.shields.io/badge/license-OGL--3-blue.svg?style=flat)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
 # patent_app_detect 
  
