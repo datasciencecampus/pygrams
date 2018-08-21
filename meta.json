@@ -1,0 +1,10 @@
+{
+  "name": "app_detect",
+  "license": "The Open Government Licence (OGL) Version 3",
+  "author": "Data Science Campus",
+  "url": "https://github.com/datasciencecampus/patent_explorer",
+  "version": "1.0.0",
+  "email": "datasciencecampus@ons.gov.uk",
+  "description": "A project able to read patent data and extract popular terminology",
+  "keywords": "patents technology terminology tfidf nlp"
+}
