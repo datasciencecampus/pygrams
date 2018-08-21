@@ -26,7 +26,7 @@ class TestCitation(unittest.TestCase):
 
         print(f"The top five TFIDF before without citation weighting should be {expected_top_five_bef_citation}")
         print(f"The top five TFIDF before without citation weighting  {actual_top_five_bef_citation}")
-        assert expected_top_five_bef_citation == actual_top_five_bef_citation
+        self.assertSameTFIDF(expected_top_five_bef_citation, actual_top_five_bef_citation)
 
     def test_citation_after(self):
         actual_top_five_aft_citation = self.tfidf_inst.detect_popular_ngrams_in_corpus(
@@ -36,8 +36,13 @@ class TestCitation(unittest.TestCase):
                                           (1.038396555922477, 'imag')]
         print(f"The top five TFIDF after citation weighting should be {expected_top_five_aft_citation}")
         print(f"The top five TFIDF after citation weighting were {actual_top_five_aft_citation}")
-        assert expected_top_five_aft_citation == actual_top_five_aft_citation
+        self.assertSameTFIDF(expected_top_five_aft_citation, actual_top_five_aft_citation)
 
     def test_citations_all(self):
         assert self.tfidf_inst.detect_popular_ngrams_in_corpus() \
                != self.tfidf_inst.detect_popular_ngrams_in_corpus(citation_count_dict=self.citation_count_dict)
+
+    def assertSameTFIDF(self, expected_tfidf, actual_tfidf):
+        for expected, actual in zip(expected_tfidf, actual_tfidf):
+            self.assertEqual(expected[1], actual[1])
+            self.assertAlmostEqual(expected[0], actual[0], places=12)
