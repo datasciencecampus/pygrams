@@ -82,6 +82,27 @@ python detect.py -ps=USPTO-random-10000
 
 Will run the tool for a pre-created random dataset of 10,000 patents.
 
+### Additional patent sources
+
+Patent datasets are stored in the sub-folder ```data```, we have supplied the following files:
+- ```USPTO-random-100.pkl.bz2```
+- ```USPTO-random-1000.pkl.bz2```
+- ```USPTO-random-10000.pkl.bz2```
+- ```USPTO-random-100000.pkl.bz2```
+- ```USPTO-random-500000.pkl.bz2```
+
+The command ```python detect.py -ps=USPTO-random-10000``` instructs the program to load a pickled data frame of patents
+from a file located in ```data/USPTO-random-10000.pkl.bz2```. Hence ```-ps=NAME``` looks for ```data/NAME.pkl.bz2```.
+
+We have hosted larger datasets on a google drive, as the files are too large for GitHub version control. We have made available:
+- All USPTO patents from 2004 (477Mb): [USPTO-all.pkl.bz2](https://drive.google.com/drive/folders/1d47pizWdKqtORS1zoBzsk3tLk6VZZA4N)
+ 
+To use additional files, follow the link and download the pickle file into the data folder. Access the new data
+with ```-ps=NameWithoutFileExtension```; for example, ```USPTO-all.pkl.bz2``` would be loaded with ```-ps=USPTO-all```.
+
+Note that large datasets will require a large amount of system memory (such as 64Gb), otherwise it will process very slowly
+as virtual memory (swap) is very likely to be used.
+
 ### Choosing CPC classification
 
 This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". In this case a larger patent dataset is generally required to allow for the reduction in patent numbers after subsetting. An example script is:
