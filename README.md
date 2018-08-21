@@ -6,51 +6,53 @@
  
 ## Description of tool
 
-The deTecT tool is designed to derive popular terminology included within a particular patent technology area (CPC classification), based on text analysis of patent abstract information.  If the tool is targeted at the Y02 classification, for example, identified terms could include 'fuel cell' and 'heat exchanger'. A number of options are provided, for example to provide report, word cloud or graphical output. Some example outputs are shown below:
+The tool is designed to derive popular terminology included within a particular patent technology area ([CPC classification](https://www.epo.org/searching-for-patents/helpful-resources/first-time-here/classification/cpc.html)), based on text analysis of patent abstract information.  If the tool is targeted at the [Y02 classification](https://www.epo.org/news-issues/issues/classification/classification.html), for example, identified terms could include 'fuel cell' and 'heat exchanger'. A number of options are provided, for example to provide report, word cloud or graphical output. Some example outputs are shown below:
 
 ### Report
 
-The score here is derived from the term tfidf values.
+The score here is derived from the term [tf-idf](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values using the Y02 classification on a 10,000 random sample of patents. The terms are all bigrams in this example.
 
-|Term			            |	     Score  |
-| :------------------------ | ------------: |
-|1. fuel cell               |       2.143778|
-|2. heat exchanger          |       1.697166|
-|3. exhaust gas             |       1.496812|
-|4. combustion engine       |       1.480615|
-|5. combustion chamber      |       1.390726|
-|6. energy storage          |       1.302651|
-|7. internal combustion     |       1.108040|
-|8. positive electrode      |       1.100686|
-|9. carbon dioxide          |       1.092638|
-|10. control unit           |       1.069478|
+|Term			            |	    TF-IDF Score  |
+| :------------------------ | -------------------:|
+|1. fuel cell               |       2.143778      |
+|2. heat exchanger          |       1.697166      |
+|3. exhaust gas             |       1.496812      |
+|4. combustion engine       |       1.480615      |
+|5. combustion chamber      |       1.390726      |
+|6. energy storage          |       1.302651      |
+|7. internal combustion     |       1.108040      |
+|8. positive electrode      |       1.100686      |
+|9. carbon dioxide          |       1.092638      |
+|10. control unit           |       1.069478      |
 
 ### Word cloud
 
-[Wordcloud example](https://github.com/datasciencecampus/detect/output/wordclouds/wordcloud_tech.png)
+Here is a [wordcloud](https://github.com/datasciencecampus/patent_app_detect/output/wordclouds/wordcloud_tech.png) using the Y02 classification on a 10,000 random sample of patents. The greater the tf-idf score, the larger the font size of the term.
 
 ### Force directed graph
 
-This output provides an interactive graph that shows connections between terms that are generally found in the same patent documents.
-
-[fdg example](https://github.com/datasciencecampus/detect/fdg/index.html)
+This output provides an [interactive graph](https://github.com/datasciencecampus/patent_app_detect/outputs/fdg/index.html) that shows connections between terms that are generally found in the same patent documents. This example was run for the Y02 classification on a 10,000 random sample of patents.
 
 ## How to install
-### Windows ###
+
+The tool has been developed to work on both Windows and MacOS. To install:
+
 1. Please make sure Python 3.6 is installed and set at your path.  
-   It can be installed from [this location](https://www.python.org/downloads/release/python-360/) selecting the *Windows x86 executable installer* option. When prompted, please check the box to set the paths and environment variables for you and you should be ready to go.
+   It can be installed from [this location](https://www.python.org/downloads/release/python-360/) selecting the *relevant installer for your opearing system*. When prompted, please check the box to set the paths and environment variables for you and you should be ready to go. Python can also be installed as part of Anaconda [here](https://www.anaconda.com/download/#macos).
+
+   To check the Python version default for your system, run the following in command line/terminal:
 
    ```
    python --version
    ```
-   will show which python version is the default for your system.  
-
-2. From the root directory (app_detect), run:
+   
+   **_Note_**: If Python 2 is the default Python version, but you have installed Python 3.6, your path may be setup to use `python3` instead of `python`.
+   
+2. To install the packages and dependencies for the tool, from the root directory (patent_app_detect) run:
    ``` 
-   setapp.bat
+   pip install -e .
    ```
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run.
-   If any of the tests fail, please email thanasis.anthopoulos@ons.gov.uk or ian.grimstead@ons.gov.uk
+   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email thanasis.anthopoulos@ons.gov.uk or ian.grimstead@ons.gov.uk
    with a screenshot of the failure and we will get back to you.
 
 ## How to use
@@ -64,26 +66,32 @@ python detect.py
 The above produces a default report output of top ranked terms, using default parameters. Additional command line arguments provide alternative options, for example a word cloud or force directed graph (fdg) output. The option 'all', produces all three:
 
 ```
+python detect.py -o='report' (using just `python detect.py` defaults to this option)
 python detect.py -o='wordcloud'
 python detect.py -o='fdg'
 python detect.py -o='all'
 ```
 
-### Choose patent source
+### Choosing patent source
 
-This selects the set of patents for use during analysis. The default source is a random 1000 patent set from the USPTO, USPTO-random-1000. Datasets of 100, 1000, 10000, 100000, and 500000 patents are available.
+This selects the set of patents for use during analysis. The default source is a pre-created random 1,000 patent dataset from the USPTO, `USPTO-random-1000`. Pre-created datasets of 100, 1,000, 10,000, 100,000, and 500,000 patents are available in the `./data` folder. For example using:
 
 ```
 python detect.py -ps=USPTO-random-10000
 ```
 
-### Choose CPC classification
+Will run the tool for a pre-created random dataset of 10,000 patents.
 
-This subsets the chosen patents dataset to a particular CPC class, in this example Y02. In this case a larger patent source is generally required to allow for the reduction in patent numbers after subsetting.
+### Choosing CPC classification
+
+This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". In this case a larger patent dataset is generally required to allow for the reduction in patent numbers after subsetting. An example script is:
 
 ```
 python detect.py -cpc=Y02 -ps=USPTO-random-10000
 ```
+
+In the console the number of subset patents will be stated. For example, for `python detect.py -cpc=Y02 -ps=USPTO-random-10000` the number of Y02 patents is 197. Thus, the tf-idf will be run for 197 patents.
+
 
 ### Term n-gram limits
 
@@ -121,7 +129,7 @@ python detect.py -c
 
 ### Term focus
 
-This option utilises a second random patent dataset, by default USPTO-random-10000, whose terms are discounted from the chosen CPC classification to try and 'focus' the identified terms away from terms found more generally in the patent dataset. An example of choosing a larger 
+This option utilises a second random patent dataset, by default `USPTO-random-10000`, whose terms are discounted from the chosen CPC classification to try and 'focus' the identified terms away from terms found more generally in the patent dataset. An example of choosing a larger 
 
 ```
 python detect.py -f
