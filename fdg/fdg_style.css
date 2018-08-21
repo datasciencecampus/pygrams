@@ -1,0 +1,27 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto+Condensed:400);
+
+.h1 {
+font-family: "Roboto", Roboto, sans-serif;
+}
+
+.label {
+  font-family: "Roboto", Roboto, sans-serif;
+  font: "Roboto", sans-serif;
+  pointer-events: none;
+}
+
+
+.node {
+  stroke: #000;
+  stroke-width: 1.5px;
+
+}
+
+.link {
+  stroke: #999;
+  stroke-width: 1.5px;
+}
+select {
+  font-size: 32px;
+}
+
