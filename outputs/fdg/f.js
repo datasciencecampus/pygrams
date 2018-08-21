@@ -1,9 +1,6 @@
-var dataURL = "http://mysafeinfo.com/api/data?list=englishmonarchs&format=json";
-
+var dataURL = "https://raw.githubusercontent.com/datasciencecampus/patent_app_detect/master/outputs/fdg/empty.json";
 
 var refresh = function(data){
-
-
 
 var json_obj = JSON.parse(data);
 var svg = d3.select("svg"),
@@ -25,39 +22,19 @@ d3.select("div#chartId")
     //class to make it responsive
     .classed("svg-content-responsive", true);
 
-//var container = d3.select('body').append('div')
-//    .attr('id','container')
-//;
-//
-//// svg#sky
-//var sky = container.append('svg')
-//    //.attr('height', 100)
-//    //.attr('width', 100)
-//    .attr('id', 'sky')
-//;
-   
 var color = d3.scaleOrdinal(d3.schemeCategory20c);
-//var nodeRadius = 20;
 
 var padding = 1, // separation between circles
     radius=6;
 	
-
-
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) {
         return d.text;
     }).distance(300))
     .force("charge", d3.forceManyBody().strength(-100))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    //.force("gravity", 0.05)
-    //.force("linkDistance", 50)
-    //.force("size", [9000, 6000])
     .force("collide", d3.forceCollide().radius(function(d) {
         return 12*radius + padding; }).iterations(40))
-
-
-
 
 d3.json(dataURL, function(error, graph) {
     if (error) throw error;
@@ -72,7 +49,6 @@ d3.json(dataURL, function(error, graph) {
         .data(graph.links)
         .enter().append("line").attr("stroke-width", function(d) {
         return (8*d.size);
-            //Math.sqrt(1.5*d.size);
         });
 
     var node = svg.append("g")
@@ -119,7 +95,6 @@ d3.json(dataURL, function(error, graph) {
         .text(function(d) {
             return d.text
         });
-  
 
     simulation
         .nodes(graph.nodes)

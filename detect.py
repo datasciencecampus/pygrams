@@ -109,7 +109,7 @@ def get_tfidf(args, filename, cpc):
 
 
 def main():
-    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'json'), os.path.join('outputs', 'wordclouds')]
+    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
