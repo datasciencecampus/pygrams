@@ -94,7 +94,7 @@ class FDGPrep(object):
     def save_graph(self, fname, varname):
 
         graph = self.__create_graph_json()
-        file_name = os.path.join('outputs/fdg', fname + '.json')
+        file_name = os.path.join('outputs', 'fdg', fname + '.json')
         with open(file_name, 'w') as json_temp:
             json_temp.write(varname + " = '[")
             json.dump(graph, json_temp)
