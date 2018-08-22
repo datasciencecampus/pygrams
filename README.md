@@ -27,11 +27,11 @@ The score here is derived from the term [tf-idf](https://en.wikipedia.org/wiki/T
 
 ### Word cloud
 
-Here is a [wordcloud](https://github.com/datasciencecampus/patent_app_detect/output/wordclouds/wordcloud_tech.png) using the Y02 classification on a 10,000 random sample of patents. The greater the tf-idf score, the larger the font size of the term.
+Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/patent_app_detect/master/outputs/wordclouds/wordcloud_tech.png) using the Y02 classification on a 10,000 random sample of patents. The greater the tf-idf score, the larger the font size of the term.
 
 ### Force directed graph
 
-This output provides an [interactive graph](https://github.com/datasciencecampus/patent_app_detect/outputs/fdg/index.html) that shows connections between terms that are generally found in the same patent documents. This example was run for the Y02 classification on a 10,000 random sample of patents.
+This output provides an interactive graph in the to be viewed in a web browser (you need to locally open the file ```outputs/fdg/index.html```). The graph shows connections between terms that are generally found in the same patent documents. The example wordcloud in the ```outputs/fdg``` folder was created using the Y02 classification on a 10,000 random sample of patents.
 
 ## How to install
 
@@ -81,6 +81,27 @@ python detect.py -ps=USPTO-random-10000
 ```
 
 Will run the tool for a pre-created random dataset of 10,000 patents.
+
+### Additional patent sources
+
+Patent datasets are stored in the sub-folder ```data```, we have supplied the following files:
+- ```USPTO-random-100.pkl.bz2```
+- ```USPTO-random-1000.pkl.bz2```
+- ```USPTO-random-10000.pkl.bz2```
+- ```USPTO-random-100000.pkl.bz2```
+- ```USPTO-random-500000.pkl.bz2```
+
+The command ```python detect.py -ps=USPTO-random-10000``` instructs the program to load a pickled data frame of patents
+from a file located in ```data/USPTO-random-10000.pkl.bz2```. Hence ```-ps=NAME``` looks for ```data/NAME.pkl.bz2```.
+
+We have hosted larger datasets on a google drive, as the files are too large for GitHub version control. We have made available:
+- All USPTO patents from 2004 (477Mb): [USPTO-all.pkl.bz2](https://drive.google.com/drive/folders/1d47pizWdKqtORS1zoBzsk3tLk6VZZA4N)
+ 
+To use additional files, follow the link and download the pickle file into the data folder. Access the new data
+with ```-ps=NameWithoutFileExtension```; for example, ```USPTO-all.pkl.bz2``` would be loaded with ```-ps=USPTO-all```.
+
+Note that large datasets will require a large amount of system memory (such as 64Gb), otherwise it will process very slowly
+as virtual memory (swap) is very likely to be used.
 
 ### Choosing CPC classification
 
@@ -216,3 +237,9 @@ optional arguments:
                         the desired cpc classification
 
 ```
+
+## Acknowledgements
+
+### Patent data
+
+Patent data was obtained from the [United States Patent and Trademark Office (USPTO)](https://www.uspto.gov) through the [Bulk Data Storage System (BDSS)](https://bulkdata.uspto.gov). In particular we used the `Patent Grant Full Text Data/APS (JAN 1976 - PRESENT)` dataset, using the data from 2004 onwards in XML 4.* format.
