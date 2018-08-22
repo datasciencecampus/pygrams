@@ -27,11 +27,11 @@ The score here is derived from the term [tf-idf](https://en.wikipedia.org/wiki/T
 
 ### Word cloud
 
-Here is a [wordcloud](https://github.com/datasciencecampus/patent_app_detect/output/wordclouds/wordcloud_tech.png) using the Y02 classification on a 10,000 random sample of patents. The greater the tf-idf score, the larger the font size of the term.
+Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/patent_app_detect/master/outputs/wordclouds/wordcloud_tech.png) using the Y02 classification on a 10,000 random sample of patents. The greater the tf-idf score, the larger the font size of the term.
 
 ### Force directed graph
 
-This output provides an [interactive graph](https://github.com/datasciencecampus/patent_app_detect/outputs/fdg/index.html) that shows connections between terms that are generally found in the same patent documents. This example was run for the Y02 classification on a 10,000 random sample of patents.
+This output provides an interactive graph in the to be viewed in a web browser (you need to locally open the file ```outputs/fdg/index.html```). The graph shows connections between terms that are generally found in the same patent documents. The example wordcloud in the ```outputs/fdg``` folder was created using the Y02 classification on a 10,000 random sample of patents.
 
 ## How to install
 
