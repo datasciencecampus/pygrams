@@ -95,7 +95,7 @@ The command ```python detect.py -ps=USPTO-random-10000``` instructs the program 
 from a file located in ```data/USPTO-random-10000.pkl.bz2```. Hence ```-ps=NAME``` looks for ```data/NAME.pkl.bz2```.
 
 We have hosted larger datasets on a google drive, as the files are too large for GitHub version control. We have made available:
-- All USPTO patents from 2004 (477Mb): [USPTO-all.pkl.bz2](https://drive.google.com/drive/folders/1d47pizWdKqtORS1zoBzsk3tLk6VZZA4N)
+- All USPTO patents from 2004 (477Mb): [USPTO-all.pkl.bz2](https://drive.google.com/open?id=1m7-_b7-4U7jkNSj4eBt2vE9wol2YAnJJ)
  
 To use additional files, follow the link and download the pickle file into the data folder. Access the new data
 with ```-ps=NameWithoutFileExtension```; for example, ```USPTO-all.pkl.bz2``` would be loaded with ```-ps=USPTO-all```.
