@@ -170,7 +170,7 @@ class TFIDF:
     def transform_corpus_to_tidf(self):
         return self.tfidf_vectorizer.transform(self.patent_abstracts)
 
-    def detect_popular_ngrams_in_corpus(self, input_text=None, from_date=None, to_date=None,
+    def detect_popular_ngrams_in_corpus(self, input_text=None,
                                         number_of_ngrams_to_return=200, pick='sum', time=False,
                                         citation_count_dict=None):
 
@@ -180,20 +180,8 @@ class TFIDF:
             tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
 
         first_row = 0
-        if from_date is not None:
-            for patent_index, pub_date in enumerate(self.__dataframe['publication_date']):
-                first_row = patent_index
-                if from_date <= pub_date:
-                    break
-
         last_row = len(self.__dataframe['publication_date'])
-        if to_date is not None:
-            for patent_index, pub_date in enumerate(self.__dataframe['publication_date']):
-                last_row = patent_index
-                if to_date < pub_date:
-                    break
-
-        print(f'In date range {from_date} to {to_date} there are {last_row - first_row:,} patents')
+        print(f'Processing TFIDF of {last_row - first_row:,} patents')
 
         if first_row == last_row:
             print('...skipping as 0 patents...')
