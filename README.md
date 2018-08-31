@@ -279,6 +279,18 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 
+### Knockout JavaScript library
+
+The Knockout JavaScript library is used with our force-directed graph output;
+
+Knockout JavaScript library v3.4.2
+
+(c) The Knockout.js team - http://knockoutjs.com/
+
+License: [MIT](http://www.opensource.org/licenses/mit-license.php) v3.4.2
+
+
+
 ### 3rd Party Library Usage
 
 Various 3rd party libraries are used in this project; these are listed
