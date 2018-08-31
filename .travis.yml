@@ -5,13 +5,13 @@ matrix:
         # Use the built in venv for linux builds
         - os: linux
           sudo: required
-          python: "3.6"
+          python: "3.6.6"
           dist: trusty
 
         # Use generic language for osx
         - os: osx
           language: generic
-          python: "3.6"
+          python: "3.6.6"
   
 before_install: |
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -24,19 +24,19 @@ before_install: |
     
     # virtualenv doesn't work without pyenv knowledge. venv in Python 3.3
     # doesn't provide Pip by default. So, use `pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv/blob/master/README.md>`_.
-    #brew install pyenv-virtualenv
-    brew install pyenv
+    brew install pyenv-virtualenv
+    #brew install pyenv
     pyenv install $PYTHON
     
     # I would expect something like ``pyenv init; pyenv local $PYTHON`` or
     # ``pyenv shell $PYTHON`` would work, but ``pyenv init`` doesn't seem to
     # modify the Bash environment. ??? So, I hand-set the variables instead.
-    #export PYENV_VERSION=$PYTHON
-    #export PATH="/Users/travis/.pyenv/shims:${PATH}"
-    #pyenv-virtualenv venv
-    #source venv/bin/activate
+    export PYENV_VERSION=$PYTHON
+    export PATH="/Users/travis/.pyenv/shims:${PATH}"
+    pyenv-virtualenv venv
+    source venv/bin/activate
     
-    pyenv local $PYTHON
+    #pyenv local $PYTHON
     
     # A manual check that the correct version of Python is running.
     python --version
