@@ -25,7 +25,7 @@ test_script:
   # for codecov support
   - pip install pytest pytest-cov
   # command to run tests
-  - pytest --cov=./
+  - pytest --cov-report term --cov-report xml --cov=./ tests/
   
 after_test:
   - ps: |
