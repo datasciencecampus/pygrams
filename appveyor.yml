@@ -1,6 +1,6 @@
 # https://pythonhosted.org/CodeChat/appveyor.yml.html
 
-build: false
+build: none
 
 environment:
   matrix:
@@ -20,8 +20,6 @@ install:
   - python setup.py install
   # also need to download punkt tokeniser data
   - python -m nltk.downloader punkt
-  
-build: none
 
 test_script:
   # for codecov support
