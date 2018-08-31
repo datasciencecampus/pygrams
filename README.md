@@ -278,3 +278,10 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
+
+### 3rd Party Library Usage
+
+Various 3rd party libraries are used in this project; these are listed
+on the [dependencies](https://github.com/datasciencecampus/patent_app_detect/network/dependencies) page,
+whose contributions we gratefully acknowledge. 
+
