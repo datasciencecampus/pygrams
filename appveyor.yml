@@ -16,9 +16,16 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   - python -m pip install -U pip
   - python -m easy_install -U setuptools
-  - pip install -e .[test]
-
+  # command to install dependencies
+  - python setup.py install
+  # also need to download punkt tokeniser data
+  - python -m nltk.downloader punkt
+  
 build: none
 
 test_script:
-  - py.test
+  # for codecov support
+  - pip install pytest pytest-cov
+  # command to run tests
+  - pytest --cov=./
+  
