@@ -3,12 +3,12 @@ import pandas as pd
 
 def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, table_name):
     """
-    Description: Creates a table showing changes in feature rankings with focus, time and cite options
+    Description: Creates a table showing changes in feature rankings with focus, time, and cite options
     Receives: tfidf for cpc and random patent sources, citation weights,
         number of features (ngrams) to find, pick=type of tfidf scoring, ngram multiplier,
         table path/filename
-    Returns: Ranking of first six features with time option applied
-    Side-effects: Prints and exports as excel a table as described above
+    Returns: Ranking of first six features with time option applied (for unit test purposes)
+    Side-effects: Exports in excel format a table as described above
 
     Postscript: A (better?) alternative may be to call method main in detect.py as a module,
         passing argparse args for base, focus, time, cite; then read the report files and combine
@@ -22,12 +22,12 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     base_df['Rank'] = base_df.index
     base_df = base_df.reindex(columns=['Term', 'Score', 'Rank'])
 
-    f_set_terms = tfidf.detect_popular_ngrams_in_corpus_excluding_common(
+    focus_set_terms = tfidf.detect_popular_ngrams_in_corpus_excluding_common(
         tfidf_random,
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
         pick=pick, time=False,
         citation_count_dict=None)
-    dict_freqs = dict([((p[0]), p[1]) for p in scores_terms if p[1] in f_set_terms])
+    dict_freqs = dict([((p[0]), p[1]) for p in scores_terms if p[1] in focus_set_terms])
     focus_scores_terms = tuple(dict_freqs.items())
     focus_df = pd.DataFrame(list(focus_scores_terms))[:num_ngrams]
     focus_df.columns = ['Focus Score', 'Term']
