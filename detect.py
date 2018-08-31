@@ -9,6 +9,8 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.visualization.graphs.fdgprep import FDGPrep
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
+from scripts.algorithms.table_output import table_output
+
 
 def year2pandas_latest_date(year_in):
     if year_in == 0:
@@ -33,8 +35,8 @@ def get_args():
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
-    parser.add_argument("-o", "--output", default='report', choices=['fdg', 'wordcloud', 'report', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <all>")
+    parser.add_argument("-o", "--output", default='report', choices=['fdg', 'wordcloud', 'report', 'table', 'all'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <all>")
 
     parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the patent cohort")
     parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the patent cohort (0 is now)")
@@ -59,6 +61,8 @@ def get_args():
                         help="wordcloud filename")
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
+    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
+                        help="table filename")
     parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
 
     args = parser.parse_args()
@@ -109,7 +113,8 @@ def get_tfidf(args, filename, cpc):
 
 
 def main():
-    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds')]
+    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'json'), os.path.join('outputs', 'wordclouds'),
+             os.path.join('outputs', 'table')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
@@ -119,36 +124,56 @@ def main():
     tfidf = get_tfidf(args, path, args.cpc_classification)
 
     newtfidf = None
-    if args.focus:
+    if args.focus or args.output == 'table':
         path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
         newtfidf = get_tfidf(args, path2, None)
 
+    citation_count_dict = None
+    if args.cite:
+        citation_count_dict = load_citation_count_dict()
+
     out = args.output
 
+    ngram_multiplier = 4
+
     if out == 'report':
-        run_report(args, tfidf, newtfidf)
+        run_report(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
     elif out == 'wordcloud' or out == 'all':
-        run_report(args, tfidf, newtfidf, wordclouds=True)
+        run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True, citation_count_dict=citation_count_dict)
+    elif out == 'table' or out == 'all':
+        run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict)
 
     if out == 'fdg' or out == 'all':
         run_fdg(args, tfidf, newtfidf)
 
 
-def run_report(args, tfidf, tfidf_random=None, wordclouds=False):
+def load_citation_count_dict():
+    citation_count_dict = read_pickle(FilePaths.us_patents_citation_dictionary_1of2_pickle_name)
+    citation_count_dict_pt2 = read_pickle(FilePaths.us_patents_citation_dictionary_2of2_pickle_name)
+    citation_count_dict.update(citation_count_dict_pt2)
+    return citation_count_dict
+
+
+def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict):
+    if citation_count_dict is None:
+        citation_count_dict = load_citation_count_dict()
+
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
-    citation_count_dict = None
-    if args.cite:
-        citation_count_dict = read_pickle(FilePaths.us_patents_citation_dictionary_1of2_pickle_name)
-        citation_count_dict_pt2 = read_pickle(FilePaths.us_patents_citation_dictionary_2of2_pickle_name)
-        citation_count_dict.update(citation_count_dict_pt2)
+    table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, args.pick, ngram_multiplier,
+                       args.table_name)
 
-    terms, ngrams_scores_tuple = tfidf.detect_popular_ngrams_in_corpus(number_of_ngrams_to_return=4 * num_ngrams,
-                                                                       pick=args.pick, time=args.time,
-                                                                       citation_count_dict=citation_count_dict)
+
+def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
+    num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
+
+    terms, ngrams_scores_tuple = tfidf.detect_popular_ngrams_in_corpus(
+        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+        pick=args.pick, time=args.time,
+        citation_count_dict=citation_count_dict)
     set_terms = set(terms) if not args.focus \
         else tfidf.detect_popular_ngrams_in_corpus_excluding_common(tfidf_random,
-                                                                    number_of_ngrams_to_return=4 * num_ngrams,
+                                                                    number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
                                                                     pick=args.pick, time=args.time,
                                                                     citation_count_dict=citation_count_dict)
 
