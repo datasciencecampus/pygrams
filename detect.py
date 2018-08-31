@@ -61,6 +61,8 @@ def get_args():
 
     parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
 
+    parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
+
     args = parser.parse_args()
     return args
 
@@ -115,6 +117,11 @@ def main():
 
     args = get_args()
     checkargs(args)
+
+    if args.nltk_path:
+        import nltk
+        nltk.data.path.append(args.nltk_path)
+
     path = os.path.join('data', args.patent_source + ".pkl.bz2")
     tfidf = get_tfidf(args, path, args.cpc_classification)
 
