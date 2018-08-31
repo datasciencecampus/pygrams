@@ -253,3 +253,23 @@ optional arguments:
 ### Patent data
 
 Patent data was obtained from the [United States Patent and Trademark Office (USPTO)](https://www.uspto.gov) through the [Bulk Data Storage System (BDSS)](https://bulkdata.uspto.gov). In particular we used the `Patent Grant Full Text Data/APS (JAN 1976 - PRESENT)` dataset, using the data from 2004 onwards in XML 4.* format.
+
+### scikit-learn usage
+
+Sections of this code are based on [scikit-learn](https://github.com/scikit-learn/scikit-learn) sources.
+
+### Knockout JavaScript library
+
+The [Knockout](http://knockoutjs.com/) JavaScript library is used with our force-directed graph output.
+
+### WebGenresForceDirectedGraph
+
+The [WebGenresForceDirectedGraph](https://github.com/Aeternia-ua/WebGenresForceDirectedGraph) 
+project by Iryna Herasymuk is used to generate the force directed graph output.
+
+### 3rd Party Library Usage
+
+Various 3rd party libraries are used in this project; these are listed
+on the [dependencies](https://github.com/datasciencecampus/patent_app_detect/network/dependencies) page,
+whose contributions we gratefully acknowledge. 
+

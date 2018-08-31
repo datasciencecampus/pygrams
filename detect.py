@@ -55,7 +55,7 @@ def get_args():
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
-    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds', 'wordcloud-tech.png'),
+    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds', 'wordcloud_tech.png'),
                         help="wordcloud filename")
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
