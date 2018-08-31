@@ -9,7 +9,7 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.visualization.graphs.fdgprep import FDGPrep
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
-from scripts.algorithms.table_output import table_output
+from scripts.utils.table_output import table_output
 
 
 def year2pandas_latest_date(year_in):

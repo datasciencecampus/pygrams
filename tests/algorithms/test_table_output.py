@@ -4,7 +4,7 @@ import unittest
 from detect import get_tfidf
 from pandas import read_pickle
 from scripts import FilePaths
-from scripts.algorithms.table_output import table_output
+from scripts.utils.table_output import table_output
 
 
 class TestTableOutput(unittest.TestCase):
