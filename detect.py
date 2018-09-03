@@ -57,13 +57,15 @@ def get_args():
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
-    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds', 'wordcloud-tech.png'),
+    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds', 'wordcloud_tech.png'),
                         help="wordcloud filename")
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
     parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
                         help="table filename")
     parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
+
+    parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
 
     args = parser.parse_args()
     return args
@@ -120,6 +122,11 @@ def main():
 
     args = get_args()
     checkargs(args)
+
+    if args.nltk_path:
+        import nltk
+        nltk.data.path.append(args.nltk_path)
+
     path = os.path.join('data', args.patent_source + ".pkl.bz2")
     tfidf = get_tfidf(args, path, args.cpc_classification)
 
