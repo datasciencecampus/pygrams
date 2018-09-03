@@ -96,13 +96,23 @@ The command ```python detect.py -ps=USPTO-random-10000``` instructs the program 
 from a file located in ```data/USPTO-random-10000.pkl.bz2```. Hence ```-ps=NAME``` looks for ```data/NAME.pkl.bz2```.
 
 We have hosted larger datasets on a google drive, as the files are too large for GitHub version control. We have made available:
-- All USPTO patents from 2004 (477Mb): [USPTO-all.pkl.bz2](https://drive.google.com/open?id=1m7-_b7-4U7jkNSj4eBt2vE9wol2YAnJJ)
+- All USPTO patents from 2004 (477Mb, 3.1M patents): [USPTO-all.pkl.bz2](https://drive.google.com/open?id=1m7-_b7-4U7jkNSj4eBt2vE9wol2YAnJJ)
  
 To use additional files, follow the link and download the pickle file into the data folder. Access the new data
 with ```-ps=NameWithoutFileExtension```; for example, ```USPTO-all.pkl.bz2``` would be loaded with ```-ps=USPTO-all```.
 
-Note that large datasets will require a large amount of system memory (such as 64Gb), otherwise it will process very slowly
-as virtual memory (swap) is very likely to be used.
+### System requirements
+
+We have stress-tested `detect.py` using Windows 10 (64-bit) with 8Gb memory (VM hosted on 2.1GHz Xeon E5-2620). We observed
+a linear increase in both execution time and memory usage in relation to number of patents analysed, resulting in:
+- Processing time: 41.2 patents/sec
+- Memory usage: 236.9 patents/Mb
+
+For the sample files, this was recorded as:
+- 1,000 patents: 0:00:37
+- 10,000 patents: 0:04:45 (285s); 283Mb
+- 100,000 patents: 0:40:10 (2,410s); 810Mb
+- 500,000 patents: 3:22:08 (12,128s); 2,550Mb
 
 ### Choosing CPC classification
 
@@ -244,3 +254,23 @@ optional arguments:
 ### Patent data
 
 Patent data was obtained from the [United States Patent and Trademark Office (USPTO)](https://www.uspto.gov) through the [Bulk Data Storage System (BDSS)](https://bulkdata.uspto.gov). In particular we used the `Patent Grant Full Text Data/APS (JAN 1976 - PRESENT)` dataset, using the data from 2004 onwards in XML 4.* format.
+
+### scikit-learn usage
+
+Sections of this code are based on [scikit-learn](https://github.com/scikit-learn/scikit-learn) sources.
+
+### Knockout JavaScript library
+
+The [Knockout](http://knockoutjs.com/) JavaScript library is used with our force-directed graph output.
+
+### WebGenresForceDirectedGraph
+
+The [WebGenresForceDirectedGraph](https://github.com/Aeternia-ua/WebGenresForceDirectedGraph) 
+project by Iryna Herasymuk is used to generate the force directed graph output.
+
+### 3rd Party Library Usage
+
+Various 3rd party libraries are used in this project; these are listed
+on the [dependencies](https://github.com/datasciencecampus/patent_app_detect/network/dependencies) page,
+whose contributions we gratefully acknowledge. 
+
