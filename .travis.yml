@@ -8,7 +8,7 @@ matrix:
           python: "3.6.6"
           dist: trusty
 
-        # Use generic language for osx
+        # Use generic language for osx; taken from https://pythonhosted.org/CodeChat/.travis.yml.html
         - os: osx
           language: generic
           env: PYTHON=3.6.6
@@ -25,7 +25,6 @@ before_install: |
     # virtualenv doesn't work without pyenv knowledge. venv in Python 3.3
     # doesn't provide Pip by default. So, use `pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv/blob/master/README.md>`_.
     brew install pyenv-virtualenv
-    #brew install pyenv
     pyenv install $PYTHON
     
     # I would expect something like ``pyenv init; pyenv local $PYTHON`` or
@@ -35,8 +34,6 @@ before_install: |
     export PATH="/Users/travis/.pyenv/shims:${PATH}"
     pyenv-virtualenv venv
     source venv/bin/activate
-    
-    #pyenv local $PYTHON
     
     # A manual check that the correct version of Python is running.
     python --version
