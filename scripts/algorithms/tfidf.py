@@ -217,8 +217,6 @@ class TFIDF:
             print('...skipping as 0 patents...')
             return []
 
-        tfidf_nonzero = tfidf_matrix.nonzero()
-
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
             epoch = datetime.datetime.utcfromtimestamp(0)
@@ -235,11 +233,10 @@ class TFIDF:
                 X_std = (X - mn) / (mx - mn)
                 time_weights[patent_index] = X_std
 
-            for i, j in zip(tfidf_nonzero[0], tfidf_nonzero[1]):
-                tfidf_matrix[i, j] *= time_weights[i]
+            for i, v in enumerate(time_weights):
+                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
 
         if citation_count_dict:
-
             patent_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe.patent_id)}
 
             citation_count_for_patent_id_dict = {}
@@ -261,8 +258,8 @@ class TFIDF:
 
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
-            for i, j in zip(tfidf_nonzero[0], tfidf_nonzero[1]):
-                tfidf_matrix[i, j] *= list_of_citation_counts[i]
+            for i, v in enumerate(list_of_citation_counts):
+                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
 
         # pick filter
         tfidf_csc_matrix = tfidf_matrix.tocsc()
