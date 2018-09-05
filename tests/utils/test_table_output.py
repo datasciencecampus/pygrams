@@ -1,4 +1,3 @@
-import os
 import unittest
 
 import pandas as pd
@@ -153,7 +152,6 @@ class TestTableOutput(unittest.TestCase):
         max_n = 3
         min_n = 2
 
-        os.makedirs(os.path.join('outputs', 'table'), exist_ok=True)
         ngram_multiplier = 4
 
         num_ngrams_report = 25
