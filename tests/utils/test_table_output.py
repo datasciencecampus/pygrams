@@ -1,8 +1,10 @@
 import argparse
 import os
 import unittest
-from detect import get_tfidf
+
 from pandas import read_pickle
+
+from detect import get_tfidf
 from scripts import FilePaths
 from scripts.utils.table_output import table_output
 
