@@ -206,25 +206,16 @@ class TFIDF:
     def transform_corpus_to_tidf(self):
         return self.tfidf_vectorizer.transform(self.patent_abstracts)
 
-    def detect_popular_ngrams_in_corpus(self, input_text=None,
-                                        number_of_ngrams_to_return=200, pick='sum', time=False,
+    def detect_popular_ngrams_in_corpus(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                         citation_count_dict=None):
 
-        if input_text is None:
-            tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
-        else:
-            tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
+        tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
 
-        first_row = 0
-        last_row = len(self.__dataframe['publication_date'])
-        print(f'Processing TFIDF of {last_row - first_row:,} patents')
+        print(f'Processing TFIDF of {tfidf_matrix.shape[0]:,} patents')
 
-        if first_row == last_row:
+        if tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
             return []
-
-        tfidf_matrix_row_filtered = tfidf_matrix[first_row:last_row, :]
-        tfidf_nonzero = tfidf_matrix_row_filtered.nonzero()
 
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
@@ -242,11 +233,10 @@ class TFIDF:
                 X_std = (X - mn) / (mx - mn)
                 time_weights[patent_index] = X_std
 
-            for i, j in zip(tfidf_nonzero[0], tfidf_nonzero[1]):
-                tfidf_matrix_row_filtered[i, j] *= time_weights[i]
+            for i, v in enumerate(time_weights):
+                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
 
         if citation_count_dict:
-
             patent_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe.patent_id)}
 
             citation_count_for_patent_id_dict = {}
@@ -268,11 +258,11 @@ class TFIDF:
 
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
-            for i, j in zip(tfidf_nonzero[0], tfidf_nonzero[1]):
-                tfidf_matrix_row_filtered[i, j] *= list_of_citation_counts[i]
+            for i, v in enumerate(list_of_citation_counts):
+                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
 
         # pick filter
-        tfidf_csc_matrix = tfidf_matrix_row_filtered.tocsc()
+        tfidf_csc_matrix = tfidf_matrix.tocsc()
 
         if pick == 'median':
             pick_func = np.median
