@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, table_name):
+def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, writer):
     """
     Description: Creates a table showing changes in feature rankings with focus, time, and cite options
     Receives: tfidf for cpc and random patent sources, citation weights,
@@ -59,14 +59,9 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     df = pd.merge(df, citation_df, how='outer')
     df['Diff Base to Citation Rank'] = df['Rank'] - df['Citation Rank']
 
-    writer = pd.ExcelWriter(table_name, engine='xlsxwriter')
     df.to_excel(writer, 'Summary')
     base_df.to_excel(writer, 'Base')
     focus_df.to_excel(writer, 'Focus')
     time_df.to_excel(writer, 'Time')
     citation_df.to_excel(writer, 'Cite')
     writer.save()
-
-    check_list = list(df['Time Rank'].iloc[:6])
-
-    return check_list

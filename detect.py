@@ -1,15 +1,14 @@
 import argparse
 import os
 
-from pandas import Timestamp, read_pickle
+from pandas import Timestamp, read_pickle, ExcelWriter
 
 from scripts import FilePaths
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
+from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.fdgprep import FDGPrep
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
-
-from scripts.utils.table_output import table_output
 
 
 def year2pandas_latest_date(year_in):
@@ -167,8 +166,9 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict):
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
-    table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, args.pick, ngram_multiplier,
-                       args.table_name)
+    writer = ExcelWriter(args.table_name, engine='xlsxwriter')
+
+    table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, args.pick, ngram_multiplier, writer)
 
 
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
