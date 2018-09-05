@@ -1,27 +1,24 @@
-from random import randint
-
 import pandas as pd
 
-df = pd.read_pickle("data/US-1000-random.pkl.bz2")
-df = df.reset_index(drop=True)
+from tests.vvcode.abstracts2pickle import us_vv_patents_pickle_name
 
-indices = [randint(0, 999) for p in range(100)]
+# Creates code template for user to add in expected terms so these can be compared against generated terms
+if __name__ == '__main__':
+    df = pd.read_pickle(us_vv_patents_pickle_name)
+    df = df.reset_index(drop=True)
 
-rand_df = df.ix[indices]
+    for index, row in df.iterrows():
+        abstract = row['abstract']
 
-for index, row in rand_df.iterrows():
-    pid = row['patent_id']
-    abstract = row['abstract']
+        test_def = f'    def test_patent_{index}(self):'
+        test_body = f"        text = '''{abstract}'''"
 
-    testdef = '    def test_patent_x' + pid + '(self):'
-    testbody = '        text = ' + '\'\'\'' + abstract + '\'\'\''
+        test_rest = '''        expected = []
+            actual = self.key_term_extractor.extract(text)
+    
+            self.assertGreaterOrEqualDiceScore(expected, actual)'''
 
-    testrest = '''        expected = []
-        actual = self.key_term_extractor.extract(text)
-
-        self.assertGreaterOrEqualDiceScore(expected, actual)'''
-
-    print(testdef)
-    print(testbody)
-    print(testrest)
-    print("")
+        print(test_def)
+        print(test_body)
+        print(test_rest)
+        print("")
