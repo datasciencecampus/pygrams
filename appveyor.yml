@@ -19,7 +19,7 @@ install:
   # command to install dependencies
   - python setup.py install
   # also need to download punkt tokeniser data
-  - python -m nltk.downloader punkt
+  - python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 
 test_script:
   # for codecov support

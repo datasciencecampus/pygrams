@@ -53,7 +53,7 @@ The tool has been developed to work on both Windows and MacOS. To install:
    ``` 
    pip install -e .
    ```
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email thanasis.anthopoulos@ons.gov.uk or ian.grimstead@ons.gov.uk
+   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email ons.patent.explorer@gmail.com
    with a screenshot of the failure and we will get back to you.
 
 ## How to use
