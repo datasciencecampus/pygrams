@@ -5,9 +5,11 @@ from tqdm import tqdm
 
 
 class PatentsPickle2DataFrame(object):
-    def __init__(self, data_frame_pickle_file_name, date_from=None, date_to=None, classification=None):
+    def __init__(self, data_frame_pickle_file_name, date_from=None, date_to=None, classification=None,
+                 pickle_reader=pd.read_pickle, print_func=print):
 
-        self.__data_frame = pd.read_pickle(data_frame_pickle_file_name)
+        self.__print_func = print_func
+        self.__data_frame = pickle_reader(data_frame_pickle_file_name)
         self.__data_frame.reset_index(inplace=True, drop=True)
 
         if date_from is not None and date_to is not None:
@@ -29,11 +31,12 @@ class PatentsPickle2DataFrame(object):
         _date_to = pd.Timestamp(date_to)
 
         self.__data_frame.sort_values('publication_date', inplace=True)
-        print(f'Patents readied; {self.__data_frame.shape[0]:,} patents loaded')
+        self.__print_func(f'Sifting patents between {_date_from.strftime("%d-%b-%Y")} and'
+                          f' {_date_to.strftime("%d-%b-%Y")}')
 
         self.__data_frame.drop(self.__data_frame[(self.__data_frame.publication_date < _date_from) | (
                 self.__data_frame.publication_date > _date_to)].index, inplace=True)
-        print(f'{self.__data_frame.shape[0]:,} patents available after publication date sift')
+        self.__print_func(f'{self.__data_frame.shape[0]:,} patents available after publication date sift')
 
         self.__data_frame.reset_index(inplace=True, drop=True)
 
@@ -51,7 +54,7 @@ class PatentsPickle2DataFrame(object):
 
         self.__data_frame.drop(indexes_to_delete, inplace=True)
         self.__data_frame.reset_index(inplace=True, drop=True)
-        print(f'{self.__data_frame.shape[0]:,} patents with {cpc_in} CPC classification will be analysed')
+        self.__print_func(f'{self.__data_frame.shape[0]:,} patents with {cpc_in} CPC classification will be analysed')
 
     def randomsample(self, random_seed, num_of_random_samples, in_date_order=False):
         if in_date_order:

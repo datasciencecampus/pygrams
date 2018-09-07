@@ -9,6 +9,40 @@ from tqdm import tqdm
 
 from scripts import FilePaths
 
+"""Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
+New BSD License
+
+Copyright (c) 2007–2018 The scikit-learn developers.
+All rights reserved.
+
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+  a. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+  b. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+  c. Neither the name of the Scikit-learn Developers  nor the names of
+     its contributors may be used to endorse or promote products
+     derived from this software without specific prior written
+     permission. 
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+"""
+
 
 class LemmaTokenizer(object):
     def __init__(self):
@@ -72,6 +106,8 @@ class WordAnalyzer(object):
     # Based on VectorizeMixin in sklearn text.py
     @staticmethod
     def analyzer(doc):
+        """based on VectorizerMixin._word_ngrams in sklearn/feature_extraction/text.py,
+        from scikit-learn; extended to prevent generation of n-grams containing stop words"""
         tokens = WordAnalyzer.tokenizer(WordAnalyzer.preprocess(doc))
 
         # handle token n-grams
@@ -170,37 +206,16 @@ class TFIDF:
     def transform_corpus_to_tidf(self):
         return self.tfidf_vectorizer.transform(self.patent_abstracts)
 
-    def detect_popular_ngrams_in_corpus(self, input_text=None, from_date=None, to_date=None,
-                                        number_of_ngrams_to_return=200, pick='sum', time=False,
+    def detect_popular_ngrams_in_corpus(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                         citation_count_dict=None):
 
-        if input_text is None:
-            tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
-        else:
-            tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
+        tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
 
-        first_row = 0
-        if from_date is not None:
-            for patent_index, pub_date in enumerate(self.__dataframe['publication_date']):
-                first_row = patent_index
-                if from_date <= pub_date:
-                    break
+        print(f'Processing TFIDF of {tfidf_matrix.shape[0]:,} patents')
 
-        last_row = len(self.__dataframe['publication_date'])
-        if to_date is not None:
-            for patent_index, pub_date in enumerate(self.__dataframe['publication_date']):
-                last_row = patent_index
-                if to_date < pub_date:
-                    break
-
-        print(f'In date range {from_date} to {to_date} there are {last_row - first_row:,} patents')
-
-        if first_row == last_row:
+        if tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
             return []
-
-        tfidf_matrix_row_filtered = tfidf_matrix[first_row:last_row, :]
-        tfidf_nonzero = tfidf_matrix_row_filtered.nonzero()
 
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
@@ -218,11 +233,10 @@ class TFIDF:
                 X_std = (X - mn) / (mx - mn)
                 time_weights[patent_index] = X_std
 
-            for i, j in zip(tfidf_nonzero[0], tfidf_nonzero[1]):
-                tfidf_matrix_row_filtered[i, j] *= time_weights[i]
+            for i, v in enumerate(time_weights):
+                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
 
         if citation_count_dict:
-
             patent_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe.patent_id)}
 
             citation_count_for_patent_id_dict = {}
@@ -244,11 +258,11 @@ class TFIDF:
 
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
-            for i, j in zip(tfidf_nonzero[0], tfidf_nonzero[1]):
-                tfidf_matrix_row_filtered[i, j] *= list_of_citation_counts[i]
+            for i, v in enumerate(list_of_citation_counts):
+                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
 
         # pick filter
-        tfidf_csc_matrix = tfidf_matrix_row_filtered.tocsc()
+        tfidf_csc_matrix = tfidf_matrix.tocsc()
 
         if pick == 'median':
             pick_func = np.median

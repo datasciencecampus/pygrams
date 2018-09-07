@@ -862,29 +862,31 @@ abstracts = [
     the binding agent to form a ceramic/metal composite material. Also disclosed is a method of making the 
     improved composite material and articles made incorporating the material. '''
 ]
-frames = []
 
-for abstract in abstracts:
-    df = pd.DataFrame(
-        {'patent_id': "blah",
-         'application_id': "blah",
-         'related_document_ids': [[1, 2]],
-         'abstract': abstract,
-         'inventor_names': [[3, 4]],
-         'inventor_countries': [[5, 6]],
-         'inventor_cities': [[7]],
-         'invention_title': "blah",
-         'claim1': "blah",
-         'classifications_cpc': [[8]],
-         'applicant_cities': [[9]],
-         'applicant_countries': [[12]],
-         'applicant_organisation': [[14]],
-         'application_date': "blah",
-         'publication_date': "blah",
-         'patents_cited': [[16]]
-         })
-    frames.append(df)
+if __name__ == '__main__':
+    frames = []
 
-df_all = pd.concat(frames)
+    for abstract in abstracts:
+        df = pd.DataFrame(
+            {'patent_id': "blah",
+             'application_id': "blah",
+             'related_document_ids': [[1, 2]],
+             'abstract': abstract,
+             'inventor_names': [[3, 4]],
+             'inventor_countries': [[5, 6]],
+             'inventor_cities': [[7]],
+             'invention_title': "blah",
+             'claim1': "blah",
+             'classifications_cpc': [[8]],
+             'applicant_cities': [[9]],
+             'applicant_countries': [[12]],
+             'applicant_organisation': [[14]],
+             'application_date': "blah",
+             'publication_date': "blah",
+             'patents_cited': [[16]]
+             })
+        frames.append(df)
 
-df_all.to_pickle(us_vv_patents_pickle_name)
+    df_all = pd.concat(frames)
+
+    df_all.to_pickle(us_vv_patents_pickle_name)

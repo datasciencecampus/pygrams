@@ -1,4 +1,3 @@
-import random
 import matplotlib
 matplotlib.use('TkAgg')
 
@@ -23,15 +22,6 @@ class MultiCloudPlot(object):
                                          regexp=None, max_words=self.__max_words).generate_from_frequencies(
                 self.__freqs)
 
-    def red_color_func(self, word, font_size, position, orientation, random_state=None, **kwargs):
-        return "hsl(10, 100%%, %d%%)" % random.randint(40, 100)
-
-    def amber_color_func(self, word, font_size, position, orientation, random_state=None, **kwargs):
-        return "hsl(35, 100%%, %d%%)" % random.randint(40, 100)
-
-    def green_color_func(self, word, font_size, position, orientation, random_state=None, **kwargs):
-        return "hsl(150, 100%%, %d%%)" % random.randint(40, 100)
-
     def plot_cloud(self, titlein, output_file_name, interpolation='bilinear'):
 
         fig1 = plt.figure(1)
@@ -42,6 +32,6 @@ class MultiCloudPlot(object):
         plt.axis("off")
 
         fig1.suptitle(titlein, fontsize=14)
-        plt.show()
         fig1.savefig(output_file_name, dpi=300)
+        plt.show()
         plt.close(fig1)
