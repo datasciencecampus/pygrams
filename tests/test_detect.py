@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest import mock
 
@@ -30,8 +31,8 @@ class TestDetect(unittest.TestCase):
     @mock.patch("detect.open", create=True)
     def test_json_configuration_encoding_minimal(self, mock_open, mock_json_dump):
         patent_pickle_file_name = 'test.pkl'
-        report_file_name = '/dummy/test.txt'
-        json_file_name = '/dummy/test.json'
+        report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
+        json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
         args = detect.get_args(['-j', f'--report_name={report_file_name}'])
 
         detect.write_config_to_json(args, patent_pickle_file_name)
@@ -62,8 +63,8 @@ class TestDetect(unittest.TestCase):
     @mock.patch("detect.open", create=True)
     def test_json_configuration_encoding_maximal(self, mock_open, mock_json_dump):
         patent_pickle_file_name = 'test.pkl'
-        report_file_name = '/dummy/test.txt'
-        json_file_name = '/dummy/test.json'
+        report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
+        json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
         args = detect.get_args(['-j', f'--report_name={report_file_name}', '-c', '-t', '-f', '-p=max', '-cpc=Y12',
                                 '-yf=1998', '-yt=2001'])
 
