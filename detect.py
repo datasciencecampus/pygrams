@@ -210,7 +210,7 @@ def main():
     patent_pickle_file_name = os.path.join('data', args.patent_source + ".pkl.bz2")
 
     if args.json:
-        write_config_to_json(args, patent_pickle_file_name)
+        write_config_to_json(args, os.path.abspath(patent_pickle_file_name))
 
     if args.nltk_path:
         import nltk
