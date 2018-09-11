@@ -173,6 +173,7 @@ def run_fdg(args, tf_idf, tf_idf2=None):
 
 
 def write_config_to_json(args, patent_pickle_file_name):
+    patent_pickle_file_name = os.path.abspath(patent_pickle_file_name)
     report_file_name = os.path.abspath(args.report_name)
     json_file_name = os.path.splitext(report_file_name)[0] + '.json'
 
