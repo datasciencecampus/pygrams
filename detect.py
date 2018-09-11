@@ -1,5 +1,7 @@
 import argparse
+import json
 import os
+import sys
 
 from pandas import Timestamp, read_pickle, ExcelWriter
 
@@ -24,7 +26,7 @@ def year2pandas_earliest_date(year_in):
     return Timestamp(year_string)
 
 
-def get_args():
+def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for patent texts")
 
     parser.add_argument("-f", "--focus", default=False, action="store_true",
@@ -36,7 +38,8 @@ def get_args():
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
     parser.add_argument("-o", "--output", default='report', choices=['fdg', 'wordcloud', 'report', 'table', 'all'],
                         help="options are: <fdg> <wordcloud> <report> <table> <all>")
-
+    parser.add_argument("-j", "--json", default=False, action="store_true",
+                        help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the patent cohort")
     parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the patent cohort (0 is now)")
 
@@ -66,7 +69,7 @@ def get_args():
 
     parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
 
-    args = parser.parse_args()
+    args = parser.parse_args(command_line_arguments)
     return args
 
 
@@ -104,53 +107,13 @@ def check_cpc_between_years(args, df):
         exit(0)
 
 
-def get_tfidf(args, filename, cpc):
+def get_tfidf(args, pickle_file_name, cpc):
     date_from = year2pandas_earliest_date(args.year_from)
     date_to = year2pandas_latest_date(args.year_to)
 
-    df = PatentsPickle2DataFrame(filename, classification=cpc, date_from=date_from, date_to=date_to).data_frame
+    df = PatentsPickle2DataFrame(pickle_file_name, classification=cpc, date_from=date_from, date_to=date_to).data_frame
     check_cpc_between_years(args, df)
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n))
-
-
-def main():
-    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
-             os.path.join('outputs', 'table')]
-    for path in paths:
-        os.makedirs(path, exist_ok=True)
-
-    args = get_args()
-    checkargs(args)
-
-    if args.nltk_path:
-        import nltk
-        nltk.data.path.append(args.nltk_path)
-
-    path = os.path.join('data', args.patent_source + ".pkl.bz2")
-    tfidf = get_tfidf(args, path, args.cpc_classification)
-
-    newtfidf = None
-    if args.focus or args.output == 'table':
-        path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
-        newtfidf = get_tfidf(args, path2, None)
-
-    citation_count_dict = None
-    if args.cite:
-        citation_count_dict = load_citation_count_dict()
-
-    out = args.output
-
-    ngram_multiplier = 4
-
-    if out == 'report':
-        run_report(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
-    elif out == 'wordcloud' or out == 'all':
-        run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True, citation_count_dict=citation_count_dict)
-    elif out == 'table' or out == 'all':
-        run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict)
-
-    if out == 'fdg' or out == 'all':
-        run_fdg(args, tfidf, newtfidf)
 
 
 def load_citation_count_dict():
@@ -178,11 +141,11 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
         pick=args.pick, time=args.time,
         citation_count_dict=citation_count_dict)
-    set_terms = set(terms) if not args.focus \
-        else tfidf.detect_popular_ngrams_in_corpus_excluding_common(tfidf_random,
-                                                                    number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-                                                                    pick=args.pick, time=args.time,
-                                                                    citation_count_dict=citation_count_dict)
+    set_terms = set(terms) if not args.focus else \
+        tfidf.detect_popular_ngrams_in_corpus_excluding_common(tfidf_random,
+                                                               number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+                                                               pick=args.pick, time=args.time,
+                                                               citation_count_dict=citation_count_dict)
 
     dict_freqs = dict([((p[1]), p[0]) for p in ngrams_scores_tuple if p[1] in set_terms])
 
@@ -207,6 +170,76 @@ def run_fdg(args, tf_idf, tf_idf2=None):
     graph = FDGPrep(args.num_ngrams_fdg)
     graph.fdg_tfidf(tf_idf, tf_idf2, args)
     graph.save_graph("key-terms", 'data')
+
+
+def write_config_to_json(args, patent_pickle_file_name):
+    report_file_name = os.path.abspath(args.report_name)
+    json_file_name = os.path.splitext(report_file_name)[0] + '.json'
+
+    json_data = {
+        'paths': {
+            'data': patent_pickle_file_name,
+            'tech_report': report_file_name
+        },
+        'year': {
+            'from': args.year_from,
+            'to': args.year_to
+        },
+        'parameters': {
+            'cpc': '' if args.cpc_classification is None else args.cpc_classification,
+            'pick': args.pick,
+            'time': args.time,
+            'cite': args.cite,
+            'focus': args.focus
+        }
+    }
+
+    with open(json_file_name, 'w') as json_file:
+        json.dump(json_data, json_file)
+
+
+def main():
+    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
+             os.path.join('outputs', 'table')]
+    for path in paths:
+        os.makedirs(path, exist_ok=True)
+
+    args = get_args(sys.argv[1:])
+    checkargs(args)
+
+    patent_pickle_file_name = os.path.join('data', args.patent_source + ".pkl.bz2")
+
+    if args.json:
+        write_config_to_json(args, patent_pickle_file_name)
+
+    if args.nltk_path:
+        import nltk
+        nltk.data.path.append(args.nltk_path)
+
+    tfidf = get_tfidf(args, patent_pickle_file_name, args.cpc_classification)
+
+    newtfidf = None
+    if args.focus or args.output == 'table':
+        path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
+        newtfidf = get_tfidf(args, path2, None)
+
+    citation_count_dict = None
+    if args.cite:
+        citation_count_dict = load_citation_count_dict()
+
+    out = args.output
+
+    ngram_multiplier = 4
+
+    if out == 'report':
+        run_report(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
+    elif out == 'wordcloud' or out == 'all':
+        run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True, citation_count_dict=citation_count_dict)
+    elif out == 'table' or out == 'all':
+        run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict)
+
+    if out == 'fdg' or out == 'all':
+        run_fdg(args, tfidf, newtfidf)
 
 
 if __name__ == '__main__':
