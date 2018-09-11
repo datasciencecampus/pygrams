@@ -149,7 +149,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
     with open(args.report_name, 'w') as file:
         counter = 1
-        for term, score in dict_freqs.items():
+        for score, term in dict_freqs.items():
 
             line = f' {term:30} {score:f}'
             file.write(line)
