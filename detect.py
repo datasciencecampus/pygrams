@@ -4,6 +4,7 @@ import os
 from pandas import Timestamp, read_pickle, ExcelWriter
 
 from scripts import FilePaths
+from scripts.algorithms import term_focus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
@@ -27,8 +28,10 @@ def year2pandas_earliest_date(year_in):
 def get_args():
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for patent texts")
 
-    parser.add_argument("-f", "--focus", default=False, action="store_true",
-                        help="clean output from terms that appear in general")
+    parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
+                        help="clean output from terms that appear in general; 'set': set difference, "
+                             "'chi2': chi2 for feature importance, "
+                             "'mutual': mutual information for feature importance")
     parser.add_argument("-c", "--cite", default=False, action="store_true", help="weight terms by citations")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
 
@@ -130,7 +133,7 @@ def main():
     tfidf = get_tfidf(args, path, args.cpc_classification)
 
     newtfidf = None
-    if args.focus or args.output == 'table':
+    if args.focus is not None or args.output == 'table':
         path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
         newtfidf = get_tfidf(args, path2, None)
 
@@ -166,39 +169,34 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict):
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
+    print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, args.pick, ngram_multiplier, writer)
+    table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, args.pick, ngram_multiplier, args.time,
+                 args.focus, writer)
 
 
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
-    terms, ngrams_scores_tuple = tfidf.detect_popular_ngrams_in_corpus(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=args.pick, time=args.time,
-        citation_count_dict=citation_count_dict)
-    set_terms = set(terms) if not args.focus \
-        else tfidf.detect_popular_ngrams_in_corpus_excluding_common(tfidf_random,
-                                                                    number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-                                                                    pick=args.pick, time=args.time,
-                                                                    citation_count_dict=citation_count_dict)
-
-    dict_freqs = dict([((p[1]), p[0]) for p in ngrams_scores_tuple if p[1] in set_terms])
+    dict_freqs, focus_set_terms, _ = term_focus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
+                                                                                citation_count_dict, ngram_multiplier,
+                                                                                num_ngrams,
+                                                                                tfidf, tfidf_random)
 
     with open(args.report_name, 'w') as file:
         counter = 1
         for term, score in dict_freqs.items():
 
-            line = ' {:30} {:f}\n'.format(term, score)
+            line = f' {term:30} {score:f}'
             file.write(line)
-            print(str(counter) + "." + line)
+            print(f'{counter}. {line}')
             counter += 1
             if counter > args.num_ngrams_report:
                 break
 
     if wordclouds:
-        doc_all = ' '.join(set_terms)
+        doc_all = ' '.join(focus_set_terms)
         wordcloud = MultiCloudPlot(doc_all, freqsin=dict_freqs, max_words=args.num_ngrams_wordcloud)
         wordcloud.plot_cloud(args.wordcloud_title, args.wordcloud_name)
 

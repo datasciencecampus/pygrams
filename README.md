@@ -161,11 +161,20 @@ python detect.py -c
 
 ### Term focus
 
-This option utilises a second random patent dataset, by default `USPTO-random-10000`, whose terms are discounted from the chosen CPC classification to try and 'focus' the identified terms away from terms found more generally in the patent dataset. An example of choosing a larger 
+This option utilises a second random patent dataset, by default `USPTO-random-10000`
+(termed the focus source),
+whose terms are discounted from the chosen CPC classification to try and 'focus' the
+identified terms away from terms found more generally in the patent dataset. An
+example focus (using `set` difference) is as follows:
 
 ```
-python detect.py -f
+python detect.py -f set
 ```
+
+The available focus options are:
+- `set` discounts terms that are also found in the focus source
+- `chi2` discounts terms that are not found in the focus source using chi2
+- `mutual` discounts terms that are not found in the focus source using mutual information
 
 ### Choose focus source
 
@@ -197,13 +206,15 @@ An edited version of the help output is included below. This starts with a summa
 
 ```
 python detect.py -h
-usage: detect.py [-h] [-f] [-c] [-t] [-p {median,max,sum,avg}]
-                 [-o {fdg,wordcloud,report,all}] [-yf YEAR_FROM] [-yt YEAR_TO]
-                 [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
-                 [-nf NUM_NGRAMS_FDG] [-ps PATENT_SOURCE] [-fs FOCUS_SOURCE]
-                 [-mn {1,2,3}] [-mx {1,2,3}] [-rn REPORT_NAME]
-                 [-wn WORDCLOUD_NAME] [-wt WORDCLOUD_TITLE]
-                 [-cpc CPC_CLASSIFICATION]
+usage: detect.py [-h] [-f {set,chi2,mutual}] [-c] [-t]
+                 [-p {median,max,sum,avg}]
+                 [-o {fdg,wordcloud,report,table,all}] [-yf YEAR_FROM]
+                 [-yt YEAR_TO] [-np NUM_NGRAMS_REPORT]
+                 [-nd NUM_NGRAMS_WORDCLOUD] [-nf NUM_NGRAMS_FDG]
+                 [-ps PATENT_SOURCE] [-fs FOCUS_SOURCE] [-mn {1,2,3}]
+                 [-mx {1,2,3}] [-rn REPORT_NAME] [-wn WORDCLOUD_NAME]
+                 [-wt WORDCLOUD_TITLE] [-tn TABLE_NAME]
+                 [-cpc CPC_CLASSIFICATION] [-nltk NLTK_PATH]
 
 create report, wordcloud, and fdg graph for patent texts
 
@@ -212,14 +223,17 @@ It continues with a detailed description of the arguments:
 ```
 optional arguments:
   -h, --help            show this help message and exit
-  -f, --focus           clean output from terms that appear in general
+  -f {set,chi2,mutual}, --focus {set,chi2,mutual}
+                        clean output from terms that appear in general; 'set':
+                        set difference, 'chi2': chi2 for feature importance,
+                        'mutual': mutual information for feature importance
   -c, --cite            weight terms by citations
   -t, --time            weight terms by time
   -p {median,max,sum,avg}, --pick {median,max,sum,avg}
                         options are <median> <max> <sum> <avg> defaults to
                         sum. Average is over non zero values
-  -o {fdg,wordcloud,report,all}, --output {fdg,wordcloud,report,all}
-                        options are: <fdg> <wordcloud> <report> <all>
+  -o {fdg,wordcloud,report,table,all}, --output {fdg,wordcloud,report,table,all}
+                        options are: <fdg> <wordcloud> <report> <table> <all>
   -yf YEAR_FROM, --year_from YEAR_FROM
                         The first year for the patent cohort
   -yt YEAR_TO, --year_to YEAR_TO
@@ -244,8 +258,12 @@ optional arguments:
                         wordcloud filename
   -wt WORDCLOUD_TITLE, --wordcloud_title WORDCLOUD_TITLE
                         wordcloud title
+  -tn TABLE_NAME, --table_name TABLE_NAME
+                        table filename
   -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
                         the desired cpc classification
+  -nltk NLTK_PATH, --nltk_path NLTK_PATH
+                        custom path for NLTK data
 
 ```
 
