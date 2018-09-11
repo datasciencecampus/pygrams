@@ -173,6 +173,7 @@ def run_fdg(args, tf_idf, tf_idf2=None):
 
 
 def write_config_to_json(args, patent_pickle_file_name):
+    patent_pickle_file_name = os.path.abspath(patent_pickle_file_name)
     report_file_name = os.path.abspath(args.report_name)
     json_file_name = os.path.splitext(report_file_name)[0] + '.json'
 
@@ -210,7 +211,7 @@ def main():
     patent_pickle_file_name = os.path.join('data', args.patent_source + ".pkl.bz2")
 
     if args.json:
-        write_config_to_json(args, os.path.abspath(patent_pickle_file_name))
+        write_config_to_json(args, patent_pickle_file_name)
 
     if args.nltk_path:
         import nltk
