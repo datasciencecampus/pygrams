@@ -1,4 +1,4 @@
-var dataURL = "https://raw.githubusercontent.com/datasciencecampus/patent_app_detect/master/outputs/fdg/empty.json";
+var dataURL = "https://raw.githubusercontent.com/datasciencecampus/patent_app_detect/master/outputs/visuals/empty.json";
 
 var refresh = function(data){
 
