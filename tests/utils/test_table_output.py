@@ -57,19 +57,23 @@ class TestTableOutput(unittest.TestCase):
 
         citation_count_dict = {1: 10, 2: 3, 101: 2, 102: 0, 103: 5, 104: 4, 105: 10}
         pick = 'sum'
+        time = False
+        focus = 'chi2'
 
         register_writer(TestTableOutput.FakeWriter)
         fake_writer = TestTableOutput.FakeWriter('spreadsheet.fake')
 
-        table_output(tfidf_cold, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, fake_writer)
+        table_output(tfidf_cold, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, time, focus,
+                     fake_writer)
 
         # Check sheet headings...
-        self.assertListEqual([None, 'Term', 'Score', 'Rank', 'Focus Score', 'Focus Rank', 'Diff Base to Focus Rank',
+        self.assertListEqual(
+            [None, 'Term', 'Score', 'Rank', 'Focus chi2 Score', 'Focus chi2 Rank', 'Diff Base to Focus Rank',
                               'Time Score', 'Time Rank', 'Diff Base to Time Rank', 'Citation Score', 'Citation Rank',
                               'Diff Base to Citation Rank'], fake_writer.sheets['Summary'][0])
 
         self.assertListEqual([None, 'Term', 'Score', 'Rank'], fake_writer.sheets['Base'][0])
-        self.assertListEqual([None, 'Term', 'Focus Score', 'Focus Rank'], fake_writer.sheets['Focus'][0])
+        self.assertListEqual([None, 'Term', 'Focus chi2 Score', 'Focus chi2 Rank'], fake_writer.sheets['Focus'][0])
         self.assertListEqual([None, 'Term', 'Time Score', 'Time Rank'], fake_writer.sheets['Time'][0])
         self.assertListEqual([None, 'Term', 'Citation Score', 'Citation Rank'], fake_writer.sheets['Cite'][0])
 
