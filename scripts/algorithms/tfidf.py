@@ -185,7 +185,7 @@ class TFIDF:
 
     @property
     def publication_dates(self):
-        return self.__dataframe['publication_date']
+        return list(self.__dataframe['publication_date'])
 
     def extract_popular_ngrams(self, input_text, number_of_ngrams_to_return=None):
 
