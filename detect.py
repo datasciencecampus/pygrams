@@ -153,7 +153,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
             line = f' {term:30} {score:f}'
             file.write(line)
-            print(str(counter) + "." + line)
+            print(f'{counter}. {line}')
             counter += 1
             if counter > args.num_ngrams_report:
                 break
