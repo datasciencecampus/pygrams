@@ -7,7 +7,13 @@
  
 ## Description of tool
 
-The tool is designed to derive popular terminology included within a particular patent technology area ([CPC classification](https://www.epo.org/searching-for-patents/helpful-resources/first-time-here/classification/cpc.html)), based on text analysis of patent abstract information.  If the tool is targeted at the [Y02 classification](https://www.epo.org/news-issues/issues/classification/classification.html), for example, identified terms could include 'fuel cell' and 'heat exchanger'. A number of options are provided, for example to provide report, word cloud or graphical output. Some example outputs are shown below:
+The tool is designed to derive popular terminology included within a particular patent technology
+area ([CPC classification](https://www.epo.org/searching-for-patents/helpful-resources/first-time-here/classification/cpc.html)), 
+based on text analysis of patent abstract information.  If the tool is targeted at the 
+[Y02 classification](https://www.epo.org/news-issues/issues/classification/classification.html), for example, 
+identified terms could include 'fuel cell' and 'heat exchanger'. A number of options are provided, for example to 
+provide report, word cloud, graphical or raw TF-IDF matrix output. Some example outputs are shown below:
+
 
 ### Report
 
@@ -33,6 +39,14 @@ Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/patent
 ### Force directed graph
 
 This output provides an interactive graph in the to be viewed in a web browser (you need to locally open the file ```outputs/fdg/index.html```). The graph shows connections between terms that are generally found in the same patent documents. The example wordcloud in the ```outputs/fdg``` folder was created using the Y02 classification on a 10,000 random sample of patents.
+
+### TF-IDF matrix
+
+Of use for further processing, the TF-IDF matrix can be output as a pickle file. 
+This is stored in `outputs/tfidf/<data source>.pkl.bz2`, containing a list of three items:
+- TF-IDF sparse matrix
+- List of terms (column heading)
+- List of patent publication dates (row heading)
 
 ## How to install
 
@@ -70,6 +84,7 @@ The above produces a default report output of top ranked terms, using default pa
 python detect.py -o='report' (using just `python detect.py` defaults to this option)
 python detect.py -o='wordcloud'
 python detect.py -o='fdg'
+python detect.py -o='tfidf'
 python detect.py -o='all'
 ```
 
