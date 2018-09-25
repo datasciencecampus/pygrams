@@ -1,6 +1,8 @@
 import argparse
+import bz2
 import json
 import os
+import pickle
 import sys
 
 from pandas import Timestamp, read_pickle, ExcelWriter
@@ -39,8 +41,9 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
-    parser.add_argument("-o", "--output", default='report', choices=['fdg', 'wordcloud', 'report', 'table', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <all>")
+    parser.add_argument("-o", "--output", default='report',
+                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'all'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the patent cohort")
@@ -147,6 +150,21 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
                                                                                 num_ngrams,
                                                                                 tfidf, tfidf_random)
 
+check
+
+    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
+        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+        pick=args.pick, time=args.time,
+        citation_count_dict=citation_count_dict)
+
+    set_terms = set(terms) if not args.focus else \
+        tfidf.detect_popular_ngrams_in_corpus_excluding_common(tfidf_random,
+                                                               number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+                                                               pick=args.pick, time=args.time,
+                                                               citation_count_dict=citation_count_dict)
+
+    dict_freqs = dict([((p[1]), p[0]) for p in ngrams_scores_tuple if p[1] in set_terms])
+
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
@@ -197,6 +215,20 @@ def write_config_to_json(args, patent_pickle_file_name):
         json.dump(json_data, json_file)
 
 
+def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, citation_count_dict):
+    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
+        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+        pick=pick, time=time,
+        citation_count_dict=citation_count_dict)
+
+    tfidf_data = [tfidf_matrix, tfidf.feature_names, tfidf.publication_dates]
+
+    tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '.pkl.bz2')
+    os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
+    with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
+        pickle.dump(tfidf_data, pickle_file)
+
+
 def main():
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
              os.path.join('outputs', 'table')]
@@ -234,11 +266,16 @@ def main():
         run_report(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
     elif out == 'wordcloud' or out == 'all':
         run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True, citation_count_dict=citation_count_dict)
-    elif out == 'table' or out == 'all':
+
+    if out == 'table' or out == 'all':
         run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict)
 
     if out == 'fdg' or out == 'all':
         run_fdg(args, tfidf, newtfidf)
+
+    if out == 'tfidf' or out == 'all':
+        output_tfidf(args.patent_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time,
+                     citation_count_dict=citation_count_dict)
 
 
 if __name__ == '__main__':

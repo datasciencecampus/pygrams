@@ -183,13 +183,17 @@ class TFIDF:
     def feature_names(self):
         return self.__feature_names
 
+    @property
+    def publication_dates(self):
+        return self.__dataframe['publication_date']
+
     def extract_popular_ngrams(self, input_text, number_of_ngrams_to_return=None):
 
-        tfidf = self.tfidf_vectorizer.transform([input_text])
+        tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
 
         zipped_last_tfidf_with_terms = []
 
-        for index, value in zip(tfidf.indices, tfidf.data):
+        for index, value in zip(tfidf_matrix.indices, tfidf_matrix.data):
             feature_score_tuple = (value, self.__feature_names[index])
             zipped_last_tfidf_with_terms.append(feature_score_tuple)
 
@@ -201,7 +205,7 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in zipped_last_tfidf_with_terms[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return]
+                if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return], tfidf_matrix
 
     def transform_corpus_to_tidf(self):
         return self.tfidf_vectorizer.transform(self.patent_abstracts)
@@ -292,7 +296,7 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return]
+                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], tfidf_matrix
 
     def get_tfidf_sum_vector(self):
         tfidf = self.tfidf_vectorizer.transform(self.patent_abstracts)
