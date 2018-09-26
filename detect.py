@@ -212,14 +212,14 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
     publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                               [d.isocalendar() for d in tfidf.publication_dates]]
 
-    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates]
+    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
     term_present_matrix = tfidf_matrix > 0
-    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates]
+    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
     term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
     os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
     with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:

@@ -187,6 +187,10 @@ class TFIDF:
     def publication_dates(self):
         return list(self.__dataframe['publication_date'])
 
+    @property
+    def patent_ids(self):
+        return list(self.__dataframe['patent_id'])
+
     def extract_popular_ngrams(self, input_text, number_of_ngrams_to_return=None):
 
         tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
