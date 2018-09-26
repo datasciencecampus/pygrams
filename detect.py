@@ -223,7 +223,7 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
 
     tfidf_data = [tfidf_matrix, tfidf.feature_names, tfidf.publication_dates]
 
-    tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '.pkl.bz2')
+    tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
