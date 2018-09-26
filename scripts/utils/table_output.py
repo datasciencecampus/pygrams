@@ -14,7 +14,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
         passing argparse args for base, focus, time, cite; then read the report files and combine
     """
 
-    terms, scores_terms = tfidf.detect_popular_ngrams_in_corpus(
+    terms, scores_terms, base_tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
         pick=pick, time=False, citation_count_dict=None)
     base_df = pd.DataFrame(list(scores_terms)[:num_ngrams])
@@ -37,7 +37,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     df = pd.merge(base_df, focus_df, how='outer')
     df['Diff Base to Focus Rank'] = df['Rank'] - df['Focus Rank']
 
-    time_terms, time_scores_terms = tfidf.detect_popular_ngrams_in_corpus(
+    time_terms, time_scores_terms, time_tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=num_ngrams,
         pick=pick, time=True, citation_count_dict=None)
     time_df = pd.DataFrame(list(time_scores_terms))
@@ -48,7 +48,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     df = pd.merge(df, time_df, how='outer')
     df['Diff Base to Time Rank'] = df['Rank'] - df['Time Rank']
 
-    citation_terms, citation_scores_terms = tfidf.detect_popular_ngrams_in_corpus(
+    citation_terms, citation_scores_terms, citation_tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=num_ngrams,
         pick=pick, time=False, citation_count_dict=citation_count_dict)
     citation_df = pd.DataFrame(list(citation_scores_terms))

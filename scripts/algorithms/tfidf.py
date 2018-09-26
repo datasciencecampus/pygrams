@@ -302,12 +302,12 @@ class TFIDF:
                                                          number_of_ngrams_to_return=200, pick='sum', time=False,
                                                          citation_count_dict=None):
 
-        terms, ngrams_scores_tuple = self.detect_popular_ngrams_in_corpus(
+        terms, ngrams_scores_tuple, tfidf_matrix = self.detect_popular_ngrams_in_corpus(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
             pick=pick, time=time, citation_count_dict=citation_count_dict)
         set_terms = set(terms)
 
-        terms_random, ngrams_scores_tuple_random = tfidf_random.detect_popular_ngrams_in_corpus(
+        terms_random, ngrams_scores_tuple_random, tfidf_matrix_random = tfidf_random.detect_popular_ngrams_in_corpus(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
             pick=pick, time=time, citation_count_dict=citation_count_dict)
 
