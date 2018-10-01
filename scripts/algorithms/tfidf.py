@@ -294,25 +294,6 @@ class TFIDF:
                 for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
                 if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return]
 
-    def detect_popular_ngrams_in_corpus_excluding_common(self, tfidf_random,
-                                                         number_of_ngrams_to_return=200, pick='sum', time=False,
-                                                         citation_count_dict=None):
-
-        terms, ngrams_scores_tuple = self.detect_popular_ngrams_in_corpus(
-            number_of_ngrams_to_return=number_of_ngrams_to_return,
-            pick=pick, time=time, citation_count_dict=citation_count_dict)
-        set_terms = set(terms)
-
-        terms_random, ngrams_scores_tuple_random = tfidf_random.detect_popular_ngrams_in_corpus(
-            number_of_ngrams_to_return=number_of_ngrams_to_return,
-            pick=pick, time=time, citation_count_dict=citation_count_dict)
-
-        set_random_terms = set(terms_random)
-        set_intersection = set_terms.intersection(set_random_terms)
-        set_terms -= set_intersection
-
-        return set_terms
-
     def get_tfidf_sum_vector(self):
         tfidf = self.tfidf_vectorizer.transform(self.patent_abstracts)
         tfidf_summary = (tfidf.sum(axis=0)).flatten()

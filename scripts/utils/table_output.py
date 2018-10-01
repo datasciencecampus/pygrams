@@ -1,7 +1,9 @@
 import pandas as pd
 
+from scripts.algorithms import term_focus
 
-def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, writer):
+
+def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, time, focus, writer):
     """
     Description: Creates a table showing changes in feature rankings with focus, time, and cite options
     Receives: tfidf for cpc and random patent sources, citation weights,
@@ -14,28 +16,27 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
         passing argparse args for base, focus, time, cite; then read the report files and combine
     """
 
-    terms, scores_terms = tfidf.detect_popular_ngrams_in_corpus(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=False, citation_count_dict=None)
+    dict_freqs, focus_set_terms, scores_terms = term_focus.detect_and_focus_popular_ngrams(pick, time, focus,
+                                                                                           citation_count_dict,
+                                                                                           ngram_multiplier, num_ngrams,
+                                                                                           tfidf, tfidf_random)
+
     base_df = pd.DataFrame(list(scores_terms)[:num_ngrams])
     base_df.columns = ['Score', 'Term']
     base_df['Rank'] = base_df.index
     base_df = base_df.reindex(columns=['Term', 'Score', 'Rank'])
 
-    focus_set_terms = tfidf.detect_popular_ngrams_in_corpus_excluding_common(
-        tfidf_random,
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=False,
-        citation_count_dict=None)
-    dict_freqs = dict([((p[0]), p[1]) for p in scores_terms if p[1] in focus_set_terms])
     focus_scores_terms = tuple(dict_freqs.items())
     focus_df = pd.DataFrame(list(focus_scores_terms))[:num_ngrams]
-    focus_df.columns = ['Focus Score', 'Term']
-    focus_df['Focus Rank'] = focus_df.index
-    focus_df = focus_df.reindex(columns=['Term', 'Focus Score', 'Focus Rank'])
+    focus_name = 'None' if focus is None else focus
+    focus_name_score = f'Focus {focus_name} Score'
+    focus_name_rank = f'Focus {focus_name} Rank'
+    focus_df.columns = [focus_name_score, 'Term']
+    focus_df[focus_name_rank] = focus_df.index
+    focus_df = focus_df.reindex(columns=['Term', focus_name_score, focus_name_rank])
 
     df = pd.merge(base_df, focus_df, how='outer')
-    df['Diff Base to Focus Rank'] = df['Rank'] - df['Focus Rank']
+    df['Diff Base to Focus Rank'] = df['Rank'] - df[focus_name_rank]
 
     time_terms, time_scores_terms = tfidf.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=num_ngrams,
