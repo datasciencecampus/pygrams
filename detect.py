@@ -150,21 +150,6 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
                                                                                 num_ngrams,
                                                                                 tfidf, tfidf_random)
 
-check
-
-    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=args.pick, time=args.time,
-        citation_count_dict=citation_count_dict)
-
-    set_terms = set(terms) if not args.focus else \
-        tfidf.detect_popular_ngrams_in_corpus_excluding_common(tfidf_random,
-                                                               number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-                                                               pick=args.pick, time=args.time,
-                                                               citation_count_dict=citation_count_dict)
-
-    dict_freqs = dict([((p[1]), p[0]) for p in ngrams_scores_tuple if p[1] in set_terms])
-
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():

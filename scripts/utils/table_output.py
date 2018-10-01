@@ -16,7 +16,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
         passing argparse args for base, focus, time, cite; then read the report files and combine
     """
 
-    dict_freqs, focus_set_terms, scores_terms, base_tfidf_matrix = term_focus.detect_and_focus_popular_ngrams(pick, time, focus,
+    dict_freqs, focus_set_terms, scores_terms = term_focus.detect_and_focus_popular_ngrams(pick, time, focus,
                                                                                            citation_count_dict,
                                                                                            ngram_multiplier, num_ngrams,
                                                                                            tfidf, tfidf_random)
@@ -26,12 +26,6 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     base_df['Rank'] = base_df.index
     base_df = base_df.reindex(columns=['Term', 'Score', 'Rank'])
 
-    focus_set_terms = tfidf.detect_popular_ngrams_in_corpus_excluding_common(
-        tfidf_random,
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=False,
-        citation_count_dict=None)
-    dict_freqs = dict([((p[0]), p[1]) for p in scores_terms if p[1] in focus_set_terms])
     focus_scores_terms = tuple(dict_freqs.items())
     focus_df = pd.DataFrame(list(focus_scores_terms))[:num_ngrams]
     focus_name = 'None' if focus is None else focus
