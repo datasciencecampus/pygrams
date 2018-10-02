@@ -33,7 +33,7 @@ class TestTFIDF(unittest.TestCase):
             "than the first speed toward the home position side.")
         df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
         tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer())
-        actual_popular_terms, tfidf_weighted_tuples = tfidf_engine.extract_popular_ngrams(
+        actual_popular_terms, tfidf_weighted_tuples, tfidf_matrix = tfidf_engine.extract_popular_ngrams(
             abstract_from_US09315032_20160419)
         expected_popular_terms = ['first speed', 'control unit']
         self.assertListEqual(expected_popular_terms, actual_popular_terms)

@@ -4,7 +4,7 @@ from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 
 def detect_and_focus_popular_ngrams(pick, time, focus, citation_count_dict, ngram_multiplier, num_ngrams, tfidf,
                                     tfidf_random):
-    terms, ngrams_scores_tuple = tfidf.detect_popular_ngrams_in_corpus(
+    terms, ngrams_scores_tuple, _ = tfidf.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
         pick=pick, time=time,
         citation_count_dict=citation_count_dict)
@@ -42,12 +42,12 @@ def detect_and_focus_popular_ngrams(pick, time, focus, citation_count_dict, ngra
 def popular_ngrams_by_set_difference(tfidf, tfidf_random,
                                      number_of_ngrams_to_return=200, pick='sum', time=False,
                                      citation_count_dict=None):
-    terms, ngrams_scores_tuple = tfidf.detect_popular_ngrams_in_corpus(
+    terms, _, _ = tfidf.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=number_of_ngrams_to_return,
         pick=pick, time=time, citation_count_dict=citation_count_dict)
     set_terms = set(terms)
 
-    terms_random, ngrams_scores_tuple_random = tfidf_random.detect_popular_ngrams_in_corpus(
+    terms_random, _, _ = tfidf_random.detect_popular_ngrams_in_corpus(
         number_of_ngrams_to_return=number_of_ngrams_to_return,
         pick=pick, time=time, citation_count_dict=citation_count_dict)
 
