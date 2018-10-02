@@ -109,11 +109,11 @@ class FDGPrep(object):
         self.__abstracts_list = []
         single_terms = []
         for abstract in abstracts:
-            terms, _ = tf_idf.extract_popular_ngrams(number_of_ngrams_to_return=num_terms_to_evaluate,
-                                                     input_text=abstract)
+            terms, _, _ = tf_idf.extract_popular_ngrams(number_of_ngrams_to_return=num_terms_to_evaluate,
+                                                        input_text=abstract)
             if args.focus:
-                terms2, _ = tf_idf2.extract_popular_ngrams(number_of_ngrams_to_return=num_terms_to_evaluate,
-                                                           input_text=abstract)
+                terms2, _, _ = tf_idf2.extract_popular_ngrams(number_of_ngrams_to_return=num_terms_to_evaluate,
+                                                              input_text=abstract)
                 tset = set(terms)
                 t2set = set(terms2)
                 terms = tset - (tset.intersection(t2set))
