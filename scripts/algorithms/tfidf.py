@@ -6,7 +6,7 @@ from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer, strip_accents_ascii
 from tqdm import tqdm
-
+from nltk.corpus import wordnet
 from scripts import FilePaths
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
@@ -49,14 +49,14 @@ class LemmaTokenizer(object):
         self.wnl = WordNetLemmatizer()
 
     def lemmatize_with_pos(self, tag):
-        if tag[1] == 'NOUN':
-            return self.wnl.lemmatize(tag[0], pos='n')
-        elif tag[1] == 'ADJ':
-            return self.wnl.lemmatize(tag[0], pos='a')
-        elif tag[1] == 'ADV':
-            return self.wnl.lemmatize(tag[0], pos='r')
-        elif tag[1] == 'VERB':
-            return self.wnl.lemmatize(tag[0], pos='v')
+        if tag[1].startswith('N'):
+            return self.wnl.lemmatize(tag[0], wordnet.NOUN)
+        elif tag[1].startswith('J'):
+            return self.wnl.lemmatize(tag[0], wordnet.ADJ)
+        elif tag[1].startswith('R'):
+            return self.wnl.lemmatize(tag[0], wordnet.ADV)
+        elif tag[1].startswith('V'):
+            return self.wnl.lemmatize(tag[0], wordnet.VERB)
         else:
             return self.wnl.lemmatize(tag[0])
 
