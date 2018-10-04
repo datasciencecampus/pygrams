@@ -157,7 +157,7 @@ class TFIDF:
 
         self.tfidf_vectorizer = TfidfVectorizer(
             max_df=max_document_frequency,
-            min_df=1,
+            min_df=5,
             ngram_range=ngram_range,
             analyzer=WordAnalyzer.analyzer
         )
@@ -218,6 +218,7 @@ class TFIDF:
                                         citation_count_dict=None):
 
         tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        tfidf_matrix = self.unbias_ngrams(tfidf_matrix)
 
         print(f'Processing TFIDF of {tfidf_matrix.shape[0]:,} patents')
 
@@ -306,3 +307,24 @@ class TFIDF:
         tfidf = self.tfidf_vectorizer.transform(self.patent_abstracts)
         tfidf_summary = (tfidf.sum(axis=0)).flatten()
         return tfidf_summary.tolist()[0]
+
+
+    def unbias_ngrams(self, mtx_csr):
+
+        # iterate through rows ( docs)
+        for i in range(0, len(mtx_csr.indptr) - 1):
+            start_idx_ptr = mtx_csr.indptr[i]
+            end_idx_ptr = mtx_csr.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr-1):
+                col_idx = mtx_csr.indices[j]
+                term=self.feature_names[col_idx]
+
+                col_idx1 = mtx_csr.indices[j+1]
+                term1 = self.feature_names[col_idx1]
+
+                if term1 in term:
+                    mtx_csr.data[j+1] = 0
+
+        return mtx_csr
