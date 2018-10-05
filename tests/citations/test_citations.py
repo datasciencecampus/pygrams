@@ -31,9 +31,7 @@ class TestCitation(unittest.TestCase):
     def test_citation_after(self):
         actual_top_five_aft_citation = self.tfidf_inst.detect_popular_ngrams_in_corpus(
             citation_count_dict=self.citation_count_dict)[1][0:5]
-        expected_top_five_aft_citation = [(1.4356925568041987, 'first'), (1.0939948002413247, 'devic'),
-                                          (1.088760298174519, 'signal'), (1.0877552160409762, 'system'),
-                                          (1.038396555922477, 'imag')]
+        expected_top_five_aft_citation = [(1.9075308588945348, 'first'), (1.6538050169470218, 'devic'), (1.640280090898184, 'system'), (1.573691775579335, 'signal'), (1.3434893079112713, 'imag')]
         print(f"The top five TFIDF after citation weighting should be {expected_top_five_aft_citation}")
         print(f"The top five TFIDF after citation weighting were {actual_top_five_aft_citation}")
         self.assertSameTFIDF(expected_top_five_aft_citation, actual_top_five_aft_citation)
