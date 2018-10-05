@@ -78,12 +78,13 @@ The program is command line driven, and called in the following manner:
 python detect.py
 ```
 
-The above produces a default report output of top ranked terms, using default parameters. Additional command line arguments provide alternative options, for example a word cloud or force directed graph (fdg) output. The option 'all', produces all three:
+The above produces a default report output of top ranked terms, using default parameters. Additional command line arguments provide alternative options, for example a word cloud or force directed graph (fdg) output. The option 'all', produces all:
 
 ```
 python detect.py -o='report' (using just `python detect.py` defaults to this option)
 python detect.py -o='wordcloud'
 python detect.py -o='fdg'
+python detect.py -o='table'
 python detect.py -o='tfidf'
 python detect.py -o='all'
 ```
@@ -183,7 +184,7 @@ identified terms away from terms found more generally in the patent dataset. An
 example focus (using `set` difference) is as follows:
 
 ```
-python detect.py -f set
+python detect.py -f=set
 ```
 
 The available focus options are:
