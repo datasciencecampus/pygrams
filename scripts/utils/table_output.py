@@ -16,10 +16,10 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
         passing argparse args for base, focus, time, cite; then read the report files and combine
     """
 
-    dict_freqs, focus_set_terms, scores_terms = term_focus.detect_and_focus_popular_ngrams(pick, time, focus,
-                                                                                           citation_count_dict,
-                                                                                           ngram_multiplier, num_ngrams,
-                                                                                           tfidf, tfidf_random)
+    dict_freqs, focus_set_terms, scores_terms = term_focus.detect_and_focus_popular_ngrams(
+        pick, time, focus,
+        None,  # don't citation weight
+        ngram_multiplier, num_ngrams, tfidf, tfidf_random)
 
     base_df = pd.DataFrame(list(scores_terms)[:num_ngrams])
     base_df.columns = ['Score', 'Term']

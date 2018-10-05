@@ -8,9 +8,10 @@ from wordcloud import WordCloud
 class MultiCloudPlot(object):
 
     def __init__(self, textsin, freqsin=None, max_words=200):
+        string_to_float = {y: x for (x, y) in freqsin.items()}
         self.__wordcloud = None
         self.__texts = textsin
-        self.__freqs = freqsin
+        self.__freqs = string_to_float
         self.__max_words = max_words
 
     def __generate_cloud(self, textin):

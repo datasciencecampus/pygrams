@@ -98,6 +98,11 @@ def checkargs(args):
         print("at least 10 ngrams needed for report")
         app_exit = True
 
+    if args.output == 'table' or args.output == 'all':
+        if args.focus == None:
+            print('define a focus before requesting table (or all) output')
+            app_exit = True
+
     if app_exit:
         exit(0)
 
@@ -153,10 +158,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
-
-            line = f' {term:30} {score:f}'
-            file.write(line)
-            print(f'{counter}. {line}')
+            file.write(f' {term:30} {score:f}\n')
+            print(f'{counter}. {term:30} {score:f}')
             counter += 1
             if counter > args.num_ngrams_report:
                 break
