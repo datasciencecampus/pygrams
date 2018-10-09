@@ -308,6 +308,18 @@ class TFIDF:
         tfidf_summary = (tfidf.sum(axis=0)).flatten()
         return tfidf_summary.tolist()[0]
 
+    def bisearch_csr(self, L, indices, target, start, end):
+
+        while start <= end:
+            middle = (start + end) // 2
+            #col_idx = indices[middle]
+            midpoint = L[middle]
+            if midpoint > target:
+                end = middle - 1
+            elif midpoint < target:
+                start = middle + 1
+            else:
+                return middle
 
     def unbias_ngrams(self, mtx_csr):
 
@@ -326,5 +338,19 @@ class TFIDF:
 
                 if term1 in term:
                     mtx_csr.data[j+1] = 0
+
+                    nterms = term.split()
+                    del nterms[0]
+                    small_term = ' '.join(nterms)
+
+                    if term > small_term:
+                        start, end = 0, col_idx-1
+                    else:
+                        start, end = col_idx+1, len(self.feature_names)-1
+
+                    term_idx = self.bisearch_csr(self.feature_names, mtx_csr.indices, small_term, start, end)
+                    mtx_csr.data[term_idx] = 0
+
+
 
         return mtx_csr
