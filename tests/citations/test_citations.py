@@ -10,7 +10,7 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 class TestCitation(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
+    def setUp(cls):
         data_frame = PatentsPickle2DataFrame(FilePaths.us_patents_random_1000_pickle_name).data_frame
         cls.tfidf_inst = TFIDF(data_frame)
 
@@ -20,9 +20,7 @@ class TestCitation(unittest.TestCase):
 
     def test_citation_before(self):
         actual_top_five_bef_citation = self.tfidf_inst.detect_popular_ngrams_in_corpus()[1][0:5]
-        expected_top_five_bef_citation = [(21.164206847352048, 'first'), (15.978452815105912, 'devic'),
-                                          (15.291909509744947, 'second'), (14.632029117170827, 'data'),
-                                          (14.60830421617836, 'layer')]
+        expected_top_five_bef_citation = [(21.221993629365752, 'first'), (15.7192591106834, 'devic'), (15.324447994453006, 'second'), (14.568335563282888, 'data'), (14.057870811545616, 'system')]
 
         print(f"The top five TFIDF before without citation weighting should be {expected_top_five_bef_citation}")
         print(f"The top five TFIDF before without citation weighting  {actual_top_five_bef_citation}")
@@ -31,7 +29,7 @@ class TestCitation(unittest.TestCase):
     def test_citation_after(self):
         actual_top_five_aft_citation = self.tfidf_inst.detect_popular_ngrams_in_corpus(
             citation_count_dict=self.citation_count_dict)[1][0:5]
-        expected_top_five_aft_citation = [(1.9075308588945348, 'first'), (1.6538050169470218, 'devic'), (1.640280090898184, 'system'), (1.573691775579335, 'signal'), (1.3434893079112713, 'imag')]
+        expected_top_five_aft_citation = [(1.439758952315001, 'first'), (1.0793756164007968, 'system'), (1.056505391786121, 'devic'), (1.0376976573916799, 'imag'), (1.0187146109156324, 'data')]
         print(f"The top five TFIDF after citation weighting should be {expected_top_five_aft_citation}")
         print(f"The top five TFIDF after citation weighting were {actual_top_five_aft_citation}")
         self.assertSameTFIDF(expected_top_five_aft_citation, actual_top_five_aft_citation)

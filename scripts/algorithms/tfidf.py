@@ -8,6 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer, strip_accents_ascii
 from tqdm import tqdm
 from nltk.corpus import wordnet
 from scripts import FilePaths
+from scripts.utils.utils import Utils as ut
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
 New BSD License
@@ -157,7 +158,7 @@ class TFIDF:
 
         self.tfidf_vectorizer = TfidfVectorizer(
             max_df=max_document_frequency,
-            min_df=5,
+            min_df=1,
             ngram_range=ngram_range,
             analyzer=WordAnalyzer.analyzer
         )
@@ -308,19 +309,6 @@ class TFIDF:
         tfidf_summary = (tfidf.sum(axis=0)).flatten()
         return tfidf_summary.tolist()[0]
 
-    def bisearch_csr(self, L, indices, target, start, end):
-
-        while start <= end:
-            middle = (start + end) // 2
-            #col_idx = indices[middle]
-            midpoint = L[middle]
-            if midpoint > target:
-                end = middle - 1
-            elif midpoint < target:
-                start = middle + 1
-            else:
-                return middle
-
     def unbias_ngrams(self, mtx_csr):
 
         # iterate through rows ( docs)
@@ -329,28 +317,29 @@ class TFIDF:
             end_idx_ptr = mtx_csr.indptr[i + 1]
 
             # iterate through columns with non-zero entries
-            for j in range(start_idx_ptr, end_idx_ptr-1):
+            for j in range(start_idx_ptr+1, end_idx_ptr):
+
                 col_idx = mtx_csr.indices[j]
-                term=self.feature_names[col_idx]
+                #print(col_idx)
+                big_ngram = self.feature_names[col_idx]
+                big_ngram_terms = big_ngram.split()
 
-                col_idx1 = mtx_csr.indices[j+1]
-                term1 = self.feature_names[col_idx1]
+                if len(big_ngram_terms) > 1:
 
-                if term1 in term:
-                    mtx_csr.data[j+1] = 0
+                    col_idx1 = mtx_csr.indices[j-1]
+                    small_ngram = self.feature_names[col_idx1]
+                    chopped_ngram = ' '.join(big_ngram_terms[1:])
 
-                    nterms = term.split()
-                    del nterms[0]
-                    small_term = ' '.join(nterms)
+                    if small_ngram == chopped_ngram:
+                        mtx_csr.data[j-1] = 0
 
-                    if term > small_term:
-                        start, end = 0, col_idx-1
-                    else:
-                        start, end = col_idx+1, len(self.feature_names)-1
+                        if big_ngram > small_ngram:
+                            start, end = 0, col_idx-1
+                        else:
+                            start, end = col_idx+1, len(self.feature_names)-1
 
-                    term_idx = self.bisearch_csr(self.feature_names, mtx_csr.indices, small_term, start, end)
-                    mtx_csr.data[term_idx] = 0
+                        term_idx, found = ut.bisearch_csr(self.feature_names, chopped_ngram, start, end)
 
-
-
+                        if found:
+                            mtx_csr.data[term_idx] = 0
         return mtx_csr
