@@ -8,7 +8,7 @@ import sys
 from pandas import Timestamp, read_pickle, ExcelWriter
 
 from scripts import FilePaths
-from scripts.algorithms import term_focus
+from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
@@ -22,7 +22,6 @@ def year2pandas_latest_date(year_in):
 
     year_string = str(year_in) + '-12-31'
     return Timestamp(year_string)
-
 
 def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
@@ -150,10 +149,10 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict):
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
-    dict_freqs, focus_set_terms, _ = term_focus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
+    tfocus = TermFocus(tfidf, tfidf_random)
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
                                                                                 citation_count_dict, ngram_multiplier,
-                                                                                num_ngrams,
-                                                                                tfidf, tfidf_random)
+                                                                                num_ngrams)
 
     with open(args.report_name, 'w') as file:
         counter = 1
