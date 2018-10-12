@@ -317,7 +317,6 @@ class TFIDF:
             for j in range(start_idx_ptr+1, end_idx_ptr):
 
                 col_idx = mtx_csr.indices[j]
-                #print(col_idx)
                 big_ngram = self.feature_names[col_idx]
                 big_ngram_terms = big_ngram.split()
 
