@@ -1,6 +1,5 @@
 import pandas as pd
-
-from scripts.algorithms import term_focus
+from scripts.algorithms.term_focus import TermFocus
 
 
 def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, time, focus, writer):
@@ -16,10 +15,9 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
         passing argparse args for base, focus, time, cite; then read the report files and combine
     """
 
-    dict_freqs, focus_set_terms, scores_terms = term_focus.detect_and_focus_popular_ngrams(
-        pick, time, focus,
-        None,  # don't citation weight
-        ngram_multiplier, num_ngrams, tfidf, tfidf_random)
+    tfocus = TermFocus(tfidf, tfidf_random)
+    dict_freqs, focus_set_terms, scores_terms = tfocus.detect_and_focus_popular_ngrams(
+        pick, time, focus, None, ngram_multiplier, num_ngrams)
 
     base_df = pd.DataFrame(list(scores_terms)[:num_ngrams])
     base_df.columns = ['Score', 'Term']
@@ -39,8 +37,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     df['Diff Base to Focus Rank'] = df['Rank'] - df[focus_name_rank]
 
     time_terms, time_scores_terms, time_tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
-        number_of_ngrams_to_return=num_ngrams,
-        pick=pick, time=True, citation_count_dict=None)
+        number_of_ngrams_to_return=num_ngrams, pick=pick, time=True, citation_count_dict=None)
     time_df = pd.DataFrame(list(time_scores_terms))
     time_df.columns = ['Time Score', 'Term']
     time_df['Time Rank'] = time_df.index

@@ -172,6 +172,9 @@ class TFIDF:
         self.tfidf_vectorizer.fit(self.__dataframe['abstract'])
         self.__feature_names = self.tfidf_vectorizer.get_feature_names()
 
+        self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix)
+
     @property
     def tfidf_mat(self):
         return self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
@@ -218,12 +221,11 @@ class TFIDF:
     def detect_popular_ngrams_in_corpus(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                         citation_count_dict=None):
 
-        tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
-        tfidf_matrix = self.unbias_ngrams(tfidf_matrix)
 
-        print(f'Processing TFIDF of {tfidf_matrix.shape[0]:,} patents')
 
-        if tfidf_matrix.shape[0] == 0:
+        print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} patents')
+
+        if self.tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
             return []
 
@@ -244,7 +246,7 @@ class TFIDF:
                 time_weights[patent_index] = X_std
 
             for i, v in enumerate(time_weights):
-                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
+                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
 
         if citation_count_dict:
             patent_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe.patent_id)}
@@ -269,10 +271,10 @@ class TFIDF:
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
             for i, v in enumerate(list_of_citation_counts):
-                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
+                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
 
         # pick filter
-        tfidf_csc_matrix = tfidf_matrix.tocsc()
+        tfidf_csc_matrix = self.tfidf_matrix.tocsc()
 
         if pick == 'median':
             pick_func = np.median
@@ -302,7 +304,7 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], tfidf_matrix
+                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.tfidf_matrix
 
     def get_tfidf_sum_vector(self):
         tfidf = self.tfidf_vectorizer.transform(self.patent_abstracts)

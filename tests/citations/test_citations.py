@@ -10,7 +10,7 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 class TestCitation(unittest.TestCase):
 
     @classmethod
-    def setUp(cls):
+    def setUpClass(cls):
         data_frame = PatentsPickle2DataFrame(FilePaths.us_patents_random_1000_pickle_name).data_frame
         cls.tfidf_inst = TFIDF(data_frame)
 
@@ -20,7 +20,7 @@ class TestCitation(unittest.TestCase):
 
     def test_citation_before(self):
         actual_top_five_bef_citation = self.tfidf_inst.detect_popular_ngrams_in_corpus()[1][0:5]
-        expected_top_five_bef_citation = [(21.221993629365752, 'first'), (15.7192591106834, 'devic'), (15.324447994453006, 'second'), (14.568335563282888, 'data'), (14.057870811545616, 'system')]
+        expected_top_five_bef_citation = [(1.439758952315001, 'first'), (1.0793756164007968, 'system'), (1.056505391786121, 'devic'), (1.0376976573916799, 'imag'), (1.0187146109156324, 'data')]
 
         print(f"The top five TFIDF before without citation weighting should be {expected_top_five_bef_citation}")
         print(f"The top five TFIDF before without citation weighting  {actual_top_five_bef_citation}")
