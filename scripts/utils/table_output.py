@@ -14,7 +14,6 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     Postscript: A (better?) alternative may be to call method main in detect.py as a module,
         passing argparse args for base, focus, time, cite; then read the report files and combine
     """
-
     tfocus = TermFocus(tfidf, tfidf_random)
     dict_freqs, focus_set_terms, scores_terms = tfocus.detect_and_focus_popular_ngrams(
         pick, time, focus, None, ngram_multiplier, num_ngrams)
