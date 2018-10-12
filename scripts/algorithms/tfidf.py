@@ -177,7 +177,7 @@ class TFIDF:
 
     @property
     def tfidf_mat(self):
-        return self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        return self.tfidf_matrix
 
     @property
     def patent_abstracts(self):
@@ -198,7 +198,6 @@ class TFIDF:
     def extract_popular_ngrams(self, input_text, number_of_ngrams_to_return=None):
 
         tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
-
         zipped_last_tfidf_with_terms = []
 
         for index, value in zip(tfidf_matrix.indices, tfidf_matrix.data):
@@ -215,13 +214,9 @@ class TFIDF:
                 for feature_score_tuple in zipped_last_tfidf_with_terms[:number_of_ngrams_to_return]
                 if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return], tfidf_matrix
 
-    def transform_corpus_to_tidf(self):
-        return self.tfidf_vectorizer.transform(self.patent_abstracts)
 
     def detect_popular_ngrams_in_corpus(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                         citation_count_dict=None):
-
-
 
         print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} patents')
 
