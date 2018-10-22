@@ -2,7 +2,7 @@ import datetime
 import string
 
 import numpy as np
-from nltk import word_tokenize, PorterStemmer, pos_tag
+from nltk import word_tokenize, PorterStemmer, pos_tags
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer, strip_accents_ascii
 from tqdm import tqdm
@@ -197,10 +197,9 @@ class TFIDF:
 
     def extract_popular_ngrams(self, input_text, number_of_ngrams_to_return=None):
 
-        tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
         zipped_last_tfidf_with_terms = []
 
-        for index, value in zip(tfidf_matrix.indices, tfidf_matrix.data):
+        for index, value in zip(self.tfidf_matrix.indices, self.tfidf_matrix.data):
             feature_score_tuple = (value, self.__feature_names[index])
             zipped_last_tfidf_with_terms.append(feature_score_tuple)
 
@@ -212,7 +211,7 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in zipped_last_tfidf_with_terms[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return], tfidf_matrix
+                if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return], self.tfidf_matrix
 
 
     def detect_popular_ngrams_in_corpus(self, number_of_ngrams_to_return=200, pick='sum', time=False,

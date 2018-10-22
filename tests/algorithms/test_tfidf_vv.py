@@ -27,11 +27,14 @@ class TestsSetup(unittest.TestCase):
         cls.dice_u = []
         cls.dice_bi = []
 
-        df = pd.read_pickle(FilePaths.us_patents_random_10000_pickle_name)
+        #df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
         test_dataframe = pd.read_pickle(us_vv_patents_pickle_name)
 
-        df.append(test_dataframe)
-        cls.tfidf = TFIDF(df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer())
+        #df.append(test_dataframe)
+        cls.tfidf = TFIDF(test_dataframe, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer())
+        cls.terms, cls.ngrams_scores_tuple, _ = cls.tfidf.detect_popular_ngrams_in_corpus()
+        print()
+
 
 
 # noinspection PyPep8Naming
