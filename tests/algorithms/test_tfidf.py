@@ -22,21 +22,27 @@ class TestTFIDF(unittest.TestCase):
 
     def test_popular_terms_from_1000_samples_via_stems(self):
         abstract_from_US09315032_20160419 = (
-            "A print apparatus includes a carriage configured to move reciprocally along one "
-            "direction; a liquid supply tube, one end thereof being connected to the carriage; a housing in an "
-            "interior of which the carriage and at least a part of the liquid supply tube are arranged; and a control "
-            "unit configured to control reciprocal movement of the carriage. The liquid supply tube is connected to "
-            "the carriage from a counter-home position side that is the opposite side in the one direction to a home "
-            "position side at which the carriage is located before the start of printing. The control unit carries out "
-            "a movement control, before the start of printing, to cause the carriage to move at a first speed toward "
-            "the counter-home position side from the home position side, and then to move at a second speed faster "
-            "than the first speed toward the home position side.")
+            '''A system and method are disclosed for providing improved processing of video data. A multi-instance 
+        encoding module receives combined video and audio input, which is then separated into a video and audio 
+        source streams. The video source stream is pre-processed and corresponding video encoder instances are 
+        initiated. The preprocessed video source stream is split into video data components, which are assigned to a 
+        corresponding encoder instance. Encoding operations are performed by each video encoder instance to generate 
+        video output components. The video output components are then assembled in a predetermined sequence to 
+        generate an encoded video output stream. Concurrently, the audio source stream is encoded with an audio 
+        encoder to generate an encoded audio output stream. The encoded video and audio output streams are combined 
+        to generate a combined encoded output stream, which is provided as combined video and audio output. ''')
+
         df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
+        df2 = pd.DataFrame([['US09315032-20160419', abstract_from_US09315032_20160419, None, None]],
+                           columns=['patent_id', 'abstract', 'classifications_cpc', 'publication_date'])
+        df = df.append(df2)
+
         tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer())
-        actual_popular_terms, tfidf_weighted_tuples, tfidf_matrix = tfidf_engine.extract_popular_ngrams(
-            abstract_from_US09315032_20160419)
-        expected_popular_terms = ['first speed', 'control unit']
-        self.assertListEqual(expected_popular_terms, actual_popular_terms)
+        actual_popular_terms, _, _ = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=['US09315032-20160419'])
+        expected_popular_terms = ['audio encod', 'audio sourc stream', 'encod audio output stream']
+
+        expected_in_results = expected_popular_terms[0] in actual_popular_terms and expected_popular_terms[1] in actual_popular_terms
+        self.assertEquals(expected_in_results, True)
 
 
 class Test_lowercase_strip_accents_and_ownership(unittest.TestCase):

@@ -203,7 +203,7 @@ def write_config_to_json(args, patent_pickle_file_name):
 
 
 def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, citation_count_dict):
-    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
+    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
         pick=pick, time=time,
         citation_count_dict=citation_count_dict)

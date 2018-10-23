@@ -32,7 +32,7 @@ class TestsSetup(unittest.TestCase):
 
         #df.append(test_dataframe)
         cls.tfidf = TFIDF(test_dataframe, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer())
-        cls.terms, cls.ngrams_scores_tuple, _ = cls.tfidf.detect_popular_ngrams_in_corpus()
+        cls.terms, cls.ngrams_scores_tuple, _ = cls.tfidf.detect_popular_ngrams_in_docs_set()
         print()
 
 

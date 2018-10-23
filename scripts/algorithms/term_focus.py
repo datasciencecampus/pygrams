@@ -8,7 +8,7 @@ class TermFocus():
         self.__tfidf_random = tf_idf_random_in
 
     def detect_and_focus_popular_ngrams(self, pick, time, focus, citation_count_dict, ngram_multiplier, num_ngrams):
-        terms, ngrams_scores_tuple, _ = self.__tfidf.detect_popular_ngrams_in_corpus(
+        terms, ngrams_scores_tuple, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
             pick=pick, time=time,
             citation_count_dict=citation_count_dict)
@@ -41,12 +41,12 @@ class TermFocus():
 
     def popular_ngrams_by_set_difference(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                          citation_count_dict=None):
-        terms, _, _ = self.__tfidf.detect_popular_ngrams_in_corpus(
+        terms, _, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
             pick=pick, time=time, citation_count_dict=citation_count_dict)
         set_terms = set(terms)
 
-        terms_random, _, _ = self.__tfidf_random.detect_popular_ngrams_in_corpus(
+        terms_random, _, _ = self.__tfidf_random.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
             pick=pick, time=time, citation_count_dict=citation_count_dict)
 
