@@ -20,15 +20,18 @@ def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
         new_week = int(uspto_week_dates[current_row_index])
 
         while new_week > current_week:
-            week_counts_csr = vstack([week_counts_csr, current_week_counts_csr],
-                                     format='csr') if week_counts_csr is not None else current_week_counts_csr
-            week_totals.append(week_total)
-            week_dates.append(current_week)
-            current_week_counts_csr = csr_matrix((1, number_of_terms), dtype=np.int32)
-            current_week += 1
-            if (current_week % 100) > 53:
-                current_week += 100 - 53  # next year, so add 100 but remove the "used" weeks
-            week_total = 0
+            if ((current_week % 100) == 53) and (week_total == 0):
+                current_week += 100 - 53 + 1  # next year, so add 100 but remove the "used" weeks and move on by 1
+            else:
+                week_counts_csr = vstack([week_counts_csr, current_week_counts_csr],
+                                         format='csr') if week_counts_csr is not None else current_week_counts_csr
+                week_totals.append(week_total)
+                week_dates.append(current_week)
+                current_week_counts_csr = csr_matrix((1, number_of_terms), dtype=np.int32)
+                current_week += 1
+                if (current_week % 100) > 53:
+                    current_week += 100 - 53  # next year, so add 100 but remove the "used" weeks
+                week_total = 0
 
         current_row_as_counts = term_value_array[current_row_index, :] > 0
         current_week_counts_csr += current_row_as_counts
