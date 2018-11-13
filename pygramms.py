@@ -28,7 +28,7 @@ def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
     return Timestamp(year_string)
 
-
+#\\nsdata5\DIT\Excel
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
@@ -37,6 +37,8 @@ def get_args(command_line_arguments):
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
+    parser.add_argument("-pt", "--path", default='data',  help="the data path")
+    parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -110,7 +112,7 @@ def get_tfidf(args, pickle_file_name, df=None):
     date_to = year2pandas_latest_date(args.year_to)
     if df is None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n))
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
 
 
 
@@ -210,7 +212,7 @@ def main():
     args = get_args(sys.argv[1:])
     checkargs(args)
 
-    doc_pickle_file_name = os.path.join('data',args.doc_source )
+    doc_pickle_file_name = os.path.join(args.path, args.doc_source )
 
     df=None
     if doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'bz2':
