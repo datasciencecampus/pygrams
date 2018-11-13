@@ -264,11 +264,8 @@ class TFIDF:
             self.__lost_state = True
 
         if docs_set is not None:
-            patent_id_dict = {k: v for v, k in enumerate(self.__dataframe.patent_id)}
-            for key, idx in tqdm(patent_id_dict.items()):
-                if key not in docs_set:
-                    self.tfidf_matrix.data[self.tfidf_matrix.indptr[idx]:self.tfidf_matrix.indptr[idx + 1]] *= 0.0
-            self.__lost_state = True
+            print()
+            #TODO: return only values for these rows!
 
         # pick filter
         tfidf_csc_matrix = self.tfidf_matrix.tocsc()
