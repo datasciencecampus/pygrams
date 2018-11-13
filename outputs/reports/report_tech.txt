@@ -1,3 +1,250 @@
- wire grid polarization         0.285993
- unmodulated light              0.114397
- sub-wavelength wire            0.057199
+ internal combustion engine     218.452720
+ electrode active material      109.559474
+ electronic device              88.039441
+ fuel cell stack                84.035884
+ gas turbine engine             77.151866
+ energy storage device          74.032150
+ fuel cell system               73.616983
+ group consist                  72.830350
+ active material layer          72.350999
+ electric motor                 70.698317
+ wind turbine                   70.398853
+ negative electrode             68.213790
+ solar cell                     61.942120
+ positive electrode             61.189696
+ lithium secondary battery      59.793751
+ fuel cell                      59.063579
+ combustion chamber             59.054720
+ hybrid vehicle                 58.805464
+ motor vehicle                  58.563642
+ positive electrode active      56.406461
+ electric vehicle               56.392391
+ first electrode                51.845727
+ electrically connect           51.402174
+ heat exchanger                 50.899643
+ output voltage                 49.597807
+ power storage device           48.321205
+ current collector              46.569280
+ cathode active material        46.425752
+ fluid communication            44.629778
+ control unit                   43.220398
+ battery cell                   42.128179
+ control device                 42.104638
+ base station                   42.035161
+ first surface                  41.507543
+ negative electrode active      41.060838
+ user equipment                 40.918541
+ second electrode               40.411309
+ first portion                  40.381166
+ secondary battery              39.104644
+ electrode assembly             37.773222
+ anode active material          37.347486
+ electric machine               37.250670
+ exhaust gas                    37.243353
+ control system                 37.085664
+ photovoltaic cell              36.829302
+ power save mode                36.228437
+ lithium ion battery            36.223643
+ power converter                35.330847
+ solar cell module              35.277561
+ power source                   35.152076
+ exhaust gas recirculation      34.906873
+ light emit diode               34.761418
+ wind turbine blade             34.730552
+ energy storage system          34.569839
+ battery pack                   34.535857
+ membrane electrode assembly    34.476152
+ rotor blade                    33.800425
+ mobile device                  33.679104
+ carbon atom                    32.636656
+ second portion                 32.360206
+ control signal                 32.203256
+ power supply                   32.125604
+ electrochemical cell           32.034515
+ photovoltaic device            31.965476
+ longitudinal axis              31.446373
+ carbon dioxide                 31.145383
+ light source                   30.837400
+ semiconductor substrate        30.640636
+ exhaust gas flow               30.268404
+ rechargeable lithium battery   30.103908
+ input voltage                  29.848683
+ inner surface                  29.847529
+ reduce power consumption       29.734434
+ battery module                 29.462560
+ power consumption              29.205734
+ lead edge                      28.850715
+ supply power                   28.486012
+ output shaft                   28.432036
+ power supply unit              28.352477
+ power supply device            27.962781
+ longitudinal direction         27.827219
+ electrolyte secondary battery  27.719181
+ solid oxide fuel               27.586226
+ oxide fuel cell                27.507984
+ first direction                27.409683
+ composite material             27.149491
+ wireless communication system  26.612402
+ controller configure           26.596903
+ computing device               26.419018
+ following step                 26.300315
+ least part                     25.931179
+ positive active material       25.882576
+ first mode                     25.745733
+ exhaust system                 25.521020
+ power generation system        25.517631
+ first set                      25.268727
+ general formula                25.114928
+ electronic control unit        25.050235
+ power factor correction        24.776934
+ first layer                    24.766672
+ least partially                24.667027
+ solar panel                    24.620553
+ control circuit                24.501279
+ electrical energy              24.480645
+ information processing apparatus 24.299816
+ predetermined value            24.273523
+ access point                   24.199317
+ following formula              24.183935
+ lithium salt                   24.084763
+ alkyl group                    23.986744
+ lithium ion secondary          23.942364
+ ion secondary battery          23.832482
+ wireless communication device  23.734114
+ organic electronic device      23.715142
+ element select                 23.699322
+ power supply system            23.504709
+ primary winding                23.436217
+ second mode                    22.952750
+ secondary winding              22.537105
+ second surface                 22.536235
+ photovoltaic module            22.467247
+ second set                     22.187902
+ determine base                 22.164386
+ active material                22.112756
+ host cell                      22.105046
+ electrochemical device         22.087153
+ switch element                 21.951553
+ exhaust gas purification       21.948991
+ semiconductor device           21.887862
+ electrode current collector    21.749385
+ threshold value                21.741829
+ generate electricity           21.712219
+ axial direction                21.686322
+ high temperature               21.671911
+ hydrogen atom                  21.571605
+ organic solvent                21.487684
+ selective catalytic reduction  21.439105
+ chemical formula               21.355433
+ output terminal                21.267818
+ upper surface                  21.054360
+ display device                 20.897687
+ negative active material       20.875558
+ power supply circuit           20.548695
+ light emit device              20.402339
+ electric power supply          20.338219
+ first switch                   20.142033
+ rechargeable battery           20.132948
+ top surface                    19.982577
+ exhaust passage                19.961017
+ electric storage device        19.846549
+ switching element              19.750606
+ heat transfer fluid            19.697995
+ lithium battery                19.562430
+ electrolyte solution           19.555981
+ support structure              19.502914
+ trailing edge                  19.485386
+ nucleic acid construct         19.480301
+ organic light emit             19.308811
+ mobile terminal                19.306673
+ aqueous solution               19.224964
+ control operation              19.211919
+ computer program product       19.158781
+ computer system                18.985926
+ first device                   18.980469
+ dye-sensitized solar cell      18.951645
+ solid electrolyte layer        18.864904
+ power grid                     18.844371
+ charge air cooler              18.839240
+ hybrid electric vehicle        18.743399
+ gas diffusion layer            18.730806
+ electrolytic solution          18.589271
+ control unit configure         18.488810
+ wireless network               18.465606
+ far configure                  18.398017
+ wireless device                18.358036
+ second switch                  18.318943
+ main body                      18.287697
+ electrical energy storage      18.224151
+ ionic liquid                   18.163088
+ second layer                   18.152057
+ electrically couple            18.128037
+ first region                   18.050878
+ polynucleotides encode         18.027643
+ transition metal oxide         17.944262
+ power system                   17.925111
+ sleep mode                     17.923337
+ organic electroluminescent device 17.909655
+ second terminal                17.799832
+ electrolyte membrane           17.799477
+ first plurality                17.765171
+ carbon monoxide                17.446955
+ drive wheel                    17.376318
+ diesel engine                  17.353175
+ first terminal                 17.349722
+ exhaust pipe                   17.238894
+ semiconductor layer            17.217084
+ ring gear                      17.179357
+ rubber composition             17.087183
+ external power supply          17.043386
+ second component               17.023437
+ photoelectric conversion layer 17.000013
+ polymer electrolyte membrane   16.907893
+ fuel tank                      16.891340
+ direct current                 16.795516
+ closed position                16.716759
+ intake valve                   16.601309
+ active material particle       16.591989
+ temperature sensor             16.579857
+ first signal                   16.579373
+ input shaft                    16.571559
+ dc/dc converter                16.458121
+ intake manifold                16.406901
+ improve operation              16.361048
+ drive shaft                    16.350651
+ memory device                  16.284742
+ wind turbine generator         16.226721
+ flexible substrate             16.173368
+ bottom surface                 16.172122
+ power switch                   16.109737
+ fuel injector                  16.091173
+ generate power                 16.061837
+ second region                  16.009756
+ normal mode                    16.007861
+ portable electronic device     15.958689
+ current flowing                15.943555
+ cylinder head                  15.914722
+ upper portion                  15.862487
+ control apparatus              15.836301
+ buffer layer                   15.810120
+ motor generator                15.764998
+ non-aqueous electrolyte secondary 15.729748
+ switch power supply            15.665363
+ plant biomass                  15.656875
+ combustion engine              15.580007
+ exhaust valve                  15.562621
+ light absorb layer             15.525954
+ optoelectronic device          15.444569
+ dc power source                15.432404
+ battery case                   15.405352
+ storage battery                15.404934
+ carbon material                15.358003
+ second plurality               15.354475
+ gas turbine                    15.315498
+ municipal waste biomass        15.259880
+ solar module                   15.229834
+ central axis                   15.214590
+ electrical machine             15.211529
+ pulse width modulation         15.206769
+ mobile communication system    15.054837
+ time period                    15.033564
