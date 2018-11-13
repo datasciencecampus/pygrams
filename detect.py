@@ -142,8 +142,8 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict):
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, args.pick, ngram_multiplier, args.time,
-                 args.focus, writer)
+    table_output(tfidf, tfidf_random, num_ngrams, args.pick, ngram_multiplier, args.time,
+                 args.focus, writer, citation_count_dict=citation_count_dict)
 
 
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
