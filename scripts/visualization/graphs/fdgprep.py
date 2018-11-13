@@ -108,9 +108,8 @@ class FDGPrep(object):
 
         self.__abstracts_list = []
         single_terms = []
-        for abstract in abstracts:
-            terms, _, _ = tf_idf.extract_popular_ngrams(number_of_ngrams_to_return=num_terms_to_evaluate,
-                                                        input_text=abstract)
+        for idx, abstract in enumerate(abstracts):
+            terms, _, _ = tf_idf.detect_popular_ngrams_in_docs_set(number_of_ngrams_to_return=num_terms_to_evaluate,docs_set=[idx])
             if args.focus:
                 terms2, _, _ = tf_idf2.extract_popular_ngrams(number_of_ngrams_to_return=num_terms_to_evaluate,
                                                               input_text=abstract)
