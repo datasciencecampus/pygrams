@@ -2,6 +2,7 @@ import argparse
 import bz2
 import json
 import os
+import pandas as pd
 import pickle
 import sys
 
@@ -29,7 +30,7 @@ def year2pandas_earliest_date(year_in):
 
 
 def get_args(command_line_arguments):
-    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for patent texts")
+    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
@@ -45,7 +46,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the document cohort")
-    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the patent cohort (0 is now)")
+    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the documents cohort (0 is now)")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -54,8 +55,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=50,
                         help="number of ngrams to return for fdg graph")
 
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000', help="the doc source to process")
-    parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000',
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
+    parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2',
                         help="the doc source for the focus function")
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
@@ -104,14 +105,11 @@ def checkargs(args):
         exit(0)
 
 
-
-
-
-def get_tfidf(args, pickle_file_name):
+def get_tfidf(args, pickle_file_name, df=None):
     date_from = year2pandas_earliest_date(args.year_from)
     date_to = year2pandas_latest_date(args.year_to)
-
-    df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
+    if df is None:
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n))
 
 
@@ -212,7 +210,15 @@ def main():
     args = get_args(sys.argv[1:])
     checkargs(args)
 
-    doc_pickle_file_name = os.path.join('data', args.patent_source + ".pkl.bz2")
+    doc_pickle_file_name = os.path.join('data',args.doc_source )
+
+    df=None
+    if doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'bz2':
+        df = pd.read_pickle(doc_pickle_file_name)
+    elif doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'xls':
+        df = pd.read_excel(doc_pickle_file_name)
+    elif doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'csv':
+        df = pd.read_csv(doc_pickle_file_name)
 
     if args.json:
         write_config_to_json(args, doc_pickle_file_name)
@@ -221,7 +227,7 @@ def main():
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf = get_tfidf(args, doc_pickle_file_name, args.cpc_classification)
+    tfidf = get_tfidf(args, doc_pickle_file_name, df=df)
 
     newtfidf = None
     if args.focus or args.output == 'table':
@@ -245,7 +251,7 @@ def main():
         run_fdg(args, tfidf, newtfidf)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.patent_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)
+        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)
 
 
 if __name__ == '__main__':
