@@ -28,7 +28,7 @@ def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
     return Timestamp(year_string)
 
-#\\nsdata5\DIT\Excel
+#S:Excel
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
