@@ -148,7 +148,7 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer()):
+    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract'):
         self.__dataframe = patentsdf
 
         WordAnalyzer.init(
@@ -162,17 +162,19 @@ class TFIDF:
             ngram_range=ngram_range,
             analyzer=WordAnalyzer.analyzer
         )
+        
+        self.__abstract_header=header
 
         number_of_patents_before_sift = self.__dataframe.shape[0]
-        self.__dataframe.dropna(subset=['abstract'], inplace=True)
+        self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
         number_of_patents_after_sift = self.__dataframe.shape[0]
         number_of_patents_sifted = number_of_patents_before_sift - number_of_patents_after_sift
         print(f'Dropped {number_of_patents_sifted:,} patents due to empty abstracts')
 
-        self.tfidf_vectorizer.fit(self.__dataframe['abstract'])
+        self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
         self.__feature_names = self.tfidf_vectorizer.get_feature_names()
 
-        self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
         self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, ngram_range[0])
         self.__lost_state = False
         self.__min_ngram_count = ngram_range[0]
@@ -183,7 +185,7 @@ class TFIDF:
 
     @property
     def patent_abstracts(self):
-        return self.__dataframe['abstract']
+        return self.__dataframe[self.__abstract_header]
 
     @property
     def feature_names(self):
@@ -207,10 +209,10 @@ class TFIDF:
             return []
 
         if self.__lost_state:
-            self.tfidf_vectorizer.fit(self.__dataframe['abstract'])
+            self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
             self.__feature_names = self.tfidf_vectorizer.get_feature_names()
 
-            self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+            self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
             self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, self.__min_ngram_count)
             self.__lost_state = False
 
