@@ -10,6 +10,7 @@ from pandas import Timestamp, read_pickle, ExcelWriter
 from scripts import FilePaths
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
+from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.fdgprep import FDGPrep
@@ -22,6 +23,7 @@ def year2pandas_latest_date(year_in):
 
     year_string = str(year_in) + '-12-31'
     return Timestamp(year_string)
+
 
 def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
@@ -41,8 +43,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
     parser.add_argument("-o", "--output", default='report',
-                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
+                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts', 'all'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the patent cohort")
@@ -98,7 +100,7 @@ def checkargs(args):
         app_exit = True
 
     if args.output == 'table' or args.output == 'all':
-        if args.focus == None:
+        if args.focus is None:
             print('define a focus before requesting table (or all) output')
             app_exit = True
 
@@ -151,8 +153,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
     tfocus = TermFocus(tfidf, tfidf_random)
     dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
-                                                                                citation_count_dict, ngram_multiplier,
-                                                                                num_ngrams)
+                                                                            citation_count_dict, ngram_multiplier,
+                                                                            num_ngrams)
 
     with open(args.report_name, 'w') as file:
         counter = 1
@@ -217,12 +219,24 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
-    term_present_matrix = tfidf_matrix > 0
-    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
-    term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
-    os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
-    with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:
-        pickle.dump(term_present_data, pickle_file)
+
+def output_term_counts(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, citation_count_dict):
+    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
+        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+        pick=pick, time=time,
+        citation_count_dict=citation_count_dict)
+
+    publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+                              [d.isocalendar() for d in tfidf.publication_dates]]
+
+    term_counts_per_week, number_of_patents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
+        tfidf_matrix, publication_week_dates)
+
+    term_counts_data = [term_counts_per_week, tfidf.feature_names, number_of_patents_per_week, week_iso_dates]
+    term_counts_filename = os.path.join('outputs', 'termcounts', tfidf_base_filename + '-term_counts.pkl.bz2')
+    os.makedirs(os.path.dirname(term_counts_filename), exist_ok=True)
+    with bz2.BZ2File(term_counts_filename, 'wb') as pickle_file:
+        pickle.dump(term_counts_data, pickle_file)
 
 
 def main():
@@ -272,6 +286,10 @@ def main():
     if out == 'tfidf' or out == 'all':
         output_tfidf(args.patent_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time,
                      citation_count_dict=citation_count_dict)
+
+    if out == 'termcounts' or out == 'all':
+        output_term_counts(args.patent_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time,
+                           citation_count_dict=citation_count_dict)
 
 
 if __name__ == '__main__':
