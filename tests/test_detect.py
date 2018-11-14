@@ -54,7 +54,7 @@ class TestDetect(unittest.TestCase):
             'parameters': {
                 'cite': False,
                 'cpc': '',
-                'focus': False,
+                'focus': None,
                 'pick': 'sum',
                 'time': False
             }
@@ -68,7 +68,7 @@ class TestDetect(unittest.TestCase):
         patent_pickle_absolute_file_name = os.path.abspath(patent_pickle_file_name)
         report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
         json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
-        args = detect.get_args(['-j', f'--report_name={report_file_name}', '-c', '-t', '-f', '-p=max', '-cpc=Y12',
+        args = detect.get_args(['-j', f'--report_name={report_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
                                 '-yf=1998', '-yt=2001'])
 
         detect.write_config_to_json(args, patent_pickle_file_name)
@@ -89,7 +89,7 @@ class TestDetect(unittest.TestCase):
             'parameters': {
                 'cite': True,
                 'cpc': 'Y12',
-                'focus': True,
+                'focus': 'set',
                 'pick': 'max',
                 'time': True
             }

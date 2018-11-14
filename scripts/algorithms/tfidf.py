@@ -6,8 +6,9 @@ from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer, strip_accents_ascii
 from tqdm import tqdm
-
+from nltk.corpus import wordnet
 from scripts import FilePaths
+from scripts.utils.utils import Utils as ut
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
 New BSD License
@@ -49,14 +50,14 @@ class LemmaTokenizer(object):
         self.wnl = WordNetLemmatizer()
 
     def lemmatize_with_pos(self, tag):
-        if tag[1] == 'NOUN':
-            return self.wnl.lemmatize(tag[0], pos='n')
-        elif tag[1] == 'ADJ':
-            return self.wnl.lemmatize(tag[0], pos='a')
-        elif tag[1] == 'ADV':
-            return self.wnl.lemmatize(tag[0], pos='r')
-        elif tag[1] == 'VERB':
-            return self.wnl.lemmatize(tag[0], pos='v')
+        if tag[1].startswith('N'):
+            return self.wnl.lemmatize(tag[0], wordnet.NOUN)
+        elif tag[1].startswith('J'):
+            return self.wnl.lemmatize(tag[0], wordnet.ADJ)
+        elif tag[1].startswith('R'):
+            return self.wnl.lemmatize(tag[0], wordnet.ADV)
+        elif tag[1].startswith('V'):
+            return self.wnl.lemmatize(tag[0], wordnet.VERB)
         else:
             return self.wnl.lemmatize(tag[0])
 
@@ -171,9 +172,12 @@ class TFIDF:
         self.tfidf_vectorizer.fit(self.__dataframe['abstract'])
         self.__feature_names = self.tfidf_vectorizer.get_feature_names()
 
+        self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix)
+
     @property
     def tfidf_mat(self):
-        return self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        return self.tfidf_matrix
 
     @property
     def patent_abstracts(self):
@@ -183,13 +187,20 @@ class TFIDF:
     def feature_names(self):
         return self.__feature_names
 
+    @property
+    def publication_dates(self):
+        return list(self.__dataframe['publication_date'])
+
+    @property
+    def patent_ids(self):
+        return list(self.__dataframe['patent_id'])
+
     def extract_popular_ngrams(self, input_text, number_of_ngrams_to_return=None):
 
-        tfidf = self.tfidf_vectorizer.transform([input_text])
-
+        tfidf_matrix = self.tfidf_vectorizer.transform([input_text])
         zipped_last_tfidf_with_terms = []
 
-        for index, value in zip(tfidf.indices, tfidf.data):
+        for index, value in zip(tfidf_matrix.indices, tfidf_matrix.data):
             feature_score_tuple = (value, self.__feature_names[index])
             zipped_last_tfidf_with_terms.append(feature_score_tuple)
 
@@ -201,19 +212,15 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in zipped_last_tfidf_with_terms[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return]
+                if feature_score_tuple[0] > 0], zipped_last_tfidf_with_terms[:number_of_ngrams_to_return], tfidf_matrix
 
-    def transform_corpus_to_tidf(self):
-        return self.tfidf_vectorizer.transform(self.patent_abstracts)
 
     def detect_popular_ngrams_in_corpus(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                         citation_count_dict=None):
 
-        tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe['abstract'])
+        print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} patents')
 
-        print(f'Processing TFIDF of {tfidf_matrix.shape[0]:,} patents')
-
-        if tfidf_matrix.shape[0] == 0:
+        if self.tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
             return []
 
@@ -234,7 +241,7 @@ class TFIDF:
                 time_weights[patent_index] = X_std
 
             for i, v in enumerate(time_weights):
-                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
+                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
 
         if citation_count_dict:
             patent_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe.patent_id)}
@@ -259,10 +266,10 @@ class TFIDF:
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
             for i, v in enumerate(list_of_citation_counts):
-                tfidf_matrix.data[tfidf_matrix.indptr[i]:tfidf_matrix.indptr[i + 1]] *= v
+                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
 
         # pick filter
-        tfidf_csc_matrix = tfidf_matrix.tocsc()
+        tfidf_csc_matrix = self.tfidf_matrix.tocsc()
 
         if pick == 'median':
             pick_func = np.median
@@ -292,28 +299,43 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return]
-
-    def detect_popular_ngrams_in_corpus_excluding_common(self, tfidf_random,
-                                                         number_of_ngrams_to_return=200, pick='sum', time=False,
-                                                         citation_count_dict=None):
-
-        terms, ngrams_scores_tuple = self.detect_popular_ngrams_in_corpus(
-            number_of_ngrams_to_return=number_of_ngrams_to_return,
-            pick=pick, time=time, citation_count_dict=citation_count_dict)
-        set_terms = set(terms)
-
-        terms_random, ngrams_scores_tuple_random = tfidf_random.detect_popular_ngrams_in_corpus(
-            number_of_ngrams_to_return=number_of_ngrams_to_return,
-            pick=pick, time=time, citation_count_dict=citation_count_dict)
-
-        set_random_terms = set(terms_random)
-        set_intersection = set_terms.intersection(set_random_terms)
-        set_terms -= set_intersection
-
-        return set_terms
+                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.tfidf_matrix
 
     def get_tfidf_sum_vector(self):
         tfidf = self.tfidf_vectorizer.transform(self.patent_abstracts)
         tfidf_summary = (tfidf.sum(axis=0)).flatten()
         return tfidf_summary.tolist()[0]
+
+    def unbias_ngrams(self, mtx_csr):
+
+        # iterate through rows ( docs)
+        for i in range(0, len(mtx_csr.indptr) - 1):
+            start_idx_ptr = mtx_csr.indptr[i]
+            end_idx_ptr = mtx_csr.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr+1, end_idx_ptr):
+
+                col_idx = mtx_csr.indices[j]
+                big_ngram = self.feature_names[col_idx]
+                big_ngram_terms = big_ngram.split()
+
+                if len(big_ngram_terms) > 1:
+
+                    col_idx1 = mtx_csr.indices[j-1]
+                    small_ngram = self.feature_names[col_idx1]
+                    chopped_ngram = ' '.join(big_ngram_terms[1:])
+
+                    if small_ngram == chopped_ngram:
+                        mtx_csr.data[j-1] = 0
+
+                        if big_ngram > small_ngram:
+                            start, end = 0, col_idx-1
+                        else:
+                            start, end = col_idx+1, len(self.feature_names)-1
+
+                        term_idx, found = ut.bisearch_csr(self.feature_names, chopped_ngram, start, end)
+
+                        if found:
+                            mtx_csr.data[term_idx] = 0
+        return mtx_csr
