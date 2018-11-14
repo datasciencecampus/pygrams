@@ -63,8 +63,8 @@ class TestTableOutput(unittest.TestCase):
         register_writer(TestTableOutput.FakeWriter)
         fake_writer = TestTableOutput.FakeWriter('spreadsheet.fake')
 
-        table_output(tfidf_cold, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, time, focus,
-                     fake_writer)
+        table_output(tfidf_cold, tfidf_random, num_ngrams, pick, ngram_multiplier, time, focus,
+                     fake_writer, citation_count_dict)
 
         # Check sheet headings...
         self.assertListEqual(

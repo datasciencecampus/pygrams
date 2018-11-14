@@ -263,6 +263,14 @@ class TFIDF:
                 self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
             self.__lost_state = True
 
+        #TODO: get rid of on #73 or #80
+        if docs_set is not None:
+            patent_id_dict = {k: v for v, k in enumerate(self.__dataframe.patent_id)}
+            for key, idx in tqdm(patent_id_dict.items()):
+                if key not in docs_set:
+                    self.tfidf_matrix.data[self.tfidf_matrix.indptr[idx]:self.tfidf_matrix.indptr[idx + 1]] *= 0.0
+            self.__lost_state = True
+
         if docs_set is not None:
             print()
             #TODO: return only values for these rows!
