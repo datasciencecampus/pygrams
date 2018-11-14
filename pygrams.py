@@ -221,6 +221,8 @@ def main():
         df = pd.read_excel(doc_pickle_file_name)
     elif doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'csv':
         df = pd.read_csv(doc_pickle_file_name)
+    elif doc_pickle_file_name[len(doc_pickle_file_name)-4:] == 'xlsx':
+        df = pd.read_excel(doc_pickle_file_name)
 
     if args.json:
         write_config_to_json(args, doc_pickle_file_name)

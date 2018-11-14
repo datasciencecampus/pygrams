@@ -1,250 +1,250 @@
- internal combustion engine     218.452720
- electrode active material      109.559474
- electronic device              88.039441
- fuel cell stack                84.035884
- gas turbine engine             77.151866
- energy storage device          74.032150
- fuel cell system               73.616983
- group consist                  72.830350
- active material layer          72.350999
- electric motor                 70.698317
- wind turbine                   70.398853
- negative electrode             68.213790
- solar cell                     61.942120
- positive electrode             61.189696
- lithium secondary battery      59.793751
- fuel cell                      59.063579
- combustion chamber             59.054720
- hybrid vehicle                 58.805464
- motor vehicle                  58.563642
- positive electrode active      56.406461
- electric vehicle               56.392391
- first electrode                51.845727
- electrically connect           51.402174
- heat exchanger                 50.899643
- output voltage                 49.597807
- power storage device           48.321205
- current collector              46.569280
- cathode active material        46.425752
- fluid communication            44.629778
- control unit                   43.220398
- battery cell                   42.128179
- control device                 42.104638
- base station                   42.035161
- first surface                  41.507543
- negative electrode active      41.060838
- user equipment                 40.918541
- second electrode               40.411309
- first portion                  40.381166
- secondary battery              39.104644
- electrode assembly             37.773222
- anode active material          37.347486
- electric machine               37.250670
- exhaust gas                    37.243353
- control system                 37.085664
- photovoltaic cell              36.829302
- power save mode                36.228437
- lithium ion battery            36.223643
- power converter                35.330847
- solar cell module              35.277561
- power source                   35.152076
- exhaust gas recirculation      34.906873
- light emit diode               34.761418
- wind turbine blade             34.730552
- energy storage system          34.569839
- battery pack                   34.535857
- membrane electrode assembly    34.476152
- rotor blade                    33.800425
- mobile device                  33.679104
- carbon atom                    32.636656
- second portion                 32.360206
- control signal                 32.203256
- power supply                   32.125604
- electrochemical cell           32.034515
- photovoltaic device            31.965476
- longitudinal axis              31.446373
- carbon dioxide                 31.145383
- light source                   30.837400
- semiconductor substrate        30.640636
- exhaust gas flow               30.268404
- rechargeable lithium battery   30.103908
- input voltage                  29.848683
- inner surface                  29.847529
- reduce power consumption       29.734434
- battery module                 29.462560
- power consumption              29.205734
- lead edge                      28.850715
- supply power                   28.486012
- output shaft                   28.432036
- power supply unit              28.352477
- power supply device            27.962781
- longitudinal direction         27.827219
- electrolyte secondary battery  27.719181
- solid oxide fuel               27.586226
- oxide fuel cell                27.507984
- first direction                27.409683
- composite material             27.149491
- wireless communication system  26.612402
- controller configure           26.596903
- computing device               26.419018
- following step                 26.300315
- least part                     25.931179
- positive active material       25.882576
- first mode                     25.745733
- exhaust system                 25.521020
- power generation system        25.517631
- first set                      25.268727
- general formula                25.114928
- electronic control unit        25.050235
- power factor correction        24.776934
- first layer                    24.766672
- least partially                24.667027
- solar panel                    24.620553
- control circuit                24.501279
- electrical energy              24.480645
- information processing apparatus 24.299816
- predetermined value            24.273523
- access point                   24.199317
- following formula              24.183935
- lithium salt                   24.084763
- alkyl group                    23.986744
- lithium ion secondary          23.942364
- ion secondary battery          23.832482
- wireless communication device  23.734114
- organic electronic device      23.715142
- element select                 23.699322
- power supply system            23.504709
- primary winding                23.436217
- second mode                    22.952750
- secondary winding              22.537105
- second surface                 22.536235
- photovoltaic module            22.467247
- second set                     22.187902
- determine base                 22.164386
- active material                22.112756
- host cell                      22.105046
- electrochemical device         22.087153
- switch element                 21.951553
- exhaust gas purification       21.948991
- semiconductor device           21.887862
- electrode current collector    21.749385
- threshold value                21.741829
- generate electricity           21.712219
- axial direction                21.686322
- high temperature               21.671911
- hydrogen atom                  21.571605
- organic solvent                21.487684
- selective catalytic reduction  21.439105
- chemical formula               21.355433
- output terminal                21.267818
- upper surface                  21.054360
- display device                 20.897687
- negative active material       20.875558
- power supply circuit           20.548695
- light emit device              20.402339
- electric power supply          20.338219
- first switch                   20.142033
- rechargeable battery           20.132948
- top surface                    19.982577
- exhaust passage                19.961017
- electric storage device        19.846549
- switching element              19.750606
- heat transfer fluid            19.697995
- lithium battery                19.562430
- electrolyte solution           19.555981
- support structure              19.502914
- trailing edge                  19.485386
- nucleic acid construct         19.480301
- organic light emit             19.308811
- mobile terminal                19.306673
- aqueous solution               19.224964
- control operation              19.211919
- computer program product       19.158781
- computer system                18.985926
- first device                   18.980469
- dye-sensitized solar cell      18.951645
- solid electrolyte layer        18.864904
- power grid                     18.844371
- charge air cooler              18.839240
- hybrid electric vehicle        18.743399
- gas diffusion layer            18.730806
- electrolytic solution          18.589271
- control unit configure         18.488810
- wireless network               18.465606
- far configure                  18.398017
- wireless device                18.358036
- second switch                  18.318943
- main body                      18.287697
- electrical energy storage      18.224151
- ionic liquid                   18.163088
- second layer                   18.152057
- electrically couple            18.128037
- first region                   18.050878
- polynucleotides encode         18.027643
- transition metal oxide         17.944262
- power system                   17.925111
- sleep mode                     17.923337
- organic electroluminescent device 17.909655
- second terminal                17.799832
- electrolyte membrane           17.799477
- first plurality                17.765171
- carbon monoxide                17.446955
- drive wheel                    17.376318
- diesel engine                  17.353175
- first terminal                 17.349722
- exhaust pipe                   17.238894
- semiconductor layer            17.217084
- ring gear                      17.179357
- rubber composition             17.087183
- external power supply          17.043386
- second component               17.023437
- photoelectric conversion layer 17.000013
- polymer electrolyte membrane   16.907893
- fuel tank                      16.891340
- direct current                 16.795516
- closed position                16.716759
- intake valve                   16.601309
- active material particle       16.591989
- temperature sensor             16.579857
- first signal                   16.579373
- input shaft                    16.571559
- dc/dc converter                16.458121
- intake manifold                16.406901
- improve operation              16.361048
- drive shaft                    16.350651
- memory device                  16.284742
- wind turbine generator         16.226721
- flexible substrate             16.173368
- bottom surface                 16.172122
- power switch                   16.109737
- fuel injector                  16.091173
- generate power                 16.061837
- second region                  16.009756
- normal mode                    16.007861
- portable electronic device     15.958689
- current flowing                15.943555
- cylinder head                  15.914722
- upper portion                  15.862487
- control apparatus              15.836301
- buffer layer                   15.810120
- motor generator                15.764998
- non-aqueous electrolyte secondary 15.729748
- switch power supply            15.665363
- plant biomass                  15.656875
- combustion engine              15.580007
- exhaust valve                  15.562621
- light absorb layer             15.525954
- optoelectronic device          15.444569
- dc power source                15.432404
- battery case                   15.405352
- storage battery                15.404934
- carbon material                15.358003
- second plurality               15.354475
- gas turbine                    15.315498
- municipal waste biomass        15.259880
- solar module                   15.229834
- central axis                   15.214590
- electrical machine             15.211529
- pulse width modulation         15.206769
- mobile communication system    15.054837
- time period                    15.033564
+ great place                    18.100813
+ senior manager                 10.452023
+ field interviewer              9.481941
+ increase pay                   9.368251
+ government department          9.206189
+ pay rise                       7.994760
+ pay increase                   7.529188
+ job title                      7.515196
+ improve pay                    6.946154
+ low grade                      6.345811
+ pay cap                        6.136363
+ less bureaucracy               5.360140
+ poor performance               5.039476
+ n't feel                       4.929871
+ field force                    4.833763
+ senior management              4.833344
+ recruitment process            4.827996
+ high grade                     4.574008
+ work life balance              4.479552
+ high pay                       4.445088
+ smart working                  4.316037
+ new starter                    4.151918
+ blame culture                  3.491783
+ pay scale                      3.427300
+ performance management system  3.414857
+ red tape                       3.369925
+ smart work                     3.261802
+ target zone                    3.134937
+ team meeting                   3.035992
+ fairer pay                     2.957118
+ pay rate                       2.918546
+ civil service                  2.908331
+ career progression             2.851758
+ annualised hour contract       2.844825
+ change happen                  2.839675
+ private sector                 2.815863
+ home working                   2.811383
+ performance management         2.770045
+ n't work                       2.734099
+ pay grade                      2.723930
+ high salary                    2.673611
+ work hard                      2.639020
+ fair pay                       2.536213
+ work place                     2.508051
+ job we                         2.506595
+ less contractor                2.476315
+ work we                        2.468245
+ air conditioning               2.414678
+ line manager                   2.353771
+ work condition                 2.287213
+ improve communication          2.272168
+ people work                    2.233112
+ senior staff                   2.189474
+ manage change                  2.155864
+ ons staff                      2.097860
+ we 're                         2.069714
+ field staff                    2.050411
+ odp staff                      2.000000
+ less focus                     1.999296
+ new system                     1.994617
+ new idea                       1.943316
+ treat people                   1.942640
+ new staff                      1.892419
+ long time                      1.891243
+ flexible working               1.871746
+ n't happen                     1.838808
+ pay progression                1.833557
+ pay structure                  1.829961
+ actual work                    1.797285
+ less empire-building           1.796742
+ telephone interviewer          1.773652
+ government policy              1.761833
+ lip service                    1.748659
+ middle management              1.748255
+ new technology                 1.742392
+ pay increment                  1.730816
+ feel value                     1.725886
+ bring back                     1.716317
+ people feel                    1.708605
+ new software                   1.708035
+ senior level                   1.706185
+ equal opportunity              1.700798
+ job role                       1.700786
+ odp role                       1.688055
+ reward strategy                1.676398
+ development opportunity        1.665957
+ common sense                   1.659992
+ annual leave                   1.656575
+ improved pay                   1.656532
+ career pathway                 1.651861
+ telephone operation            1.646503
+ top down                       1.640199
+ great understanding            1.616359
+ bad pay                        1.584810
+ enable staff                   1.583284
+ similar role                   1.568719
+ low level                      1.568154
+ field worker                   1.561066
+ staff member                   1.556335
+ general public                 1.556123
+ civil service department       1.555817
+ telephone unit                 1.553329
+ new manager                    1.540338
+ shift pattern                  1.528750
+ less bureaucratic              1.497495
+ pay range                      1.495062
+ car park                       1.489309
+ timely decision                1.480188
+ temporary promotion            1.477816
+ `` transformation ''           1.471859
+ decent pay rise                1.470661
+ start work                     1.460458
+ treat staff                    1.458113
+ reward people                  1.450940
+ team member                    1.448240
+ treat fairly                   1.444049
+ work remotely                  1.443172
+ right tool                     1.428386
+ reward staff                   1.421332
+ free coffee                    1.414678
+ clear understanding            1.408976
+ clear direction                1.408216
+ allow manager                  1.402104
+ manage people                  1.398164
+ increased pay                  1.393133
+ pay lip service                1.384994
+ we 've                         1.376184
+ less hierarchy                 1.373866
+ upper management               1.372134
+ progression pay                1.368385
+ qualified trainer              1.351518
+ lengthy process                1.344483
+ internal communication         1.341639
+ slow down                      1.337545
+ great transparency             1.335560
+ team work                      1.332247
+ evidence base                  1.321464
+ life balance                   1.312198
+ feel isolate                   1.308009
+ enjoy work                     1.302389
+ great deal                     1.291532
+ people skill                   1.288432
+ newport office                 1.283639
+ social event                   1.280897
+ leadership team                1.272180
+ negative comment               1.261949
+ new department                 1.259439
+ ca n't                         1.255059
+ less cronyism                  1.232044
+ ons work                       1.230440
+ increase salary                1.228245
+ lower grade                    1.220898
+ new equipment                  1.219867
+ daily job                      1.219409
+ hr team                        1.209582
+ stop try                       1.208661
+ long way                       1.195878
+ enable people                  1.192877
+ second class citizen           1.191858
+ minimum pay                    1.188104
+ `` outstanding ''              1.186162
+ agile delivery                 1.185380
+ share skill                    1.181597
+ less change                    1.178757
+ feel we                        1.178416
+ quality statistic              1.164566
+ entry zone                     1.161475
+ hr policy                      1.157077
+ stop change                    1.156888
+ poor performer                 1.154050
+ hourly rate                    1.153593
+ timely manner                  1.147986
+ flexible hour                  1.144543
+ senior civil servant           1.142602
+ pay band                       1.140839
+ sometimes we                   1.139280
+ day work                       1.128798
+ less meeting                   1.128055
+ performance management process 1.127954
+ work load                      1.125590
+ encourage participation        1.124854
+ we work                        1.121640
+ work pattern                   1.119850
+ promotion opportunity          1.116440
+ ao grade                       1.116003
+ old system                     1.114913
+ food chain                     1.113907
+ response rate                  1.111097
+ less talk                      1.107641
+ hard work                      1.107458
+ mental health issue            1.098102
+ big decision                   1.095700
+ performance related pay        1.093168
+ language course                1.091918
+ work i.e                       1.090813
+ involve staff                  1.086694
+ exist staff                    1.078516
+ second job                     1.072471
+ high staff turnover            1.070579
+ new people                     1.062155
+ fair wage                      1.057310
+ senior leader                  1.048912
+ management team                1.039074
+ benefit package                1.034358
+ office staff                   1.030010
+ daily basis                    1.029093
+ less red tape                  1.024843
+ pay deal                       1.024548
+ working hour                   1.011407
+ time consuming                 1.008553
+ ensure fairness                1.005203
+ small team                     1.000600
+ reliable computer system       1.000361
+ work satisfactory              1.000000
+ long service                   0.990906
+ believe ons                    0.987192
+ pay package                    0.983856
+ short term                     0.981258
+ starting point                 0.980498
+ stop assuming                  0.979831
+ remuneration package           0.978203
+ difficult question             0.975299
+ eo grade                       0.975157
+ london office                  0.971155
+ `` legacy ''                   0.970685
+ great idea                     0.968234
+ experienced staff              0.967629
+ team leader                    0.965266
+ career path                    0.963966
+ properly reward                0.961953
+ work hour                      0.960512
+ improve system                 0.959928
+ data science campus            0.957516
+ software we                    0.955125
+ affect staff                   0.954150
+ scs member                     0.953170
+ move towards                   0.951840
+ field interviewer we           0.948729
+ management attitude            0.946653
+ reward system                  0.944460
+ deliver change                 0.942497
+ office base staff              0.940268
+ minimum wage                   0.937792
+ proper analysis                0.935710
+ flexible work                  0.927728
+ performance review system      0.927211
+ work environment               0.924137
+ vocal minority ''              0.914609
+ low level manager              0.913119
+ change sake                    0.913016
