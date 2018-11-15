@@ -31,18 +31,18 @@ class PatentsPickle2DataFrame(object):
         _date_to = pd.Timestamp(date_to)
 
         self.__data_frame.sort_values('publication_date', inplace=True)
-        self.__print_func(f'Sifting patents between {_date_from.strftime("%d-%b-%Y")} and'
+        self.__print_func(f'Sifting documents between {_date_from.strftime("%d-%b-%Y")} and'
                           f' {_date_to.strftime("%d-%b-%Y")}')
 
         self.__data_frame.drop(self.__data_frame[(self.__data_frame.publication_date < _date_from) | (
                 self.__data_frame.publication_date > _date_to)].index, inplace=True)
-        self.__print_func(f'{self.__data_frame.shape[0]:,} patents available after publication date sift')
+        self.__print_func(f'{self.__data_frame.shape[0]:,} documents available after publication date sift')
 
         self.__data_frame.reset_index(inplace=True, drop=True)
 
     def _subset_cpc(self, cpc_in):
         indexes_to_delete = []
-        for index, row in tqdm(self.__data_frame.iterrows(), desc='Sifting patents for ' + cpc_in, unit='patent',
+        for index, row in tqdm(self.__data_frame.iterrows(), desc='Sifting documents for ' + cpc_in, unit='document',
                                total=self.__data_frame.shape[0]):
             cpc_list = row['classifications_cpc']
             cpc_found = False

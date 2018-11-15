@@ -17,13 +17,13 @@ class TestFocus(unittest.TestCase):
 
     def test_popular_ngrams_by_no_focus(self):
 
-        expected_output = {'constant temperature', 'ice store', 'ice store ready', 'reservoir assembly', 'utility chamber'}
+        expected_output = {'cold air flow', 'constant temperature', 'freezing chamber', 'ice store ready', 'utility chamber'}
         _, actual_output, _ = self.tfocus.detect_and_focus_popular_ngrams('sum', False, None, None, 1, self.num_ngrams)
 
         self.assertEqual(expected_output, actual_output)
 
     def test_popular_ngrams_by_set_focus(self):
-        expected_output = {'constant temperature', 'ice store','ice store ready', 'reservoir assembly','utility chamber'}
+        expected_output = {'cold air flow', 'constant temperature', 'freezing chamber', 'ice store ready', 'utility chamber'}
         _, actual_output, _ = self.tfocus.detect_and_focus_popular_ngrams('sum', False, 'set', None, 1, self.num_ngrams)
         self.assertEqual(expected_output, actual_output)
 

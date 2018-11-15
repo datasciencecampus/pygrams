@@ -2,15 +2,14 @@ import argparse
 import bz2
 import json
 import os
+import pandas as pd
 import pickle
 import sys
 
-from pandas import Timestamp, read_pickle, ExcelWriter
+from pandas import Timestamp, ExcelWriter
 
-from scripts import FilePaths
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
-from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.fdgprep import FDGPrep
@@ -24,31 +23,30 @@ def year2pandas_latest_date(year_in):
     year_string = str(year_in) + '-12-31'
     return Timestamp(year_string)
 
-
 def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
     return Timestamp(year_string)
 
-
 def get_args(command_line_arguments):
-    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for patent texts")
+    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
-    parser.add_argument("-c", "--cite", default=False, action="store_true", help="weight terms by citations")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
+    parser.add_argument("-pt", "--path", default='data',  help="the data path")
+    parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
     parser.add_argument("-o", "--output", default='report',
-                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
+                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'all'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
-    parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the patent cohort")
-    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the patent cohort (0 is now)")
+    parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the document cohort")
+    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the documents cohort (0 is now)")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -57,9 +55,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=50,
                         help="number of ngrams to return for fdg graph")
 
-    parser.add_argument("-ps", "--patent_source", default='USPTO-random-1000', help="the patent source to process")
-    parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000',
-                        help="the patent source for the focus function")
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
+    parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2',
+                        help="the doc source for the focus function")
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
@@ -72,7 +70,6 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
                         help="table filename")
-    parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
 
     parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
 
@@ -100,7 +97,7 @@ def checkargs(args):
         app_exit = True
 
     if args.output == 'table' or args.output == 'all':
-        if args.focus is None:
+        if args.focus == None:
             print('define a focus before requesting table (or all) output')
             app_exit = True
 
@@ -108,53 +105,34 @@ def checkargs(args):
         exit(0)
 
 
-def check_cpc_between_years(args, df):
-    cpc = args.cpc_classification if args.cpc_classification is not None else "all"
-    lendf = len(df)
-    if lendf <= 100:
-        print(str(lendf) + " records found for cpc=" + cpc + ", between " + str(args.year_from) + " and " + str(
-            args.year_to))
-        print(
-            "Not sufficient for tf-idf analysis. Please change parameters to raise the resulting patents cohort count")
-        exit(0)
-
-
-def get_tfidf(args, pickle_file_name, cpc):
+def get_tfidf(args, pickle_file_name, df=None):
     date_from = year2pandas_earliest_date(args.year_from)
     date_to = year2pandas_latest_date(args.year_to)
-
-    df = PatentsPickle2DataFrame(pickle_file_name, classification=cpc, date_from=date_from, date_to=date_to).data_frame
-    check_cpc_between_years(args, df)
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n))
-
-
-def load_citation_count_dict():
-    citation_count_dict = read_pickle(FilePaths.us_patents_citation_dictionary_1of2_pickle_name)
-    citation_count_dict_pt2 = read_pickle(FilePaths.us_patents_citation_dictionary_2of2_pickle_name)
-    citation_count_dict.update(citation_count_dict_pt2)
-    return citation_count_dict
+    if df is None:
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
 
 
-def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict):
-    if citation_count_dict is None:
-        citation_count_dict = load_citation_count_dict()
+
+def run_table(args, ngram_multiplier, tfidf, tfidf_random):
+
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random, num_ngrams, args.pick, ngram_multiplier, args.time,
-                 args.focus, writer, citation_count_dict=citation_count_dict)
+    table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
+                 args.focus, writer)
 
-
+#TODO:  common interface wrapper class, hence left citation_count_dict refs
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
     dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
-                                                                            citation_count_dict, ngram_multiplier,
-                                                                            num_ngrams)
+                                                                                citation_count_dict, ngram_multiplier,
+                                                                                num_ngrams)
 
     with open(args.report_name, 'w') as file:
         counter = 1
@@ -177,14 +155,14 @@ def run_fdg(args, tf_idf, tf_idf2=None):
     graph.save_graph("key-terms", 'data')
 
 
-def write_config_to_json(args, patent_pickle_file_name):
-    patent_pickle_file_name = os.path.abspath(patent_pickle_file_name)
+def write_config_to_json(args, doc_pickle_file_name):
+    doc_pickle_file_name = os.path.abspath(doc_pickle_file_name)
     report_file_name = os.path.abspath(args.report_name)
     json_file_name = os.path.splitext(report_file_name)[0] + '.json'
 
     json_data = {
         'paths': {
-            'data': patent_pickle_file_name,
+            'data': doc_pickle_file_name,
             'tech_report': report_file_name
         },
         'year': {
@@ -192,10 +170,8 @@ def write_config_to_json(args, patent_pickle_file_name):
             'to': args.year_to
         },
         'parameters': {
-            'cpc': '' if args.cpc_classification is None else args.cpc_classification,
             'pick': args.pick,
             'time': args.time,
-            'cite': args.cite,
             'focus': args.focus
         }
     }
@@ -204,11 +180,10 @@ def write_config_to_json(args, patent_pickle_file_name):
         json.dump(json_data, json_file)
 
 
-def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, citation_count_dict):
+def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time):
     terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time,
-        citation_count_dict=citation_count_dict)
+        pick=pick, time=time)
 
     publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                               [d.isocalendar() for d in tfidf.publication_dates]]
@@ -219,77 +194,66 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
-
-def output_term_counts(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, citation_count_dict):
-    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time,
-        citation_count_dict=citation_count_dict)
-
-    publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                              [d.isocalendar() for d in tfidf.publication_dates]]
-
-    term_counts_per_week, number_of_patents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
-        tfidf_matrix, publication_week_dates)
-
-    term_counts_data = [term_counts_per_week, tfidf.feature_names, number_of_patents_per_week, week_iso_dates]
-    term_counts_filename = os.path.join('outputs', 'termcounts', tfidf_base_filename + '-term_counts.pkl.bz2')
-    os.makedirs(os.path.dirname(term_counts_filename), exist_ok=True)
-    with bz2.BZ2File(term_counts_filename, 'wb') as pickle_file:
-        pickle.dump(term_counts_data, pickle_file)
+    term_present_matrix = tfidf_matrix > 0
+    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
+    term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
+    os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
+    with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:
+        pickle.dump(term_present_data, pickle_file)
 
 
 def main():
-    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
-             os.path.join('outputs', 'table')]
+    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'), os.path.join('outputs', 'table')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
     args = get_args(sys.argv[1:])
     checkargs(args)
 
-    patent_pickle_file_name = os.path.join('data', args.patent_source + ".pkl.bz2")
+    doc_source_file_name = os.path.join(args.path, args.doc_source )
+
+    df=None
+    if doc_source_file_name[len(doc_source_file_name)-3:] == 'bz2':
+        df = pd.read_pickle(doc_source_file_name)
+    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'xls':
+        df = pd.read_excel(doc_source_file_name)
+    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'csv':
+        df = pd.read_csv(doc_source_file_name)
+    elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
+        df = pd.read_excel(doc_source_file_name)
 
     if args.json:
-        write_config_to_json(args, patent_pickle_file_name)
+        write_config_to_json(args, doc_source_file_name)
 
     if args.nltk_path:
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf = get_tfidf(args, patent_pickle_file_name, args.cpc_classification)
+    tfidf = get_tfidf(args, doc_source_file_name, df=df)
 
     newtfidf = None
     if args.focus or args.output == 'table':
         path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
         newtfidf = get_tfidf(args, path2, None)
 
-    citation_count_dict = None
-    if args.cite:
-        citation_count_dict = load_citation_count_dict()
 
     out = args.output
 
     ngram_multiplier = 4
 
     if out == 'report':
-        run_report(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
+        run_report(args, ngram_multiplier, tfidf, newtfidf)
     elif out == 'wordcloud' or out == 'all':
-        run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True, citation_count_dict=citation_count_dict)
+        run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True)
 
     if out == 'table' or out == 'all':
-        run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict)
+        run_table(args, ngram_multiplier, tfidf, newtfidf)
 
     if out == 'fdg' or out == 'all':
         run_fdg(args, tfidf, newtfidf)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.patent_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time,
-                     citation_count_dict=citation_count_dict)
-
-    if out == 'termcounts' or out == 'all':
-        output_term_counts(args.patent_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time,
-                           citation_count_dict=citation_count_dict)
+        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)
 
 
 if __name__ == '__main__':

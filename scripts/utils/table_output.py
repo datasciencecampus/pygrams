@@ -2,7 +2,7 @@ import pandas as pd
 from scripts.algorithms.term_focus import TermFocus
 
 
-def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, time, focus, writer):
+def table_output(tfidf, tfidf_random, num_ngrams, pick, ngram_multiplier, time, focus, writer, citation_count_dict=None):
     """
     Description: Creates a table showing changes in feature rankings with focus, time, and cite options
     Receives: tfidf for cpc and random patent sources, citation weights,
@@ -35,7 +35,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     df = pd.merge(base_df, focus_df, how='outer')
     df['Diff Base to Focus Rank'] = df['Rank'] - df[focus_name_rank]
 
-    time_terms, time_scores_terms, time_tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
+    time_terms, time_scores_terms, time_tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
         number_of_ngrams_to_return=num_ngrams, pick=pick, time=True, citation_count_dict=None)
     time_df = pd.DataFrame(list(time_scores_terms))
     time_df.columns = ['Time Score', 'Term']
@@ -45,7 +45,7 @@ def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngr
     df = pd.merge(df, time_df, how='outer')
     df['Diff Base to Time Rank'] = df['Rank'] - df['Time Rank']
 
-    citation_terms, citation_scores_terms, citation_tfidf_matrix = tfidf.detect_popular_ngrams_in_corpus(
+    citation_terms, citation_scores_terms, citation_tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
         number_of_ngrams_to_return=num_ngrams,
         pick=pick, time=False, citation_count_dict=citation_count_dict)
     citation_df = pd.DataFrame(list(citation_scores_terms))

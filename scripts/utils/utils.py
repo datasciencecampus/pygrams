@@ -12,3 +12,4 @@ class Utils(object):
                 start = middle + 1
             else:
                 return middle, array[middle] == target
+        return 0, False
