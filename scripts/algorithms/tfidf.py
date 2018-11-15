@@ -266,17 +266,6 @@ class TFIDF:
                 self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
             self.__lost_state = True
 
-        #TODO: get rid of on #73 or #80
-        if docs_set is not None:
-            patent_id_dict = {k: v for v, k in enumerate(self.__dataframe.patent_id)}
-            for key, idx in tqdm(patent_id_dict.items()):
-                if key not in docs_set:
-                    self.tfidf_matrix.data[self.tfidf_matrix.indptr[idx]:self.tfidf_matrix.indptr[idx + 1]] *= 0.0
-            self.__lost_state = True
-
-        if docs_set is not None:
-            print()
-            #TODO: return only values for these rows!
 
         # pick filter
         tfidf_csc_matrix = self.tfidf_matrix.tocsc()
@@ -294,9 +283,20 @@ class TFIDF:
         for ngram_index, ngram in enumerate(
                 tqdm(self.__feature_names, leave=False, desc='Searching TFIDF', unit='ngram')):
 
-            non_zero_values = tfidf_csc_matrix.data[
-                              tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]
-                              ]
+
+            if docs_set is None:
+
+                non_zero_values = tfidf_csc_matrix.data[
+                                  tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]
+                                  ]
+            else:
+                row_indices_term = tfidf_csc_matrix.indices[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
+                values_term = tfidf_csc_matrix.data[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
+
+                non_zero_values = []
+                for index, row_index in enumerate(row_indices_term):
+                    if row_index in docs_set:
+                        non_zero_values.append(values_term[index])
 
             pick_value = pick_func(non_zero_values)
 
