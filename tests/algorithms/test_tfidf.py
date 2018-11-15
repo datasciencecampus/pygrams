@@ -38,7 +38,7 @@ class TestTFIDF(unittest.TestCase):
         df = df.append(df2)
 
         tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer())
-        actual_popular_terms, _, _ = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=['US09315032-20160419'])
+        actual_popular_terms, _, _ = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=[1000])
         expected_popular_terms = ['audio encod', 'audio sourc stream', 'encod audio output stream']
 
         expected_in_results = expected_popular_terms[0] in actual_popular_terms and expected_popular_terms[1] in actual_popular_terms
