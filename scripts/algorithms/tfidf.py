@@ -175,6 +175,7 @@ class TFIDF:
         self.__feature_names = self.tfidf_vectorizer.get_feature_names()
 
         self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
+
         self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, ngram_range[0])
         self.__lost_state = False
         self.__min_ngram_count = ngram_range[0]
@@ -209,10 +210,12 @@ class TFIDF:
             return []
 
         if self.__lost_state:
+
             self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
             self.__feature_names = self.tfidf_vectorizer.get_feature_names()
 
             self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
+
             self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, self.__min_ngram_count)
             self.__lost_state = False
 
