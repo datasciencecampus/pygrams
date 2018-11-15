@@ -2,7 +2,7 @@ import pandas as pd
 from scripts.algorithms.term_focus import TermFocus
 
 
-def table_output(tfidf, tfidf_random, citation_count_dict, num_ngrams, pick, ngram_multiplier, time, focus, writer):
+def table_output(tfidf, tfidf_random, num_ngrams, pick, ngram_multiplier, time, focus, writer, citation_count_dict=None):
     """
     Description: Creates a table showing changes in feature rankings with focus, time, and cite options
     Receives: tfidf for cpc and random patent sources, citation weights,
