@@ -6,9 +6,8 @@ import pandas as pd
 import pickle
 import sys
 
-from pandas import Timestamp, read_pickle, ExcelWriter
+from pandas import Timestamp, ExcelWriter
 
-from scripts import FilePaths
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
@@ -28,7 +27,6 @@ def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
     return Timestamp(year_string)
 
-#S:Excel
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
@@ -127,7 +125,7 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
     table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
                  args.focus, writer)
 
-
+#TODO:  common interface wrapper class, hence left citation_count_dict refs
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
@@ -212,26 +210,26 @@ def main():
     args = get_args(sys.argv[1:])
     checkargs(args)
 
-    doc_pickle_file_name = os.path.join(args.path, args.doc_source )
+    doc_source_file_name = os.path.join(args.path, args.doc_source )
 
     df=None
-    if doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'bz2':
-        df = pd.read_pickle(doc_pickle_file_name)
-    elif doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'xls':
-        df = pd.read_excel(doc_pickle_file_name)
-    elif doc_pickle_file_name[len(doc_pickle_file_name)-3:] == 'csv':
-        df = pd.read_csv(doc_pickle_file_name)
-    elif doc_pickle_file_name[len(doc_pickle_file_name)-4:] == 'xlsx':
-        df = pd.read_excel(doc_pickle_file_name)
+    if doc_source_file_name[len(doc_source_file_name)-3:] == 'bz2':
+        df = pd.read_pickle(doc_source_file_name)
+    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'xls':
+        df = pd.read_excel(doc_source_file_name)
+    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'csv':
+        df = pd.read_csv(doc_source_file_name)
+    elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
+        df = pd.read_excel(doc_source_file_name)
 
     if args.json:
-        write_config_to_json(args, doc_pickle_file_name)
+        write_config_to_json(args, doc_source_file_name)
 
     if args.nltk_path:
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf = get_tfidf(args, doc_pickle_file_name, df=df)
+    tfidf = get_tfidf(args, doc_source_file_name, df=df)
 
     newtfidf = None
     if args.focus or args.output == 'table':
