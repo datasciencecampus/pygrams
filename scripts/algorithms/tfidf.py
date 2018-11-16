@@ -288,17 +288,16 @@ class TFIDF:
                                   tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]
                                   ]
             if docs_set is not None:
-                docs_set_temp = copy.deepcopy(docs_set)
+
                 row_indices_term = tfidf_csc_matrix.indices[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
                 non_zero_values_term_set=[]
-                for idx, row_idx in enumerate(row_indices_term):
-                    if row_idx in docs_set_temp:
-                        value = non_zero_values_term[idx]
-                        non_zero_values_term_set.append(value)
-                        docs_set_temp.remove(row_idx)
-                    if len(docs_set_temp):
-                        break
 
+                indices_idx=0
+                for doc_idx in docs_set:
+                    while indices_idx <= doc_idx and indices_idx < len(row_indices_term):
+                        if row_indices_term[indices_idx] == doc_idx:
+                            non_zero_values_term_set.append(non_zero_values_term[indices_idx])
+                        indices_idx += 1
                 non_zero_values_term = non_zero_values_term_set
 
             if len(non_zero_values_term)>0:
