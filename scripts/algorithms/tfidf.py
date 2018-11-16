@@ -202,8 +202,8 @@ class TFIDF:
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                           citation_count_dict=None, docs_set=None):
-
-        print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} patents')
+        num_docs = 0 if docs_set is None else len(docs_set)
+        print(f'Processing TFIDF of {num_docs} / {self.tfidf_matrix.shape[0]:,} documents')
 
         if self.tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
@@ -297,13 +297,13 @@ class TFIDF:
                 for index, row_index in enumerate(row_indices_term):
                     if row_index in docs_set:
                         non_zero_values.append(values_term[index])
+            if len(non_zero_values)>0:
+                pick_value = pick_func(non_zero_values)
 
-            pick_value = pick_func(non_zero_values)
+                if np.isnan(pick_value):
+                    pick_value = 0
 
-            if np.isnan(pick_value):
-                pick_value = 0
-
-            ngrams_scores_tuple.append((pick_value, ngram))
+                ngrams_scores_tuple.append((pick_value, ngram))
 
         ngrams_scores_tuple.sort(key=lambda tup: -tup[0])
 
