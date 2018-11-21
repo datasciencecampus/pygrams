@@ -99,6 +99,10 @@ class FDGPrep(object):
             js_temp.write(varname + " = '[")
             json.dump(graph, js_temp)
             js_temp.write("]'")
+        file_name_jason = os.path.join('outputs', 'reports', fname + '.json')
+        with open(file_name_jason, 'w') as js_temp:
+            json.dump(graph, js_temp)
+
 
     def fdg_tfidf(self, tf_idf, tf_idf2, args):
         num_terms_to_evaluate = 20

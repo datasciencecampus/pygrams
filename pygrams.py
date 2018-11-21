@@ -52,7 +52,7 @@ def get_args(command_line_arguments):
                         help="number of ngrams to return for report")
     parser.add_argument("-nd", "--num_ngrams_wordcloud", type=int, default=250,
                         help="number of ngrams to return for wordcloud")
-    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=50,
+    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=250,
                         help="number of ngrams to return for fdg graph")
 
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
@@ -113,7 +113,9 @@ def get_tfidf(args, pickle_file_name, df=None):
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
 
 
+
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
+
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
@@ -122,6 +124,9 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
 
     table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
                  args.focus, writer)
+
+
+
 
 
 #TODO:  common interface wrapper class, hence left citation_count_dict refs
@@ -146,6 +151,31 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
         doc_all = ' '.join(focus_set_terms)
         wordcloud = MultiCloudPlot(doc_all, freqsin=dict_freqs, max_words=args.num_ngrams_wordcloud)
         wordcloud.plot_cloud(args.wordcloud_title, args.wordcloud_name)
+    return dict_freqs
+
+
+def run_graph_report(args, dict_freqs_in):
+    with open(os.path.join('outputs','reports','key-terms.json')) as json_data:
+        d = json.load(json_data)
+        links = d['links']
+
+    with open(args.report_name[:len(args.report_name)-4] +"_graph.txt", 'w') as file:
+        counter = 1
+        for score, term in dict_freqs_in.items():
+            file.write(f'{counter}. {term:10}:{score:1.2f}  -> ')
+            print(f'{counter}. {term:10} -> ', end='', flush=True)
+            counter += 1
+            if counter > args.num_ngrams_report:
+                break
+            out_str=[]
+            for link in links:
+                if term == link['source']:
+                    target = link['target']
+                    target_score = link['size']
+                    out_str.append(f'{target:10}: {target_score:1.2f}')
+            file.write(', '.join(out_str) + '\n')
+            print(', '.join(out_str))
+
 
 
 def run_fdg(args, tf_idf, tf_idf2=None):
@@ -235,21 +265,19 @@ def main():
         path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
         newtfidf = get_tfidf(args, path2, None)
 
-
     out = args.output
-
     ngram_multiplier = 4
 
-    if out == 'report':
-        run_report(args, ngram_multiplier, tfidf, newtfidf)
-    elif out == 'wordcloud' or out == 'all':
-        run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=True)
+    if out != 'tfidf':
+        wordclouds_flag = (out == 'wordcloud')
+        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag)
 
     if out == 'table' or out == 'all':
         run_table(args, ngram_multiplier, tfidf, newtfidf)
 
     if out == 'fdg' or out == 'all':
         run_fdg(args, tfidf, newtfidf)
+        run_graph_report(args, dict_freqs)
 
     if out == 'tfidf' or out == 'all':
         output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)
