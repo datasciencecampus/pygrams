@@ -146,13 +146,10 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
         wordcloud.plot_cloud(args.wordcloud_title, args.wordcloud_name)
     return dict_freqs
 
-
 def run_fdg(dict_freq_in, tf_idf, args):
     num_ngrams = args.num_ngrams_report
     graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
     graph.save_graph_report(args)
-    graph.save_graph("key-terms", 'data')
-
 
 def write_config_to_json(args, doc_pickle_file_name):
     doc_pickle_file_name = os.path.abspath(doc_pickle_file_name)
