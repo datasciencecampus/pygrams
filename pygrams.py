@@ -266,12 +266,11 @@ def main():
         newtfidf = get_tfidf(args, path2, None)
 
     out = args.output
-
     ngram_multiplier = 4
 
     if out != 'tfidf':
-        wordclouds = out == 'wordcloud'
-        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds)
+        wordclouds_flag = (out == 'wordcloud')
+        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag)
 
     if out == 'table' or out == 'all':
         run_table(args, ngram_multiplier, tfidf, newtfidf)
