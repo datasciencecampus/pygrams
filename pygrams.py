@@ -113,9 +113,7 @@ def get_tfidf(args, pickle_file_name, df=None):
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
 
 
-
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
-
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
@@ -124,6 +122,7 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
 
     table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
                  args.focus, writer)
+
 
 #TODO:  common interface wrapper class, hence left citation_count_dict refs
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
