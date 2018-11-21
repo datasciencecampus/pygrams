@@ -146,10 +146,33 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
         wordcloud.plot_cloud(args.wordcloud_title, args.wordcloud_name)
     return dict_freqs
 
+
 def run_fdg(dict_freq_in, tf_idf, args):
     num_ngrams = args.num_ngrams_report
     graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
     graph.save_graph_report(args)
+
+def run_graph_report(args, dict_freqs_in):
+    with open(os.path.join('outputs','reports','key-terms.json')) as json_data:
+        d = json.load(json_data)
+        links = d['links']
+
+    with open(args.report_name[:len(args.report_name)-4] +"_graph.txt", 'w') as file:
+        counter = 1
+        for score, term in dict_freqs_in.items():
+            file.write(f'{counter}. {term:10}:{score:1.2f}  -> ')
+            print(f'{counter}. {term:10} -> ', end='', flush=True)
+            counter += 1
+            if counter > args.num_ngrams_report:
+                break
+            out_str=[]
+            for link in links:
+                if term == link['source']:
+                    target = link['target']
+                    target_score = link['size']
+                    out_str.append(f'{target:10}: {target_score:1.2f}')
+            file.write(', '.join(out_str) + '\n')
+            print(', '.join(out_str))
 
 def write_config_to_json(args, doc_pickle_file_name):
     doc_pickle_file_name = os.path.abspath(doc_pickle_file_name)
