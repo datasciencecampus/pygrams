@@ -154,7 +154,6 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     return dict_freqs
 
 
-#TODO:  common interface wrapper class, hence left citation_count_dict refs
 def run_graph_report(args, dict_freqs_in):
     with open(os.path.join('outputs','reports','key-terms.json')) as json_data:
         d = json.load(json_data)
