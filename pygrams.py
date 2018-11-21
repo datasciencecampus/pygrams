@@ -278,7 +278,7 @@ def main():
         run_table(args, ngram_multiplier, tfidf, newtfidf)
 
     if out == 'fdg' or out == 'all':
-        # run_fdg(args, tfidf, newtfidf)
+        run_fdg(args, tfidf, newtfidf)
         run_graph_report(args, dict_freqs)
 
     if out == 'tfidf' or out == 'all':
