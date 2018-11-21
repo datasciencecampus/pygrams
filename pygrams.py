@@ -163,7 +163,7 @@ def run_graph_report(args, dict_freqs_in):
     with open(args.report_name[:len(args.report_name)-4] +"_graph.txt", 'w') as file:
         counter = 1
         for score, term in dict_freqs_in.items():
-            file.write(f'{counter}. {term:10} -> ')
+            file.write(f'{counter}. {term:10}:{score:1.2f}  -> ')
             print(f'{counter}. {term:10} -> ', end='', flush=True)
             counter += 1
             if counter > args.num_ngrams_report:
