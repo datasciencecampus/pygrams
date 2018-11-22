@@ -37,6 +37,10 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
+    parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
+    parser.add_argument("-fb", "--filter_by", default='any', choices=['all', 'any'],
+                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
+
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
