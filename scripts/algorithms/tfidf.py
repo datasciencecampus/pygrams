@@ -1,3 +1,4 @@
+import copy
 import datetime
 import string
 
@@ -308,22 +309,24 @@ class TFIDF:
         for ngram_index, ngram in enumerate(
                 tqdm(self.__feature_names, leave=False, desc='Searching TFIDF', unit='ngram')):
 
-
-            if docs_set is None:
-
-                non_zero_values = tfidf_csc_matrix.data[
+            non_zero_values_term = tfidf_csc_matrix.data[
                                   tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]
                                   ]
-            else:
-                row_indices_term = tfidf_csc_matrix.indices[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
-                values_term = tfidf_csc_matrix.data[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
+            if docs_set is not None:
 
-                non_zero_values = []
-                for index, row_index in enumerate(row_indices_term):
-                    if row_index in docs_set:
-                        non_zero_values.append(values_term[index])
-            if len(non_zero_values)>0:
-                pick_value = pick_func(non_zero_values)
+                row_indices_term = tfidf_csc_matrix.indices[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
+                non_zero_values_term_set=[]
+
+                indices_idx=0
+                for doc_idx in docs_set:
+                    while indices_idx <= doc_idx and indices_idx < len(row_indices_term):
+                        if row_indices_term[indices_idx] == doc_idx:
+                            non_zero_values_term_set.append(non_zero_values_term[indices_idx])
+                        indices_idx += 1
+                non_zero_values_term = non_zero_values_term_set
+
+            if len(non_zero_values_term)>0:
+                pick_value = pick_func(non_zero_values_term)
 
                 if np.isnan(pick_value):
                     pick_value = 0
