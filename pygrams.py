@@ -123,7 +123,7 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
                  args.focus, writer)
 
 
-#TODO:  common interface wrapper class, hence left citation_count_dict refs
+# TODO: common interface wrapper class, hence left citation_count_dict refs
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
@@ -231,7 +231,7 @@ def main():
 
     newtfidf = None
     if args.focus or args.output == 'table':
-        path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
+        path2 = os.path.join('data', args.focus_source)
         newtfidf = get_tfidf(args, path2, None)
 
     out = args.output
