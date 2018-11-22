@@ -139,6 +139,7 @@ def get_tfidf(args, pickle_file_name, df=None):
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, normalize_doc_length = args.normalize_doc_length), doc_set
 
 
+
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
