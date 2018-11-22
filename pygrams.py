@@ -12,7 +12,7 @@ from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
-from scripts.visualization.graphs.fdgprep import FDGPrep
+from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
@@ -113,20 +113,14 @@ def get_tfidf(args, pickle_file_name, df=None):
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
 
 
-
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
 
-
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
-
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
     table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
                  args.focus, writer)
-
-
-
 
 
 #TODO:  common interface wrapper class, hence left citation_count_dict refs
@@ -137,7 +131,6 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
                                                                                 citation_count_dict, ngram_multiplier,
                                                                                 num_ngrams)
-
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
@@ -154,33 +147,10 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     return dict_freqs
 
 
-def run_graph_report(args, dict_freqs_in):
-    with open(os.path.join('outputs','reports','key-terms.json')) as json_data:
-        d = json.load(json_data)
-        links = d['links']
-
-    with open(args.report_name[:len(args.report_name)-4] +"_graph.txt", 'w') as file:
-        counter = 1
-        for score, term in dict_freqs_in.items():
-            file.write(f'{counter}. {term:10}:{score:1.2f}  -> ')
-            print(f'{counter}. {term:10} -> ', end='', flush=True)
-            counter += 1
-            if counter > args.num_ngrams_report:
-                break
-            out_str=[]
-            for link in links:
-                if term == link['source']:
-                    target = link['target']
-                    target_score = link['size']
-                    out_str.append(f'{target:10}: {target_score:1.2f}')
-            file.write(', '.join(out_str) + '\n')
-            print(', '.join(out_str))
-
-
-
-def run_fdg(args, tf_idf, tf_idf2=None):
-    graph = FDGPrep(args.num_ngrams_fdg)
-    graph.fdg_tfidf(tf_idf, tf_idf2, args)
+def run_fdg(dict_freq_in, tf_idf, args):
+    num_ngrams = args.num_ngrams_report
+    graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
+    graph.save_graph_report(args)
     graph.save_graph("key-terms", 'data')
 
 
@@ -276,8 +246,7 @@ def main():
         run_table(args, ngram_multiplier, tfidf, newtfidf)
 
     if out == 'fdg' or out == 'all':
-        run_fdg(args, tfidf, newtfidf)
-        run_graph_report(args, dict_freqs)
+        run_fdg(dict_freqs, tfidf, args)
 
     if out == 'tfidf' or out == 'all':
         output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)

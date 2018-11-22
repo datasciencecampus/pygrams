@@ -64,8 +64,8 @@ class TermFocus():
 
 
     def __popular_ngrams_with_selectkbest(self, num_ngrams_report, score_func):
-        df = pd.DataFrame(self.__tfidf.patent_abstracts, columns=['abstract'])
-        df2 = pd.DataFrame(self.__tfidf_random.patent_abstracts, columns=['abstract'])
+        df = pd.DataFrame(self.__tfidf.abstracts, columns=['abstract'])
+        df2 = pd.DataFrame(self.__tfidf_random.abstracts, columns=['abstract'])
         df['class_flag'] = 'Yes'
         df2['class_flag'] = 'No'
         df = pd.concat([df, df2])  # , sort=True)

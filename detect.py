@@ -13,7 +13,7 @@ from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
 from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
-from scripts.visualization.graphs.fdgprep import FDGPrep
+from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
@@ -171,9 +171,10 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
         wordcloud.plot_cloud(args.wordcloud_title, args.wordcloud_name)
 
 
-def run_fdg(args, tf_idf, tf_idf2=None):
-    graph = FDGPrep(args.num_ngrams_fdg)
-    graph.fdg_tfidf(tf_idf, tf_idf2, args)
+def run_fdg(dict_freq_in, tf_idf, args):
+    num_ngrams = args.num_ngrams_report
+    graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
+    graph.save_graph_report(args)
     graph.save_graph("key-terms", 'data')
 
 
