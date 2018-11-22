@@ -37,7 +37,10 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
-    parser.add_argument("-fb", "--filter_by", default=None, help="list of columns to filter by")
+    parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
+    parser.add_argument("-fb", "--filter_by", default='any', choices=['all', 'any'],
+                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
+
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -111,7 +114,8 @@ def get_tfidf(args, pickle_file_name, df=None):
     date_to = year2pandas_latest_date(args.year_to)
     if df is None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, filter=args.filter_by)
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header,
+                 filter_columns=args.filter_columns, filter_by=args.filter_by)
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):

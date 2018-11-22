@@ -148,7 +148,8 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', filter = None):
+    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
+                 header='abstract', filter_columns = None, filter_by = 'all'):
         self.__dataframe = patentsdf
 
         WordAnalyzer.init(
@@ -164,7 +165,8 @@ class TFIDF:
         )
         
         self.__abstract_header = header
-        self.__filter_header = filter.split('+')
+        self.__filter_headers = filter_columns.split('+')
+        self.__filter_by = filter_by
 
         number_of_patents_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
@@ -191,7 +193,11 @@ class TFIDF:
 
     @property
     def filter_results(self):
-        return self.__dataframe[self.__filter_header]
+        return self.__dataframe[self.__filter_headers]
+
+    @property
+    def filter_by(self):
+        return self.__filter_by
 
     @property
     def feature_names(self):
@@ -212,7 +218,7 @@ class TFIDF:
            print('...skipping as 0 patents...')
            return []
 
-        if isinstance(self.__filter_header, type(None)):
+        if isinstance(self.__filter_headers, type(None)):
             docs_set = None
             print(f'Processing TFIDF of all documents')
         else:
@@ -220,7 +226,11 @@ class TFIDF:
             for column in filter_results:
                 filter_results[column] = filter_results[column].replace({'No': 0, 'Yes': 1})
             filter_results['filter'] = filter_results.sum(axis=1)
-            docs_set = filter_results[filter_results['filter'] > 1].index.values.tolist()
+
+            if self.filter_by == 'any':
+                docs_set = filter_results[filter_results['filter'] > 0].index.values.tolist()
+            else:
+                docs_set = filter_results[filter_results['filter'] == self.filter_results.ndim].index.values.tolist()
             print(f'Processing TFIDF of {len(docs_set)} / {self.tfidf_matrix.shape[0]:,} documents')
 
 
