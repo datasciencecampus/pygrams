@@ -164,7 +164,7 @@ class TFIDF:
         )
         
         self.__abstract_header = header
-        self.__filter_header = filter
+        self.__filter_header = filter.split('+')
 
         number_of_patents_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
@@ -216,22 +216,13 @@ class TFIDF:
             docs_set = None
             print(f'Processing TFIDF of all documents')
         else:
-            docs_set = self.filter_results[self.filter_results == 'Yes'].index.values.tolist()
+            filter_results = self.filter_results.copy()
+            for column in filter_results:
+                filter_results[column] = filter_results[column].replace({'No': 0, 'Yes': 1})
+            filter_results['filter'] = filter_results.sum(axis=1)
+            docs_set = filter_results[filter_results['filter'] > 1].index.values.tolist()
             print(f'Processing TFIDF of {len(docs_set)} / {self.tfidf_matrix.shape[0]:,} documents')
 
-
-        #
-        # if len(self.__filter_header) is not None:
-        #     tfidf_matrix_filter = self.tfidf_matrix[self.filter_results[self.filter_results == 'Yes'].index.values, :]
-        #     num_docs = tfidf_matrix_filter.shape[0]
-        #     print(f'Processing TFIDF of {num_docs} / {self.tfidf_matrix.shape[0]:,} documents')
-        #     self.tfidf_matrix = tfidf_matrix_filter
-        # else:
-        #     if self.tfidf_matrix.shape[0] == 0:
-        #         print('...skipping as 0 patents...')
-        #         return []
-        #     else:
-        #         print(f'Processing TFIDF of all documents')
 
         if self.__lost_state:
 
