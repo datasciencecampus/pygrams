@@ -148,7 +148,7 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract'):
+    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', filter = None):
         self.__dataframe = patentsdf
 
         WordAnalyzer.init(
@@ -163,7 +163,8 @@ class TFIDF:
             analyzer=WordAnalyzer.analyzer
         )
         
-        self.__abstract_header=header
+        self.__abstract_header = header
+        self.__filter_header = filter
 
         number_of_patents_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
@@ -189,6 +190,10 @@ class TFIDF:
         return self.__dataframe[self.__abstract_header]
 
     @property
+    def filter_results(self):
+        return self.__dataframe[self.__filter_header]
+
+    @property
     def feature_names(self):
         return self.__feature_names
 
@@ -201,13 +206,32 @@ class TFIDF:
         return list(self.__dataframe['patent_id'])
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
-                                          citation_count_dict=None, docs_set=None):
-        num_docs = 0 if docs_set is None else len(docs_set)
-        print(f'Processing TFIDF of {num_docs} / {self.tfidf_matrix.shape[0]:,} documents')
+                                          citation_count_dict=None):
 
         if self.tfidf_matrix.shape[0] == 0:
-            print('...skipping as 0 patents...')
-            return []
+           print('...skipping as 0 patents...')
+           return []
+
+        if isinstance(self.__filter_header, type(None)):
+            docs_set = None
+            print(f'Processing TFIDF of all documents')
+        else:
+            docs_set = self.filter_results[self.filter_results == 'Yes'].index.values.tolist()
+            print(f'Processing TFIDF of {len(docs_set)} / {self.tfidf_matrix.shape[0]:,} documents')
+
+
+        #
+        # if len(self.__filter_header) is not None:
+        #     tfidf_matrix_filter = self.tfidf_matrix[self.filter_results[self.filter_results == 'Yes'].index.values, :]
+        #     num_docs = tfidf_matrix_filter.shape[0]
+        #     print(f'Processing TFIDF of {num_docs} / {self.tfidf_matrix.shape[0]:,} documents')
+        #     self.tfidf_matrix = tfidf_matrix_filter
+        # else:
+        #     if self.tfidf_matrix.shape[0] == 0:
+        #         print('...skipping as 0 patents...')
+        #         return []
+        #     else:
+        #         print(f'Processing TFIDF of all documents')
 
         if self.__lost_state:
 

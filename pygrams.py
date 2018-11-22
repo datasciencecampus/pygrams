@@ -37,6 +37,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
+    parser.add_argument("-fb", "--filter_by", default=None, help="list of columns to filter by")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -110,8 +111,7 @@ def get_tfidf(args, pickle_file_name, df=None):
     date_to = year2pandas_latest_date(args.year_to)
     if df is None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
-
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, filter=args.filter_by)
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
@@ -124,6 +124,9 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
 
     table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
                  args.focus, writer)
+
+
+
 
 #TODO:  common interface wrapper class, hence left citation_count_dict refs
 def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
@@ -233,7 +236,7 @@ def main():
 
     newtfidf = None
     if args.focus or args.output == 'table':
-        path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
+        path2 = os.path.join('data', args.focus_source)
         newtfidf = get_tfidf(args, path2, None)
 
 
