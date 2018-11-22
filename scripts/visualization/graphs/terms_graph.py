@@ -8,6 +8,7 @@ from nltk import bigrams
 
 class TermsGraph(object):
     MAX_NODES = 50
+    MAX_LINKS = 10
 
     def __init__(self, list_tfidf_term, tfidf_obj):
 
@@ -59,7 +60,8 @@ class TermsGraph(object):
             node = {'text': term, 'freq': self.normalize(tfidf_score, node_min, node_max)}
             nodes.append(node)
             d = sorted(self.__node_links_dict[term].items(), key=lambda x: x[1], reverse=True)
-            for tup in d[:10]:
+
+            for tup in d[:self.MAX_LINKS]:
                 term_record = {'source': term, 'target': tup[0], 'size': self.normalize(tup[1], link_min, link_max)}
                 links.append(term_record)
         self.__graph = {'nodes': nodes, 'links': links}
