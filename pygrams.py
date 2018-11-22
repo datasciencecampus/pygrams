@@ -143,6 +143,7 @@ def get_tfidf(args, pickle_file_name, df=None):
                  max_document_frequency=args.max_document_frequency), doc_set
 
 
+
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
 
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
