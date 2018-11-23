@@ -78,7 +78,7 @@ class StemTokenizer(object):
 
 def lowercase_strip_accents_and_ownership(doc):
     lowercase_no_accents_doc = strip_accents_ascii(doc.lower())
-    txt= lowercase_no_accents_doc.replace('"', '').replace("\'s", "").replace("\'nt", " dont").replace("\'ve", " have").replace("\'re", " are").replace("\'", "").strip("`").strip()
+    txt= lowercase_no_accents_doc.replace('"', '').replace("\'s", "").replace("\'ve", " have").replace("\'re", " are").replace("\'", "").strip("`").strip()
     return txt
 
 
