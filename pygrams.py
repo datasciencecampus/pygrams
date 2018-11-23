@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import pickle
 import sys
+import numpy as np
 
 from pandas import Timestamp, ExcelWriter
 
@@ -114,8 +115,7 @@ def get_tfidf(args, pickle_file_name, df=None):
     date_to = year2pandas_latest_date(args.year_to)
     if df is None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header,
-                 filter_columns=args.filter_columns, filter_by=args.filter_by)
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
@@ -213,22 +213,31 @@ def write_config_to_json(args, doc_pickle_file_name):
         json.dump(json_data, json_file)
 
 
-def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time):
+def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, docs_set):
     terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time)
+        pick=pick, time=time, docs_set=docs_set)
 
-    publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+    try:
+        publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                               [d.isocalendar() for d in tfidf.publication_dates]]
+    except KeyError:
+        publication_week_dates = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
 
-    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
+    try:
+        patent_ids = tfidf.patent_ids
+    except KeyError:
+        patent_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
+
+
+    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
     term_present_matrix = tfidf_matrix > 0
-    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
+    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
     os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
     with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:
@@ -254,6 +263,25 @@ def main():
         df = pd.read_csv(doc_source_file_name)
     elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
         df = pd.read_excel(doc_source_file_name)
+
+
+    if isinstance(args.filter_columns, type(None)):
+        docs_set = None
+    else:
+        filter_headers = args.filter_columns.split('+')
+        filter_by = args.filter_by
+
+        filter_df = df.copy()
+        filter_df = filter_df[filter_headers]
+
+        for column in filter_df:
+            filter_df[column] = filter_df[column].replace({'No': 0, 'Yes': 1})
+        filter_df['filter'] = filter_df.sum(axis=1)
+
+        if filter_by == 'any':
+            docs_set = filter_df[filter_df['filter'] > 0].index.values.tolist()
+        else:
+            docs_set = filter_df[filter_df['filter'] == filter_df.shape[1]-1].index.values.tolist()
 
     if args.json:
         write_config_to_json(args, doc_source_file_name)
@@ -285,7 +313,7 @@ def main():
         run_fdg(args, tfidf, newtfidf)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)
+        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time, docs_set)
 
 
 if __name__ == '__main__':

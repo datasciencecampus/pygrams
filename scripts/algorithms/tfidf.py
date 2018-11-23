@@ -150,7 +150,7 @@ class WordAnalyzer(object):
 
 class TFIDF:
     def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
-                 header='abstract', filter_columns = None, filter_by = 'all'):
+                 header='abstract'):
         self.__dataframe = patentsdf
 
         WordAnalyzer.init(
@@ -166,8 +166,6 @@ class TFIDF:
         )
         
         self.__abstract_header = header
-        self.__filter_headers = filter_columns.split('+')
-        self.__filter_by = filter_by
 
         number_of_patents_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
@@ -193,14 +191,6 @@ class TFIDF:
         return self.__dataframe[self.__abstract_header]
 
     @property
-    def filter_results(self):
-        return self.__dataframe[self.__filter_headers]
-
-    @property
-    def filter_by(self):
-        return self.__filter_by
-
-    @property
     def feature_names(self):
         return self.__feature_names
 
@@ -213,27 +203,14 @@ class TFIDF:
         return list(self.__dataframe['patent_id'])
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
-                                          citation_count_dict=None):
+                                          citation_count_dict=None, docs_set=None):
+
+        num_docs = 0 if docs_set is None else len(docs_set)
+        print(f'Processing TFIDF of {num_docs} / {self.tfidf_matrix.shape[0]:,} documents')
 
         if self.tfidf_matrix.shape[0] == 0:
-           print('...skipping as 0 patents...')
-           return []
-
-        if isinstance(self.__filter_headers, type(None)):
-            docs_set = None
-            print(f'Processing TFIDF of all documents')
-        else:
-            filter_results = self.filter_results.copy()
-            for column in filter_results:
-                filter_results[column] = filter_results[column].replace({'No': 0, 'Yes': 1})
-            filter_results['filter'] = filter_results.sum(axis=1)
-
-            if self.filter_by == 'any':
-                docs_set = filter_results[filter_results['filter'] > 0].index.values.tolist()
-            else:
-                docs_set = filter_results[filter_results['filter'] == self.filter_results.ndim].index.values.tolist()
-            print(f'Processing TFIDF of {len(docs_set)} / {self.tfidf_matrix.shape[0]:,} documents')
-
+            print('...skipping as 0 patents...')
+            return []
 
         if self.__lost_state:
 
