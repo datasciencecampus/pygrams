@@ -150,8 +150,8 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, patentsdf, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract'):
-        self.__dataframe = patentsdf
+    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract'):
+        self.__dataframe = docs_df
 
         WordAnalyzer.init(
             tokenizer=tokenizer,
@@ -285,15 +285,17 @@ class TFIDF:
         for ngram_index, ngram in enumerate(
                 tqdm(self.__feature_names, leave=False, desc='Searching TFIDF', unit='ngram')):
 
-            non_zero_values_term = tfidf_csc_matrix.data[
-                                  tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]
-                                  ]
+            start_idx_inptr = tfidf_csc_matrix.indptr[ngram_index]
+            end_idx_inptr = tfidf_csc_matrix.indptr[ngram_index+1]
+
+            non_zero_values_term = tfidf_csc_matrix.data[start_idx_inptr:end_idx_inptr]
+
             if docs_set is not None:
 
-                row_indices_term = tfidf_csc_matrix.indices[tfidf_csc_matrix.indptr[ngram_index]:tfidf_csc_matrix.indptr[ngram_index + 1]]
+                row_indices_term = tfidf_csc_matrix.indices[start_idx_inptr:end_idx_inptr]
                 non_zero_values_term_set=[]
 
-                indices_idx=0
+                indices_idx=docs_set[0]
                 for doc_idx in docs_set:
                     while indices_idx <= doc_idx and indices_idx < len(row_indices_term):
                         if row_indices_term[indices_idx] == doc_idx:

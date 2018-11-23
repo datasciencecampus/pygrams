@@ -37,10 +37,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
-    parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
-    parser.add_argument("-fb", "--filter_by", default='any', choices=['all', 'any'],
+    parser.add_argument("-fc", "--filter_columns",  default = None, help="list of columns to filter by")
+    parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
-
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -112,9 +111,27 @@ def checkargs(args):
 def get_tfidf(args, pickle_file_name, df=None):
     date_from = year2pandas_earliest_date(args.year_from)
     date_to = year2pandas_latest_date(args.year_to)
+
     if df is None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
+    header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
+    header_lists = []
+    doc_set = None
+    if len(header_filter_cols) > 0:
+        for header_idx in range(len(header_filter_cols)):
+            header_list = df[header_filter_cols[header_idx]]
+            header_idx_list = []
+            for row_idx, value in enumerate(header_list):
+                if value == 1 or value.lower() == 'yes':
+                    header_idx_list.append(row_idx)
+            header_lists.append(header_idx_list)
+        doc_set = set(header_lists[0])
+        if args.filter_by == 'intersection':
+            doc_set = [doc_set.intersection(set(indices)) for indices in header_lists[1:]]
+        else:
+            doc_set = [doc_set.union(set(indices)) for indices in header_lists[1:]]
+
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), list(doc_set[0])
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
@@ -123,18 +140,16 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
-                 args.focus, writer)
+    table_output(tfidf, tfidf_random,  num_ngrams, args, ngram_multiplier, writer)
 
 
 # TODO: common interface wrapper class, hence left citation_count_dict refs
-def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
+def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None, docs_set=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
-                                                                                citation_count_dict, ngram_multiplier,
-                                                                                num_ngrams)
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
+                                                                                num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
@@ -231,19 +246,19 @@ def main():
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf = get_tfidf(args, doc_source_file_name, df=df)
+    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df)
 
     newtfidf = None
     if args.focus or args.output == 'table':
         path2 = os.path.join('data', args.focus_source)
-        newtfidf = get_tfidf(args, path2, None)
+        newtfidf, _ = get_tfidf(args, path2, None)
 
     out = args.output
     ngram_multiplier = 4
 
     if out != 'tfidf':
         wordclouds_flag = (out == 'wordcloud')
-        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag)
+        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag, docs_set=doc_set)
 
     if out == 'table' or out == 'all':
         run_table(args, ngram_multiplier, tfidf, newtfidf)

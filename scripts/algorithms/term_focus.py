@@ -7,11 +7,15 @@ class TermFocus():
         self.__tfidf = tf_idf_in
         self.__tfidf_random = tf_idf_random_in
 
-    def detect_and_focus_popular_ngrams(self, pick, time, focus, citation_count_dict, ngram_multiplier, num_ngrams):
+    def detect_and_focus_popular_ngrams(self,args, citation_count_dict, ngram_multiplier, num_ngrams, docs_set=None):
+        pick = args.pick
+        time = args.time
+        focus = args.focus
+
         terms, ngrams_scores_tuple, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
             pick=pick, time=time,
-            citation_count_dict=citation_count_dict)
+            citation_count_dict=citation_count_dict, docs_set=docs_set)
 
         if focus is None:
             print('No focus applied')
@@ -40,15 +44,15 @@ class TermFocus():
         return dict_freqs, focus_set_terms, ngrams_scores_tuple
 
     def popular_ngrams_by_set_difference(self, number_of_ngrams_to_return=200, pick='sum', time=False,
-                                         citation_count_dict=None):
+                                         citation_count_dict=None, docs_set=None):
         terms, _, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
-            pick=pick, time=time, citation_count_dict=citation_count_dict)
+            pick=pick, time=time, citation_count_dict=citation_count_dict, docs_set=docs_set)
         set_terms = set(terms)
 
         terms_random, _, _ = self.__tfidf_random.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
-            pick=pick, time=time, citation_count_dict=citation_count_dict)
+            pick=pick, time=time, citation_count_dict=citation_count_dict, docs_set=docs_set)
 
         set_random_terms = set(terms_random)
         set_intersection = set_terms.intersection(set_random_terms)
