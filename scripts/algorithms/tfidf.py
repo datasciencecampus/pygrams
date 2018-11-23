@@ -78,7 +78,8 @@ class StemTokenizer(object):
 
 def lowercase_strip_accents_and_ownership(doc):
     lowercase_no_accents_doc = strip_accents_ascii(doc.lower())
-    return lowercase_no_accents_doc.replace("'s", "")
+    txt= lowercase_no_accents_doc.replace('"', '').replace("\'s", "").replace("\'ve", " have").replace("\'re", " are").replace("\'", "").strip("`").strip()
+    return txt
 
 
 class WordAnalyzer(object):
@@ -186,7 +187,7 @@ class TFIDF:
         return self.tfidf_matrix
 
     @property
-    def patent_abstracts(self):
+    def abstracts(self):
         return self.__dataframe[self.__abstract_header]
 
     @property
@@ -203,8 +204,8 @@ class TFIDF:
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                           citation_count_dict=None, docs_set=None):
-        num_docs = 0 if docs_set is None else len(docs_set)
-        print(f'Processing TFIDF of {num_docs} / {self.tfidf_matrix.shape[0]:,} documents')
+        if docs_set is None:
+            print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} documents')
 
         if self.tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
@@ -315,7 +316,7 @@ class TFIDF:
                 if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.tfidf_matrix
 
     def get_tfidf_sum_vector(self):
-        tfidf = self.tfidf_vectorizer.transform(self.patent_abstracts)
+        tfidf = self.tfidf_vectorizer.transform(self.abstracts)
         tfidf_summary = (tfidf.sum(axis=0)).flatten()
         return tfidf_summary.tolist()[0]
 
