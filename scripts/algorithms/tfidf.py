@@ -295,9 +295,9 @@ class TFIDF:
                 row_indices_term = tfidf_csc_matrix.indices[start_idx_inptr:end_idx_inptr]
                 non_zero_values_term_set=[]
 
-                indices_idx=docs_set[0]
+                indices_idx=0
                 for doc_idx in docs_set:
-                    while indices_idx <= doc_idx and indices_idx < len(row_indices_term):
+                    while indices_idx < len(row_indices_term) and row_indices_term[indices_idx] <= doc_idx:
                         if row_indices_term[indices_idx] == doc_idx:
                             non_zero_values_term_set.append(non_zero_values_term[indices_idx])
                         indices_idx += 1

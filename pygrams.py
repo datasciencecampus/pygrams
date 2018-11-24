@@ -15,6 +15,7 @@ from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
+#-fc="Communications, Leadership"
 
 def year2pandas_latest_date(year_in):
     if year_in == 0:
@@ -126,12 +127,14 @@ def get_tfidf(args, pickle_file_name, df=None):
                     header_idx_list.append(row_idx)
             header_lists.append(header_idx_list)
         doc_set = set(header_lists[0])
-        if args.filter_by == 'intersection':
-            doc_set = [doc_set.intersection(set(indices)) for indices in header_lists[1:]]
-        else:
-            doc_set = [doc_set.union(set(indices)) for indices in header_lists[1:]]
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), list(doc_set[0])
+        for indices in header_lists[1:]:
+            if args.filter_by == 'intersection':
+                doc_set = doc_set.intersection(set(indices))
+            else:
+                doc_set = doc_set.union(set(indices))
+
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
