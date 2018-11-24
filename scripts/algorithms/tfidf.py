@@ -165,7 +165,7 @@ class TFIDF:
             analyzer=WordAnalyzer.analyzer
         )
         
-        self.__abstract_header=header
+        self.__abstract_header = header
 
         number_of_patents_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
