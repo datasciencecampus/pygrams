@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import pickle
 import sys
+import numpy as np
 
 from pandas import Timestamp, ExcelWriter
 
@@ -37,6 +38,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
+    parser.add_argument("-fc", "--filter_columns",  default = None, help="list of columns to filter by")
+    parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
+                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -110,7 +114,26 @@ def get_tfidf(args, pickle_file_name, df=None):
     date_to = year2pandas_latest_date(args.year_to)
     if df is None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header)
+    header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
+    header_lists = []
+    doc_set = None
+    if len(header_filter_cols) > 0:
+        for header_idx in range(len(header_filter_cols)):
+            header_list = df[header_filter_cols[header_idx]]
+            header_idx_list = []
+            for row_idx, value in enumerate(header_list):
+                if value == 1 or value.lower() == 'yes':
+                    header_idx_list.append(row_idx)
+            header_lists.append(header_idx_list)
+        doc_set = set(header_lists[0])
+
+        for indices in header_lists[1:]:
+            if args.filter_by == 'intersection':
+                doc_set = doc_set.intersection(set(indices))
+            else:
+                doc_set = doc_set.union(set(indices))
+
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
@@ -119,18 +142,16 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random):
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random,  num_ngrams, args.pick, ngram_multiplier, args.time,
-                 args.focus, writer)
+    table_output(tfidf, tfidf_random,  num_ngrams, args, ngram_multiplier, writer)
 
 
-#TODO:  common interface wrapper class, hence left citation_count_dict refs
-def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None):
+# TODO: common interface wrapper class, hence left citation_count_dict refs
+def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None, docs_set=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
-                                                                                citation_count_dict, ngram_multiplier,
-                                                                                num_ngrams)
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
+                                                                                num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
@@ -178,22 +199,30 @@ def write_config_to_json(args, doc_pickle_file_name):
         json.dump(json_data, json_file)
 
 
-def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time):
+def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, docs_set):
     terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
         number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time)
-
-    publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+        pick=pick, time=time, docs_set=docs_set)
+    try:
+        publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                               [d.isocalendar() for d in tfidf.publication_dates]]
+    except KeyError:
+        publication_week_dates = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
 
-    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
+    try:
+        patent_ids = tfidf.patent_ids
+    except KeyError:
+        patent_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
+
+
+    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
     term_present_matrix = tfidf_matrix > 0
-    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, tfidf.patent_ids]
+    term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
     os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
     with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:
@@ -220,6 +249,25 @@ def main():
     elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
         df = pd.read_excel(doc_source_file_name)
 
+
+    if isinstance(args.filter_columns, type(None)):
+        docs_set = None
+    else:
+        filter_headers = args.filter_columns.split('+')
+        filter_by = args.filter_by
+
+        filter_df = df.copy()
+        filter_df = filter_df[filter_headers]
+
+        for column in filter_df:
+            filter_df[column] = filter_df[column].replace({'No': 0, 'Yes': 1})
+        filter_df['filter'] = filter_df.sum(axis=1)
+
+        if filter_by == 'any':
+            docs_set = filter_df[filter_df['filter'] > 0].index.values.tolist()
+        else:
+            docs_set = filter_df[filter_df['filter'] == filter_df.shape[1]-1].index.values.tolist()
+
     if args.json:
         write_config_to_json(args, doc_source_file_name)
 
@@ -227,19 +275,19 @@ def main():
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf = get_tfidf(args, doc_source_file_name, df=df)
+    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df)
 
     newtfidf = None
     if args.focus or args.output == 'table':
-        path2 = os.path.join('data', args.focus_source + ".pkl.bz2")
-        newtfidf = get_tfidf(args, path2, None)
+        path2 = os.path.join('data', args.focus_source)
+        newtfidf, _ = get_tfidf(args, path2, None)
 
     out = args.output
     ngram_multiplier = 4
 
     if out != 'tfidf':
         wordclouds_flag = (out == 'wordcloud')
-        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag)
+        dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag, docs_set=doc_set)
 
     if out == 'table' or out == 'all':
         run_table(args, ngram_multiplier, tfidf, newtfidf)
@@ -248,7 +296,7 @@ def main():
         run_fdg(dict_freqs, tfidf, args)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time)
+        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time, docs_set)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,12 @@ from scripts.utils.table_output import table_output
 from tests.utils import ReferenceData
 
 
+class FakeArgs(object):
+    __slots__ = ['pick', 'time', 'focus']
+
+
 class TestTableOutput(unittest.TestCase):
+
     class FakeWriter(pd.ExcelWriter):
         engine = 'fakewriter'
         supported_extensions = ('.fake',)
@@ -56,15 +61,17 @@ class TestTableOutput(unittest.TestCase):
         tfidf_random = TFIDF(ReferenceData.random_df, tokenizer=LemmaTokenizer(), ngram_range=(min_n, max_n))
 
         citation_count_dict = {1: 10, 2: 3, 101: 2, 102: 0, 103: 5, 104: 4, 105: 10}
-        pick = 'sum'
-        time = False
-        focus = 'chi2'
+
+        args=FakeArgs()
+
+        args.pick = 'sum'
+        args.time = False
+        args.focus = 'chi2'
 
         register_writer(TestTableOutput.FakeWriter)
         fake_writer = TestTableOutput.FakeWriter('spreadsheet.fake')
 
-        table_output(tfidf_cold, tfidf_random, num_ngrams, pick, ngram_multiplier, time, focus,
-                     fake_writer, citation_count_dict)
+        table_output(tfidf_cold, tfidf_random, num_ngrams, args, ngram_multiplier, fake_writer, citation_count_dict)
 
         # Check sheet headings...
         self.assertListEqual(
