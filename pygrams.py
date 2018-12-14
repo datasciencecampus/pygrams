@@ -100,31 +100,41 @@ def checkargs(args):
     if isinstance(args.year_to,str) & isinstance(args.year_from,str):
         if isinstance(args.month_to, str) & isinstance(args.month_from, str):
             if args.year_from + args.month_from > args.year_to + args.month_to:
-                print("year_from and month_from must be before year_to and month_to")
+                print(f"year_to:{args.year_to} and month_to:{args.month_to} cannot be in the future of year_from:"
+                      f"{args.year_from} and month_from:{args.month_from}")
                 app_exit = True
         else:
             if args.year_from > args.year_to:
-                print("year_from must be before year_to")
+                print(f"year_to:{args.year_to} cannot be in the future of year_from:{args.year_from}")
+                app_exit = True
+    else:
+        if isinstance(args.month_to, str):
+            if not isinstance(args.year_to, str):
+                print("year_to also needs to be defined to use month_to")
+                app_exit = True
+        if isinstance(args.month_from, str):
+            if not isinstance(args.year_from, str):
+                print("year_from also needs to be defined to use month_from")
                 app_exit = True
 
     if isinstance(args.year_from,str):
         if len(args.year_from) != 4:
-            print("year_from must be in YYYY format")
+            print(f"year_from:{args.year_from} must be in YYYY format")
             app_exit = True
 
     if isinstance(args.month_from, str):
         if len(args.month_from) != 2:
-            print("month_from must be in MM format")
+            print(f"month_from:{args.month_from} must be in MM format")
             app_exit = True
 
     if isinstance(args.year_to, str):
         if len(args.year_to) != 4:
-            print("year_to must be in YYYY format")
+            print(f"year_to:{args.year_to} must be in YYYY format")
             app_exit = True
 
     if isinstance(args.month_to, str):
         if len(args.month_to) != 2:
-            print("month_to must be in MM format")
+            print(f"month_to:{args.month_to} must be in MM format")
             app_exit = True
 
     if args.min_n > args.max_n:
