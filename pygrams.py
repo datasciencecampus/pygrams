@@ -23,25 +23,22 @@ def choose_last_day(year_in, month_in):
 def year2pandas_latest_date(year_in, month_in):
     if year_in is None:
         return Timestamp.now()
-    else:
-        if month_in is None:
-            year_string = str(year_in) + '-12-31'
-            return Timestamp(year_string)
-        else:
-            year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
-            return Timestamp(year_string)
+
+    if month_in is None:
+        return Timestamp(str(year_in) + '-12-31')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
+    return Timestamp(year_string)
 
 def year2pandas_earliest_date(year_in, month_in):
     if year_in is None:
-        year_string = '2000-01-01'
-        return Timestamp(year_string)
-    else:
-        if month_in is None:
-            year_string = str(year_in) + '-01-01'
-            return Timestamp(year_string)
-        else:
-            year_string = str(year_in) + '-' + str(month_in) + '-01'
-            return Timestamp(year_string)
+        return Timestamp('2000-01-01')
+
+    if month_in is None:
+        return Timestamp(str(year_in) + '-01-01')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-01'
+    return Timestamp(year_string)
 
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
@@ -66,8 +63,8 @@ def get_args(command_line_arguments):
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", default=None, help="The first year for the document cohort in YYYY format")
     parser.add_argument("-mf", "--month_from", default=None, help="The first month for the document cohort in MM format")
-    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the documents cohort in YYYY format")
-    parser.add_argument("-mt", "--month_to", default=None, help="The last month for the documents cohort in MM format")
+    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
+    parser.add_argument("-mt", "--month_to", default=None, help="The last month for the document cohort in MM format")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -101,9 +98,14 @@ def get_args(command_line_arguments):
 def checkargs(args):
     app_exit = False
     if isinstance(args.year_to,str) & isinstance(args.year_from,str):
-        if args.year_from + args.month_from >= args.year_to + args.month_to:
-            print("year_from and month_from must be before year_to and month_to")
-            app_exit = True
+        if isinstance(args.month_to, str) & isinstance(args.month_from, str):
+            if args.year_from + args.month_from > args.year_to + args.month_to:
+                print("year_from and month_from must be before year_to and month_to")
+                app_exit = True
+        else:
+            if args.year_from > args.year_to:
+                print("year_from must be before year_to")
+                app_exit = True
 
     if isinstance(args.year_from,str):
         if len(args.year_from) != 4:
@@ -216,14 +218,19 @@ def write_config_to_json(args, doc_pickle_file_name):
     report_file_name = os.path.abspath(args.report_name)
     json_file_name = os.path.splitext(report_file_name)[0] + '.json'
 
+    month_from = args.month_from if args.month_from is not None else '01'
+    month_to = args.month_to if args.month_to is not None else '12'
+    year_from = args.year_from if args.year_from is not None else '2000'
+    year_to = args.year_to if args.year_to is not None else str(Timestamp.now().year)
+
     json_data = {
         'paths': {
             'data': doc_pickle_file_name,
             'tech_report': report_file_name
         },
         'month_year': {
-            'from': args.month_from + '_' + args.year_from,
-            'to': args.month_to + '_' + args.year_to
+            'from': month_from + '_' + year_from,
+            'to': month_to + '_' + year_to
         },
         'parameters': {
             'pick': args.pick,
