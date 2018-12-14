@@ -66,7 +66,7 @@ def get_args(command_line_arguments):
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", default=None, help="The first year for the document cohort in YYYY format")
     parser.add_argument("-mf", "--month_from", default=None, help="The first month for the document cohort in MM format")
-    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the documents cohort in YYYY format")
+    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
     parser.add_argument("-mt", "--month_to", default=None, help="The last month for the documents cohort in MM format")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
