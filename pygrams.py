@@ -6,6 +6,7 @@ import pandas as pd
 import pickle
 import sys
 import numpy as np
+import calendar
 
 from pandas import Timestamp, ExcelWriter
 
@@ -16,17 +17,31 @@ from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
+def choose_last_day(year_in, month_in):
+    return str(calendar.monthrange(int(year_in), int(month_in))[1])
 
-def year2pandas_latest_date(year_in):
-    if year_in == 0:
+def year2pandas_latest_date(year_in, month_in):
+    if year_in is None:
         return Timestamp.now()
+    else:
+        if month_in is None:
+            year_string = str(year_in) + '-12-31'
+            return Timestamp(year_string)
+        else:
+            year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
+            return Timestamp(year_string)
 
-    year_string = str(year_in) + '-12-31'
-    return Timestamp(year_string)
-
-def year2pandas_earliest_date(year_in):
-    year_string = str(year_in) + '-01-01'
-    return Timestamp(year_string)
+def year2pandas_earliest_date(year_in, month_in):
+    if year_in is None:
+        year_string = '2000-01-01'
+        return Timestamp(year_string)
+    else:
+        if month_in is None:
+            year_string = str(year_in) + '-01-01'
+            return Timestamp(year_string)
+        else:
+            year_string = str(year_in) + '-' + str(month_in) + '-01'
+            return Timestamp(year_string)
 
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
@@ -49,8 +64,10 @@ def get_args(command_line_arguments):
                         help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
-    parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the document cohort")
-    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the documents cohort (0 is now)")
+    parser.add_argument("-yf", "--year_from", default=None, help="The first year for the document cohort in YYYY format")
+    parser.add_argument("-mf", "--month_from", default=None, help="The first month for the document cohort in MM format")
+    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the documents cohort in YYYY format")
+    parser.add_argument("-mt", "--month_to", default=None, help="The last month for the documents cohort in MM format")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -83,9 +100,29 @@ def get_args(command_line_arguments):
 
 def checkargs(args):
     app_exit = False
-    if args.year_to != 0:
-        if args.year_from >= args.year_to:
-            print("year_from must be less than year_to")
+    if isinstance(args.year_to,str) & isinstance(args.year_from,str):
+        if args.year_from + args.month_from >= args.year_to + args.month_to:
+            print("year_from and month_from must be before year_to and month_to")
+            app_exit = True
+
+    if isinstance(args.year_from,str):
+        if len(args.year_from) != 4:
+            print("year_from must be in YYYY format")
+            app_exit = True
+
+    if isinstance(args.month_from, str):
+        if len(args.month_from) != 2:
+            print("month_from must be in MM format")
+            app_exit = True
+
+    if isinstance(args.year_to, str):
+        if len(args.year_to) != 4:
+            print("year_to must be in YYYY format")
+            app_exit = True
+
+    if isinstance(args.month_to, str):
+        if len(args.month_to) != 2:
+            print("month_to must be in MM format")
             app_exit = True
 
     if args.min_n > args.max_n:
@@ -110,9 +147,9 @@ def checkargs(args):
 
 
 def get_tfidf(args, pickle_file_name, df=None):
-    date_from = year2pandas_earliest_date(args.year_from)
-    date_to = year2pandas_latest_date(args.year_to)
-    if df is None:
+    date_from = year2pandas_earliest_date(args.year_from, args.month_from)
+    date_to = year2pandas_latest_date(args.year_to, args.month_to)
+    if df is None or args.year_from is not None or args.year_to is not None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
@@ -184,9 +221,9 @@ def write_config_to_json(args, doc_pickle_file_name):
             'data': doc_pickle_file_name,
             'tech_report': report_file_name
         },
-        'year': {
-            'from': args.year_from,
-            'to': args.year_to
+        'month_year': {
+            'from': args.month_from + '_' + args.year_from,
+            'to': args.month_to + '_' + args.year_to
         },
         'parameters': {
             'pick': args.pick,
