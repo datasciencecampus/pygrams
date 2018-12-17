@@ -2,13 +2,13 @@ class ArgsChecker():
 
     def __init__(self, args, args_default):
         self.__args = args
-        self.__args_default= args_default
+        self.__args_default = args_default
 
     def checkargs(self):
         app_exit = False
-        if isinstance(self.__args.year_to,str) & isinstance(self.__args.year_from,str):
+        if isinstance(self.__args.year_to, str) & isinstance(self.__args.year_from, str):
             if isinstance(self.__args.month_to, str) & isinstance(self.__args.month_from, str):
-                if self.__args.year_from + self.__args.month_from > self.__args.year_to + args.month_to:
+                if self.__args.year_from + self.__args.month_from > self.__args.year_to + self.__.month_to:
                     print(f"year_to {self.__args.year_to} and month_to {self.__args.month_to} cannot be in the future "
                           f"of year_from {self.__args.year_from} and month_from {self.__args.month_from}")
                     app_exit = True
@@ -26,7 +26,7 @@ class ArgsChecker():
                     print("year_from also needs to be defined to use month_from")
                     app_exit = True
 
-        if isinstance(self.__args.year_from,str):
+        if isinstance(self.__args.year_from, str):
             if len(self.__args.year_from) != 4:
                 print(f"year_from {self.__args.year_from} must be in YYYY format")
                 app_exit = True
@@ -64,23 +64,23 @@ class ArgsChecker():
             app_exit = True
 
         if self.__args.focus_source != self.__args.focus_source:
-            if self.__args.focus == None:
+            if self.__args.focus is None:
                 print('argument [-fs] can only be used when focus is applied [-f]')
                 app_exit = True
 
         if self.__args.output == 'table' or self.__args.output == 'all':
-            if self.__args.focus == None:
+            if self.__args.focus is None:
                 print('define a focus before requesting table (or all) output')
                 app_exit = True
 
         if self.__args.wordcloud_title != self.__args_default.wordcloud_title or \
                 self.__args.wordcloud_name != self.__args_default.wordcloud_name or \
                 self.__args.num_ngrams_wordcloud != self.__args_default.num_ngrams_wordcloud:
-                if args.output != 'wordcloud' or args.output != 'all':
-                    print(args.wordcloud_title)
-                    print('arguments [-wn] [-wt] [-nd] can only be used when output includes worldcloud '
-                          '[-o] "wordcloud" or "all"')
-                    app_exit = True
+            if self.__.output != 'wordcloud' or self.__.output != 'all':
+                print(args.wordcloud_title)
+                print('arguments [-wn] [-wt] [-nd] can only be used when output includes worldcloud '
+                      '[-o] "wordcloud" or "all"')
+                app_exit = True
 
         if self.__args.report_name != self.__args_default.report_name or \
                 self.__args.num_ngrams_report != self.__args_default.num_ngrams_report:
