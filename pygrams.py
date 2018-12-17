@@ -16,10 +16,12 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
+from scripts.utils.argschecker import ArgsChecker
 
 
 def choose_last_day(year_in, month_in):
     return str(calendar.monthrange(int(year_in), int(month_in))[1])
+
 
 def year2pandas_latest_date(year_in, month_in):
     if year_in is None:
@@ -31,6 +33,7 @@ def year2pandas_latest_date(year_in, month_in):
     year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
     return Timestamp(year_string)
 
+
 def year2pandas_earliest_date(year_in, month_in):
     if year_in is None:
         return Timestamp('2000-01-01')
@@ -41,6 +44,7 @@ def year2pandas_earliest_date(year_in, month_in):
     year_string = str(year_in) + '-' + str(month_in) + '-01'
     return Timestamp(year_string)
 
+
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
@@ -49,11 +53,12 @@ def get_args(command_line_arguments):
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
-    parser.add_argument("-pt", "--path", default='data',  help="the data path")
+    parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
-    parser.add_argument("-fc", "--filter_columns",  default = None, help="list of columns to filter by")
+    parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
-                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
+                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' "
+                             "or any are 'Yes")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -62,8 +67,10 @@ def get_args(command_line_arguments):
                         help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
-    parser.add_argument("-yf", "--year_from", default=None, help="The first year for the document cohort in YYYY format")
-    parser.add_argument("-mf", "--month_from", default=None, help="The first month for the document cohort in MM format")
+    parser.add_argument("-yf", "--year_from", default=None,
+                        help="The first year for the document cohort in YYYY format")
+    parser.add_argument("-mf", "--month_from", default=None,
+                        help="The first month for the document cohort in MM format")
     parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
     parser.add_argument("-mt", "--month_to", default=None, help="The last month for the document cohort in MM format")
 
@@ -84,7 +91,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
     parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds',
-                                                                                 'wordcloud_tech.png'),
+                                                                        'wordcloud_tech.png'),
                         help="wordcloud filename")
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
@@ -95,101 +102,6 @@ def get_args(command_line_arguments):
 
     args = parser.parse_args(command_line_arguments)
     return args
-
-
-def checkargs(args, args_default):
-    app_exit = False
-    if isinstance(args.year_to,str) & isinstance(args.year_from,str):
-        if isinstance(args.month_to, str) & isinstance(args.month_from, str):
-            if args.year_from + args.month_from > args.year_to + args.month_to:
-                print(f"year_to {args.year_to} and month_to {args.month_to} cannot be in the future of year_from "
-                      f"{args.year_from} and month_from {args.month_from}")
-                app_exit = True
-        else:
-            if args.year_from > args.year_to:
-                print(f"year_to {args.year_to} cannot be in the future of year_from {args.year_from}")
-                app_exit = True
-    else:
-        if isinstance(args.month_to, str):
-            if not isinstance(args.year_to, str):
-                print("year_to also needs to be defined to use month_to")
-                app_exit = True
-        if isinstance(args.month_from, str):
-            if not isinstance(args.year_from, str):
-                print("year_from also needs to be defined to use month_from")
-                app_exit = True
-
-    if isinstance(args.year_from,str):
-        if len(args.year_from) != 4:
-            print(f"year_from {args.year_from} must be in YYYY format")
-            app_exit = True
-
-    if isinstance(args.month_from, str):
-        if len(args.month_from) != 2:
-            print(f"month_from {args.month_from} must be in MM format")
-            app_exit = True
-
-    if isinstance(args.year_to, str):
-        if len(args.year_to) != 4:
-            print(f"year_to {args.year_to} must be in YYYY format")
-            app_exit = True
-
-    if isinstance(args.month_to, str):
-        if len(args.month_to) != 2:
-            print(f"month_to {args.month_to} must be in MM format")
-            app_exit = True
-
-    if args.min_n > args.max_n:
-        print(f"minimum ngram count {args.min_n} should be less or equal to maximum ngram count {args.max_n}")
-        app_exit = True
-
-    if args.num_ngrams_wordcloud < 20:
-        print(f"at least 20 ngrams needed for wordcloud, {args.num_ngrams_wordcloud} chosen")
-        app_exit = True
-
-    if args.num_ngrams_report < 10:
-        print(f"at least 10 ngrams needed for report, {args.num_ngrams_report} chosen")
-        app_exit = True
-
-    if args.num_ngrams_fdg < 10:
-        print(f"at least 10 ngrams needed for FDG, {args.num_ngrams_fdg} chosen")
-        app_exit = True
-
-    if args.focus_source != args_default.focus_source:
-        if args.focus == None:
-            print('argument [-fs] can only be used when focus is applied [-f]')
-            app_exit = True
-
-    if args.output == 'table' or args.output == 'all':
-        if args.focus == None:
-            print('define a focus before requesting table (or all) output')
-            app_exit = True
-
-    if args.wordcloud_title != args_default.wordcloud_title or args.wordcloud_name != args_default.wordcloud_name or \
-            args.num_ngrams_wordcloud != args_default.num_ngrams_wordcloud:
-            if args.output != 'wordcloud' or args.output != 'all':
-                print(args.wordcloud_title)
-                print('arguments [-wn] [-wt] [-nd] can only be used when output includes worldcloud '
-                      '[-o] "wordcloud" or "all"')
-                app_exit = True
-
-    if args.report_name != args_default.report_name or args.num_ngrams_report != args_default.num_ngrams_report:
-        if args.output != 'report' or args.output != 'all':
-            print('arguments [-rn] [-np] can only be used when output includes report [-o] "report" or "all"')
-            app_exit = True
-
-    if args.num_ngrams_fdg != args_default.num_ngrams_fdg:
-        if args.output != 'fdg' or args.output != 'all':
-            print('argument [-nf] can only be used when output includes fdg [-o] "fdg" or "all]')
-            app_exit = True
-
-    if args.table_name != args_default.table_name:
-        if args.output != 'table' or args.output != 'all':
-            print('argument [-tn] can only be used when output includes table [-o] "table" or "all"')
-            app_exit = True
-
-    if app_exit:
-        exit(0)
 
 
 def get_tfidf(args, pickle_file_name, df=None):
@@ -216,25 +128,26 @@ def get_tfidf(args, pickle_file_name, df=None):
             else:
                 doc_set = doc_set.union(set(indices))
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), doc_set
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n),
+                 header=args.abstract_header), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
-
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random,  num_ngrams, args, ngram_multiplier, writer)
+    table_output(tfidf, tfidf_random, num_ngrams, args, ngram_multiplier, writer)
 
 
 # TODO: common interface wrapper class, hence left citation_count_dict refs
-def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None, docs_set=None):
+def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None,
+               docs_set=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
     dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
-                                                                                num_ngrams, docs_set=docs_set)
+                                                                            num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
@@ -253,7 +166,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
 def run_fdg(dict_freq_in, tf_idf, args):
     num_ngrams = args.num_ngrams_report
-    graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
+    graph = TermsGraph(list(dict_freq_in.items())[:num_ngrams], tf_idf)
     graph.save_graph_report(args)
 
 
@@ -293,7 +206,7 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
         pick=pick, time=time, docs_set=docs_set)
     try:
         publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                              [d.isocalendar() for d in tfidf.publication_dates]]
+                                  [d.isocalendar() for d in tfidf.publication_dates]]
     except KeyError:
         publication_week_dates = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
 
@@ -301,7 +214,6 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
         patent_ids = tfidf.patent_ids
     except KeyError:
         patent_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
-
 
     tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
@@ -318,26 +230,27 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
 
 
 def main():
-    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'), os.path.join('outputs', 'table')]
+    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
+             os.path.join('outputs', 'table')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
     args = get_args(sys.argv[1:])
     args_default = get_args([])
-    checkargs(args, args_default)
+    argscheck = ArgsChecker(args, args_default)
+    argscheck.checkargs()
 
-    doc_source_file_name = os.path.join(args.path, args.doc_source )
+    doc_source_file_name = os.path.join(args.path, args.doc_source)
 
-    df=None
-    if doc_source_file_name[len(doc_source_file_name)-3:] == 'bz2':
+    df = None
+    if doc_source_file_name[len(doc_source_file_name) - 3:] == 'bz2':
         df = pd.read_pickle(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'xls':
+    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'xls':
         df = pd.read_excel(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'csv':
+    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'csv':
         df = pd.read_csv(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
+    elif doc_source_file_name[len(doc_source_file_name) - 4:] == 'xlsx':
         df = pd.read_excel(doc_source_file_name)
-
 
     if isinstance(args.filter_columns, type(None)):
         docs_set = None
@@ -356,7 +269,7 @@ def main():
         if filter_by == 'any':
             docs_set = filter_df[filter_df['filter'] > 0].index.values.tolist()
         else:
-            docs_set = filter_df[filter_df['filter'] == filter_df.shape[1]-1].index.values.tolist()
+            docs_set = filter_df[filter_df['filter'] == filter_df.shape[1] - 1].index.values.tolist()
 
     if args.json:
         write_config_to_json(args, doc_source_file_name)
