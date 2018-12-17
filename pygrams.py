@@ -17,6 +17,7 @@ from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
+
 def choose_last_day(year_in, month_in):
     return str(calendar.monthrange(int(year_in), int(month_in))[1])
 
@@ -82,7 +83,8 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
-    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds', 'wordcloud_tech.png'),
+    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds',
+                                                                                 'wordcloud_tech.png'),
                         help="wordcloud filename")
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
@@ -95,17 +97,17 @@ def get_args(command_line_arguments):
     return args
 
 
-def checkargs(args):
+def checkargs(args, args_default):
     app_exit = False
     if isinstance(args.year_to,str) & isinstance(args.year_from,str):
         if isinstance(args.month_to, str) & isinstance(args.month_from, str):
             if args.year_from + args.month_from > args.year_to + args.month_to:
-                print(f"year_to:{args.year_to} and month_to:{args.month_to} cannot be in the future of year_from:"
-                      f"{args.year_from} and month_from:{args.month_from}")
+                print(f"year_to {args.year_to} and month_to {args.month_to} cannot be in the future of year_from "
+                      f"{args.year_from} and month_from {args.month_from}")
                 app_exit = True
         else:
             if args.year_from > args.year_to:
-                print(f"year_to:{args.year_to} cannot be in the future of year_from:{args.year_from}")
+                print(f"year_to {args.year_to} cannot be in the future of year_from {args.year_from}")
                 app_exit = True
     else:
         if isinstance(args.month_to, str):
@@ -119,39 +121,71 @@ def checkargs(args):
 
     if isinstance(args.year_from,str):
         if len(args.year_from) != 4:
-            print(f"year_from:{args.year_from} must be in YYYY format")
+            print(f"year_from {args.year_from} must be in YYYY format")
             app_exit = True
 
     if isinstance(args.month_from, str):
         if len(args.month_from) != 2:
-            print(f"month_from:{args.month_from} must be in MM format")
+            print(f"month_from {args.month_from} must be in MM format")
             app_exit = True
 
     if isinstance(args.year_to, str):
         if len(args.year_to) != 4:
-            print(f"year_to:{args.year_to} must be in YYYY format")
+            print(f"year_to {args.year_to} must be in YYYY format")
             app_exit = True
 
     if isinstance(args.month_to, str):
         if len(args.month_to) != 2:
-            print(f"month_to:{args.month_to} must be in MM format")
+            print(f"month_to {args.month_to} must be in MM format")
             app_exit = True
 
     if args.min_n > args.max_n:
-        print("minimum ngram count should be less or equal to higher ngram count")
+        print(f"minimum ngram count {args.min_n} should be less or equal to maximum ngram count {args.max_n}")
         app_exit = True
 
-    if args.num_ngrams_wordcloud <= 20:
-        print("at least 20 ngrams needed for wordcloud")
+    if args.num_ngrams_wordcloud < 20:
+        print(f"at least 20 ngrams needed for wordcloud, {args.num_ngrams_wordcloud} chosen")
         app_exit = True
 
-    if args.num_ngrams_report <= 10:
-        print("at least 10 ngrams needed for report")
+    if args.num_ngrams_report < 10:
+        print(f"at least 10 ngrams needed for report, {args.num_ngrams_report} chosen")
         app_exit = True
+
+    if args.num_ngrams_fdg < 10:
+        print(f"at least 10 ngrams needed for FDG, {args.num_ngrams_fdg} chosen")
+        app_exit = True
+
+    if args.focus_source != args_default.focus_source:
+        if args.focus == None:
+            print('argument [-fs] can only be used when focus is applied [-f]')
+            app_exit = True
 
     if args.output == 'table' or args.output == 'all':
         if args.focus == None:
             print('define a focus before requesting table (or all) output')
+            app_exit = True
+
+    if args.wordcloud_title != args_default.wordcloud_title or args.wordcloud_name != args_default.wordcloud_name or \
+            args.num_ngrams_wordcloud != args_default.num_ngrams_wordcloud:
+            if args.output != 'wordcloud' or args.output != 'all':
+                print(args.wordcloud_title)
+                print('arguments [-wn] [-wt] [-nd] can only be used when output includes worldcloud '
+                      '[-o] "wordcloud" or "all"')
+                app_exit = True
+
+    if args.report_name != args_default.report_name or args.num_ngrams_report != args_default.num_ngrams_report:
+        if args.output != 'report' or args.output != 'all':
+            print('arguments [-rn] [-np] can only be used when output includes report [-o] "report" or "all"')
+            app_exit = True
+
+    if args.num_ngrams_fdg != args_default.num_ngrams_fdg:
+        if args.output != 'fdg' or args.output != 'all':
+            print('argument [-nf] can only be used when output includes fdg [-o] "fdg" or "all]')
+            app_exit = True
+
+    if args.table_name != args_default.table_name:
+        if args.output != 'table' or args.output != 'all':
+            print('argument [-tn] can only be used when output includes table [-o] "table" or "all"')
             app_exit = True
 
     if app_exit:
@@ -289,7 +323,8 @@ def main():
         os.makedirs(path, exist_ok=True)
 
     args = get_args(sys.argv[1:])
-    checkargs(args)
+    args_default = get_args([])
+    checkargs(args, args_default)
 
     doc_source_file_name = os.path.join(args.path, args.doc_source )
 
