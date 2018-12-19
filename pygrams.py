@@ -65,6 +65,8 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
+    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.3,
+                        help="the maximum document frequency to contribute to TF/IDF")
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
@@ -133,7 +135,8 @@ def get_tfidf(args, pickle_file_name, df=None):
             else:
                 doc_set = doc_set.union(set(indices))
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), doc_set
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header,
+                 max_document_frequency=args.max_document_frequency), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
