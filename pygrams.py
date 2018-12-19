@@ -16,6 +16,8 @@ from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
+#-fc="Communications,Leadership, IT systems"
+
 
 def year2pandas_latest_date(year_in):
     if year_in == 0:
@@ -35,6 +37,7 @@ def get_args(command_line_arguments):
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true", help="normalize tf-idf scores by document length")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
@@ -133,7 +136,7 @@ def get_tfidf(args, pickle_file_name, df=None):
             else:
                 doc_set = doc_set.union(set(indices))
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), doc_set
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, normalize_doc_length = args.normalize_doc_length), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):

@@ -1,15 +1,16 @@
-import copy
 import datetime
 import string
 
 import numpy as np
 from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.stem import WordNetLemmatizer
-from sklearn.feature_extraction.text import TfidfVectorizer, strip_accents_ascii
+from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
 from tqdm import tqdm
 from nltk.corpus import wordnet
 from scripts import FilePaths
 from scripts.utils.utils import Utils as ut
+from sklearn.feature_extraction.text import CountVectorizer
+
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
 New BSD License
@@ -150,7 +151,7 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract'):
+    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', normalize_doc_length=False):
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -158,7 +159,7 @@ class TFIDF:
             preprocess=lowercase_strip_accents_and_ownership,
             ngram_range=ngram_range)
 
-        self.tfidf_vectorizer = TfidfVectorizer(
+        self.__vectorizer = CountVectorizer(
             max_df=max_document_frequency,
             min_df=1,
             ngram_range=ngram_range,
@@ -167,20 +168,26 @@ class TFIDF:
         
         self.__abstract_header = header
 
-        number_of_patents_before_sift = self.__dataframe.shape[0]
+        num_docs_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
-        number_of_patents_after_sift = self.__dataframe.shape[0]
-        number_of_patents_sifted = number_of_patents_before_sift - number_of_patents_after_sift
-        print(f'Dropped {number_of_patents_sifted:,} patents due to empty abstracts')
+        num_docs_after_sift = self.__dataframe.shape[0]
+        num_docs_sifted = num_docs_before_sift - num_docs_after_sift
+        print(f'Dropped {num_docs_sifted:,} docs due to empty abstracts')
 
-        self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
-        self.__feature_names = self.tfidf_vectorizer.get_feature_names()
+        self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__abstract_header])
+        self.__feature_names = self.__vectorizer.get_feature_names()
 
-        self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
+        if normalize_doc_length:
+            self.__ngram_counts = self.__ngram_counts.astype(float)
+            self.__ngram_counts = self.__normalize_rows(self.__ngram_counts)
 
+        self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
+        self.tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
         self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, ngram_range[0])
+
         self.__lost_state = False
         self.__min_ngram_count = ngram_range[0]
+
 
     @property
     def tfidf_mat(self):
@@ -212,15 +219,10 @@ class TFIDF:
             return []
 
         if self.__lost_state:
-
-            self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
-            self.__feature_names = self.tfidf_vectorizer.get_feature_names()
-
-            self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
-
+            self.tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, self.__min_ngram_count)
-            self.__lost_state = False
 
+            self.__lost_state = False
 
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
@@ -322,6 +324,12 @@ class TFIDF:
         tfidf_summary = (tfidf.sum(axis=0)).flatten()
         return tfidf_summary.tolist()[0]
 
+    def __normalize_rows(self, mat_csr):
+        for idx, text in enumerate(self.abstracts):
+            text_len = len(text)
+            mat_csr.data[mat_csr.indptr[idx] : mat_csr.indptr[idx + 1]] /= text_len
+        return mat_csr
+
     def unbias_ngrams(self, mtx_csr, min_ngram_len):
 
         # iterate through rows ( docs)
@@ -333,7 +341,7 @@ class TFIDF:
             for j in range(start_idx_ptr, end_idx_ptr):
 
                 col_idx = mtx_csr.indices[j]
-                big_ngram = self.feature_names[col_idx]
+                big_ngram = self.__feature_names[col_idx]
                 big_ngram_terms = big_ngram.split()
 
                 if len(big_ngram_terms) > min_ngram_len:
@@ -343,9 +351,9 @@ class TFIDF:
 
                     j_1 = j+1
                     col_idx_1 = mtx_csr.indices[j_1]
-                    prev_nonzero_ngram = self.feature_names[col_idx_1]
+                    prev_nonzero_ngram = self.__feature_names[col_idx_1]
 
-                    while prev_nonzero_ngram > ngram_minus_back and j_1 >= start_idx_ptr:
+                    while prev_nonzero_ngram > ngram_minus_back and j_1 < end_idx_ptr:
                         j_1 += 1
                         col_idx_1 = mtx_csr.indices[j_1]
                         prev_nonzero_ngram = self.feature_names[col_idx_1]
