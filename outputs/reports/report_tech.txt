@@ -1,250 +1,250 @@
- great place                    19.633235
- senior manager                 10.733106
- field interviewer              9.565337
- government department          9.419565
- increase pay                   9.368251
- pay rise                       7.997410
- job title                      7.827029
- pay increase                   7.093497
- improve pay                    6.946154
- low grade                      6.256589
- pay cap                        6.172694
- less bureaucracy               5.248783
- poor performance               5.117275
- field force                    4.857969
- recruitment process            4.651239
- senior management              4.589812
- high grade                     4.574008
- work life balance              4.505442
- high pay                       4.445088
- smart working                  4.421498
- new starter                    4.128370
- dont feel                      3.731160
- smart work                     3.612577
- performance management system  3.527567
- blame culture                  3.427819
- red tape                       3.369925
- pay scale                      3.349441
- target zone                    3.259743
- team meeting                   3.035952
- fairer pay                     2.960540
- pay rate                       2.918546
- civil service                  2.893382
- career progression             2.871090
- annualised hour contract       2.843364
- change happen                  2.834647
- private sector                 2.827462
- home working                   2.811383
- performance management         2.770045
- pay grade                      2.755755
- work hard                      2.723449
- high salary                    2.673611
- fair pay                       2.547006
- job we                         2.501293
- less contractor                2.476315
- work we                        2.467985
- air conditioning               2.414678
- work place                     2.402585
- improve communication          2.272168
- work condition                 2.258667
- people work                    2.235279
- ons staff                      2.210350
- senior staff                   2.189474
- manage change                  2.178525
- line manager                   2.177622
- great understanding            2.162218
- field staff                    2.050411
- odp staff                      2.000000
- less focus                     1.999296
- new system                     1.981194
- new idea                       1.973981
- long time                      1.949876
- treat people                   1.944335
- new staff                      1.901579
- flexible working               1.868492
- actual work                    1.847675
- pay progression                1.839685
- pay structure                  1.825071
- less empire-building           1.796742
- top down                       1.792828
- telephone interviewer          1.787518
- equal opportunity              1.765546
- middle management              1.755689
- government policy              1.755545
- lip service                    1.748659
- new technology                 1.741485
- senior level                   1.735476
- people feel                    1.733415
- pay increment                  1.730816
- new software                   1.707130
- we dont                        1.704297
- job role                       1.700786
- odp role                       1.688055
- feel value                     1.685542
- pay lip service                1.683047
- reward strategy                1.676398
- bring back                     1.673094
- development opportunity        1.665957
- common sense                   1.659992
- improved pay                   1.656532
- career pathway                 1.651861
- telephone operation            1.636881
- annual leave                   1.628918
- staff member                   1.608527
- low level                      1.586100
- bad pay                        1.584810
- new manager                    1.579015
- similar role                   1.571003
- shift pattern                  1.567056
- civil service department       1.563755
- field worker                   1.561020
- general public                 1.556123
- telephone unit                 1.553329
- enable staff                   1.538008
- less bureaucratic              1.497495
- pay range                      1.495062
- team member                    1.492242
- car park                       1.489309
- start work                     1.482519
- timely decision                1.480188
- treat fairly                   1.476877
- decent pay rise                1.470661
- treat staff                    1.465721
- reward people                  1.450940
- work remotely                  1.443172
- right tool                     1.428386
- reward staff                   1.421332
- clear understanding            1.420303
- free coffee                    1.414678
- clear direction                1.408216
- manage people                  1.403351
- allow manager                  1.402104
- increased pay                  1.399596
- entry zone                     1.380484
- upper management               1.374068
- less hierarchy                 1.373866
- ons work                       1.366749
- temporary promotion            1.361483
- team work                      1.357357
- progression pay                1.354903
- qualified trainer              1.351518
- lengthy process                1.344483
- internal communication         1.341639
- stop try                       1.339901
- slow down                      1.337545
- great transparency             1.335560
- evidence base                  1.321464
- great deal                     1.313594
- life balance                   1.312198
- feel isolate                   1.308009
- enjoy work                     1.304628
- less change                    1.299702
- newport office                 1.283639
- social event                   1.280897
- day work                       1.263191
- negative comment               1.261949
- new department                 1.259439
- increase salary                1.251113
- leadership team                1.250736
- lower grade                    1.248980
- people skill                   1.241422
- less cronyism                  1.232044
- new equipment                  1.219867
- daily job                      1.219176
- hr team                        1.209582
- long way                       1.195878
- enable people                  1.192877
- second class citizen           1.191858
- food chain                     1.190455
- minimum pay                    1.188104
- agile delivery                 1.185380
- share skill                    1.181549
- quality statistic              1.176475
- feel we                        1.174836
- stop change                    1.163511
- hourly rate                    1.162350
- hr policy                      1.157077
- pay band                       1.156980
- poor performer                 1.154050
- timely manner                  1.147986
- flexible hour                  1.145738
- senior civil servant           1.145627
- old system                     1.143941
- sometimes we                   1.139280
- encourage participation        1.135764
- work pattern                   1.133340
- less meeting                   1.128055
- performance management process 1.127954
- we work                        1.121640
- hard work                      1.118384
- ao grade                       1.118232
- promotion opportunity          1.116440
- exist staff                    1.113441
- less talk                      1.107641
- senior leader                  1.098415
- mental health issue            1.098102
- involve staff                  1.096149
- vocal minority                 1.095482
- work i.e                       1.090813
- high staff turnover            1.090622
- performance related pay        1.085634
- big decision                   1.085540
- new people                     1.069169
- response rate                  1.063507
- legacy system                  1.060680
- fair wage                      1.057401
- daily basis                    1.039872
- benefit package                1.034358
- office staff                   1.030010
- management team                1.028658
- less red tape                  1.024843
- pay deal                       1.024548
- working hour                   1.011407
- time consuming                 1.008553
- eo grade                       1.005443
- ensure fairness                1.005203
- scs member                     1.003591
- small team                     1.000600
- reliable computer system       1.000361
- work satisfactory              1.000000
- long service                   0.990906
- believe ons                    0.987192
- short term                     0.981258
- stop assuming                  0.979831
- remuneration package           0.978203
- difficult question             0.975299
- doesnt work                    0.975266
- london office                  0.971155
- pay package                    0.970761
- great idea                     0.968665
- properly reward                0.967864
- experienced staff              0.967629
- team leader                    0.965266
- data science campus            0.963922
- second job                     0.960787
- work hour                      0.960512
- reward system                  0.958720
- starting point                 0.956499
- software we                    0.956395
- minimum wage                   0.954462
- affect staff                   0.954150
- move towards                   0.952085
- field interviewer we           0.948729
- technical skill                0.947874
- management attitude            0.946653
- office base staff              0.940566
- improve system                 0.937120
- proper analysis                0.935710
- flexible work                  0.927852
- performance review system      0.927211
- career path                    0.923332
- work environment               0.920328
- low level manager              0.913119
- change sake                    0.913016
- regular basis                  0.911786
- encourage staff                0.909896
- site meeting                   0.909753
- training opportunity           0.908937
- hospital appointment           0.908356
- easily accessible              0.906344
- deliver change                 0.901065
+ originally post                5419.796995
+ successful candidate           4831.923902
+ employment agency              4293.027846
+ employment business            3483.355299
+ ideal candidate                3473.917855
+ equal opportunity employer     2986.901147
+ please apply                   2978.057455
+ please send                    2956.073733
+ currently recruit              2633.059590
+ currently look                 2585.734121
+ previous experience            2550.937759
+ fantastic opportunity          2496.099391
+ high standard                  2457.586028
+ apply online                   2445.421560
+ exciting opportunity           2376.540468
+ excellent communication skill  2358.882364
+ wide range                     2219.975569
+ work closely                   2197.301552
+ competitive salary             2153.440282
+ click apply                    2093.268525
+ excellent opportunity          2071.910816
+ high level                     2024.973311
+ great opportunity              2002.796377
+ right candidate                1913.483064
+ proven track record            1839.352430
+ please note                    1821.432380
+ successful applicant           1800.164397
+ key responsibility             1624.709616
+ experience work                1591.805357
+ confidential discussion        1586.302997
+ new role                       1575.178983
+ sexual orientation             1545.620822
+ excellent customer service     1527.133303
+ permanent recruitment          1515.364992
+ we offer                       1489.729190
+ temporary worker               1482.889564
+ trainee recruitment consultant 1436.442521
+ privacy policy                 1427.354138
+ day holiday                    1387.484160
+ please contact                 1337.321674
+ own initiative                 1320.652755
+ new position                   1316.937931
+ similar role                   1308.447745
+ specialist recruitment limited 1307.175887
+ full time                      1297.719587
+ hay specialist recruitment     1284.230364
+ full training                  1282.209369
+ recruitment limited act        1236.344630
+ up-to-date copy                1230.523099
+ job isnt                       1202.006595
+ communication skill            1200.413688
+ full uk drive                  1155.068020
+ next step                      1144.315176
+ currently work                 1144.110407
+ high volume                    1140.321247
+ customer service skill         1130.624277
+ further information            1103.685118
+ job title                      1087.442400
+ permanent basis                1087.386631
+ uk drive licence               1080.891682
+ look forward                   1061.128252
+ business development manager   1045.877694
+ support staff                  1042.948716
+ hard work                      1042.518067
+ work alongside                 1038.172586
+ client base                    1034.206098
+ provide support                1028.743326
+ following skill                1025.686119
+ immediate start                1015.849464
+ team player                    990.805360
+ customer service               984.630308
+ date cv                        981.965587
+ daily basis                    972.366052
+ day annual leave               970.719142
+ please apply online            967.102958
+ central london                 957.855895
+ currently seek                 957.002550
+ we look forward                953.676494
+ please click apply             944.127490
+ extra mile                     937.735367
+ permanent position             935.480575
+ career progression             922.519480
+ new company                    914.186288
+ main duty                      911.218680
+ new challenge                  907.727453
+ relevant experience            895.797051
+ previous experience work       893.883864
+ strong communication skill     890.928675
+ flexible working hour          881.245527
+ suitable candidate             871.967183
+ apply button                   867.017847
+ small team                     866.423069
+ bank holiday                   846.225068
+ build relationship             845.020155
+ closing date                   839.968632
+ registered nurse               826.898377
+ we welcome application         825.026889
+ enhanced db check              824.993970
+ contributory pension scheme    823.601122
+ main responsibility            822.535264
+ recruitment process            819.640281
+ reed specialist recruitment    812.837434
+ plus bank holiday              803.859370
+ we hope                        802.932368
+ we look                        794.757765
+ application we receive         790.323784
+ work day                       781.735214
+ job description                780.560964
+ register childminder           775.072691
+ barring service                774.714832
+ key role                       773.134183
+ market leader                  767.486998
+ work knowledge                 765.042217
+ verbal communication skill     758.978924
+ write communication skill      758.690877
+ registered general nurse       756.964552
+ customer service advisor       754.257654
+ we believe                     753.118549
+ recruitment agency             748.732303
+ wide variety                   744.767917
+ further detail                 743.636815
+ right person                   742.732621
+ specialist recruitment limit   739.234653
+ nvq level                      738.522373
+ url remove                     734.622467
+ personal care                  733.446513
+ right match                    730.553427
+ immediate start available      729.055439
+ we pride ourselves             725.167113
+ friendly team                  721.786002
+ team member                    720.558126
+ timely manner                  716.119825
+ fast paced environment         714.650102
+ united kingdom                 709.441871
+ company policy                 705.895361
+ service user                   702.422389
+ communicate effectively        700.865511
+ childcare voucher              700.327056
+ key stage                      699.704462
+ enjoy work                     695.348386
+ learn disability               695.334199
+ field service engineer         693.885685
+ cover letter                   693.169147
+ competitive rate               690.290888
+ immediate consideration        689.779421
+ grow team                      689.369459
+ job far                        681.574838
+ perfect placement uk           673.269316
+ month contract                 673.035327
+ exciting time                  671.150710
+ time management skill          670.499113
+ permanent role                 669.783044
+ motor trade job                665.660694
+ information please contact     664.453465
+ key skill                      664.209593
+ excellent reputation           662.662276
+ benefit package                660.880454
+ broad range                    656.114534
+ project manager                650.774255
+ receive further detail         649.011807
+ own transport                  648.774845
+ work hard                      648.626259
+ full range                     648.413952
+ work independently             646.393467
+ we work                        645.405009
+ exceptional customer service   645.301765
+ pension scheme                 640.564427
+ start asap                     639.935515
+ local community                639.506117
+ flexible approach              635.566751
+ welcome application            630.372190
+ part time                      623.076935
+ positive attitude              619.521784
+ we cant wait                   616.347337
+ full driving licence           615.737199
+ great team player              609.543241
+ work flexible hour             606.203139
+ we live                        604.019033
+ deliver high quality           603.965606
+ ensure compliance              603.656801
+ adecco group uk                603.342024
+ mental health nurse            603.286876
+ law staff legal                601.684174
+ work hour                      601.551884
+ please respond                 601.079347
+ customer service experience    599.861762
+ full potential                 594.548525
+ next level                     590.911756
+ degree level                   588.389574
+ button below                   588.324555
+ please visit                   582.728657
+ life assurance                 580.705029
+ career development             580.556744
+ basic salary                   579.539405
+ company pension scheme         577.169870
+ interpersonal skill            575.774932
+ own home                       571.762236
+ report directly                571.486772
+ month experience               570.474982
+ valid cscs card                564.427741
+ post holder                    558.634855
+ competitive hourly rate        558.126610
+ proven experience              554.909243
+ north west                     553.348991
+ sale team                      552.677106
+ job role                       550.438672
+ high quality                   549.405151
+ organisational skill           549.386137
+ fast pace                      548.882096
+ social care                    546.605844
+ day holiday plus               545.878471
+ please submit                  544.412814
+ pay rate                       544.245107
+ registered childminder         542.123724
+ staff legal recruitment        541.533396
+ professional manner            540.099089
+ people we support              537.369358
+ care assistant                 536.560783
+ discriminate against           532.853839
+ south east                     531.825191
+ excellent benefit package      531.279777
+ highly motivate                530.768564
+ please email                   529.940896
+ start immediately              527.657621
+ competitive basic salary       527.278226
+ busy team                      527.011891
+ uk drive license               526.565751
+ employment agency act          524.732509
+ continued growth               524.013874
+ friend scheme                  523.948057
+ free training                  522.087929
+ career development opportunity 521.859768
+ full time position             520.719375
+ high quality care              520.233358
+ minimum requirement            519.583115
+ commercial awareness           519.106650
+ work effectively               518.884393
+ please forward                 517.544536
+ responsible childminder        517.296251
+ further information please     516.106916
+ we currently                   514.763989
+ new opportunity                514.241025
+ south west                     513.999489
+ real difference                513.550315
+ rise technical recruitment     513.021389
+ fixed term contract            509.002240
+ unique opportunity             508.858697
+ integral part                  508.369646
+ full assistance provide        506.553979
+ strong work ethic              506.525407
