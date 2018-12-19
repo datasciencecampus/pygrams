@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 
 class TermFocus():
@@ -78,10 +79,12 @@ class TermFocus():
 
         ch2 = SelectKBest(score_func, k=num_ngrams_report)
 
-        tfidf_matrix = self.__tfidf.tfidf_vectorizer.fit_transform(X)
+        counter = self.__tfidf.vectorizer.fit_transform(X)
+        tfidf_transformer = TfidfTransformer(smooth_idf=False)
+        tfidf_matrix = tfidf_transformer.fit_transform(counter)
         ch2.fit(tfidf_matrix, y)
 
-        ngram_chi2_tuples = [(self.__tfidf.tfidf_vectorizer.get_feature_names()[i], ch2.scores_[i])
+        ngram_chi2_tuples = [(self.__tfidf.vectorizer.get_feature_names()[i], ch2.scores_[i])
                              for i in ch2.get_support(indices=True)]
         ngram_chi2_tuples.sort(key=lambda tup: -tup[1])
 

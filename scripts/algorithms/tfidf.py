@@ -176,22 +176,24 @@ class TFIDF:
 
         self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__abstract_header])
         self.__feature_names = self.__vectorizer.get_feature_names()
+        self.__ngram_counts = self.__unbias_ngrams(self.__ngram_counts, ngram_range[0])
 
         if normalize_doc_length:
             self.__ngram_counts = self.__ngram_counts.astype(float)
             self.__ngram_counts = self.__normalize_rows(self.__ngram_counts)
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
-        self.tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
-        self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, ngram_range[0])
-
+        self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
         self.__lost_state = False
-        self.__min_ngram_count = ngram_range[0]
 
 
     @property
-    def tfidf_mat(self):
-        return self.tfidf_matrix
+    def tfidf_matrix(self):
+        return self.__tfidf_matrix
+
+    @property
+    def vectorizer(self):
+        return self.__vectorizer
 
     @property
     def abstracts(self):
@@ -212,16 +214,14 @@ class TFIDF:
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                           citation_count_dict=None, docs_set=None):
         if docs_set is None:
-            print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} documents')
+            print(f'Processing TFIDF of {self.__tfidf_matrix.shape[0]:,} documents')
 
-        if self.tfidf_matrix.shape[0] == 0:
+        if self.__tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
             return []
 
         if self.__lost_state:
-            self.tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
-            self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, self.__min_ngram_count)
-
+            self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             self.__lost_state = False
 
         if time:
@@ -241,7 +241,7 @@ class TFIDF:
                 time_weights[patent_index] = X_std
 
             for i, v in enumerate(time_weights):
-                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
+                self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
                 self.__lost_state=True
 
         if citation_count_dict:
@@ -267,12 +267,12 @@ class TFIDF:
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
             for i, v in enumerate(list_of_citation_counts):
-                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
+                self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
             self.__lost_state = True
 
 
         # pick filter
-        tfidf_csc_matrix = self.tfidf_matrix.tocsc()
+        tfidf_csc_matrix = self.__tfidf_matrix.tocsc()
 
         if pick == 'median':
             pick_func = np.median
@@ -317,7 +317,7 @@ class TFIDF:
 
         return [feature_score_tuple[1]
                 for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.tfidf_matrix
+                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.__tfidf_matrix
 
     def get_tfidf_sum_vector(self):
         tfidf = self.tfidf_vectorizer.transform(self.abstracts)
@@ -330,10 +330,10 @@ class TFIDF:
             mat_csr.data[mat_csr.indptr[idx] : mat_csr.indptr[idx + 1]] /= text_len
         return mat_csr
 
-    def unbias_ngrams(self, mtx_csr, min_ngram_len):
+    def __unbias_ngrams(self, mtx_csr, min_ngram_len):
 
         # iterate through rows ( docs)
-        for i in range(0, len(mtx_csr.indptr) -1):
+        for i in range(len(self.abstracts)):
             start_idx_ptr = mtx_csr.indptr[i]
             end_idx_ptr = mtx_csr.indptr[i + 1]
 
@@ -347,29 +347,16 @@ class TFIDF:
                 if len(big_ngram_terms) > min_ngram_len:
 
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
-                    ngram_minus_back = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
+                    ngram_minus_back  = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
+                    idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
+                    idx_ngram_minus_back  = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
-                    j_1 = j+1
-                    col_idx_1 = mtx_csr.indices[j_1]
-                    prev_nonzero_ngram = self.__feature_names[col_idx_1]
+                    if idx_ngram_minus_front in mtx_csr.indices[start_idx_ptr:end_idx_ptr]:
+                        idx = mtx_csr.indices[start_idx_ptr:end_idx_ptr].tolist().index(idx_ngram_minus_front)
+                        mtx_csr.data[start_idx_ptr + idx] = 0
 
-                    while prev_nonzero_ngram > ngram_minus_back and j_1 < end_idx_ptr:
-                        j_1 += 1
-                        col_idx_1 = mtx_csr.indices[j_1]
-                        prev_nonzero_ngram = self.feature_names[col_idx_1]
-
-                    if prev_nonzero_ngram == ngram_minus_back:
-                        mtx_csr.data[j_1] = 0.0
-
-                    if big_ngram > ngram_minus_front:
-                        start, end = 0, col_idx-1
-                    else:
-                        start, end = col_idx+1, len(self.feature_names)-1
-
-                    term_idx, found = ut.bisearch_csr(self.feature_names, ngram_minus_front, start, end)
-
-                    if found and term_idx in mtx_csr.indices[start_idx_ptr:end_idx_ptr]:
-                        idx = mtx_csr.indices[start_idx_ptr:end_idx_ptr].tolist().index(term_idx)
-                        mtx_csr.data[start_idx_ptr + idx] = 0.0
+                    if idx_ngram_minus_back in mtx_csr.indices[start_idx_ptr:end_idx_ptr]:
+                        idx = mtx_csr.indices[start_idx_ptr:end_idx_ptr].tolist().index(idx_ngram_minus_back)
+                        mtx_csr.data[start_idx_ptr + idx] = 0
 
         return mtx_csr

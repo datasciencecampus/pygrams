@@ -1,250 +1,250 @@
- great place                    19.633235
- senior manager                 10.733106
- field interviewer              9.565337
- government department          9.419565
- increase pay                   9.368251
- pay rise                       7.997410
- job title                      7.827029
- pay increase                   7.093497
- improve pay                    6.946154
- low grade                      6.256589
- pay cap                        6.172694
- less bureaucracy               5.248783
- poor performance               5.117275
- field force                    4.857969
- recruitment process            4.651239
- senior management              4.589812
- high grade                     4.574008
- work life balance              4.505442
- high pay                       4.445088
- smart working                  4.421498
- new starter                    4.128370
- dont feel                      3.731160
- smart work                     3.612577
- performance management system  3.527567
- blame culture                  3.427819
- red tape                       3.369925
- pay scale                      3.349441
- target zone                    3.259743
- team meeting                   3.035952
- fairer pay                     2.960540
- pay rate                       2.918546
- civil service                  2.893382
- career progression             2.871090
- annualised hour contract       2.843364
- change happen                  2.834647
- private sector                 2.827462
- home working                   2.811383
- performance management         2.770045
- pay grade                      2.755755
- work hard                      2.723449
- high salary                    2.673611
- fair pay                       2.547006
- job we                         2.501293
- less contractor                2.476315
- work we                        2.467985
- air conditioning               2.414678
- work place                     2.402585
- improve communication          2.272168
- work condition                 2.258667
- people work                    2.235279
- ons staff                      2.210350
- senior staff                   2.189474
- manage change                  2.178525
- line manager                   2.177622
- great understanding            2.162218
- field staff                    2.050411
- odp staff                      2.000000
- less focus                     1.999296
- new system                     1.981194
- new idea                       1.973981
- long time                      1.949876
- treat people                   1.944335
- new staff                      1.901579
- flexible working               1.868492
- actual work                    1.847675
- pay progression                1.839685
- pay structure                  1.825071
- less empire-building           1.796742
- top down                       1.792828
- telephone interviewer          1.787518
- equal opportunity              1.765546
- middle management              1.755689
- government policy              1.755545
- lip service                    1.748659
- new technology                 1.741485
- senior level                   1.735476
- people feel                    1.733415
- pay increment                  1.730816
- new software                   1.707130
- we dont                        1.704297
- job role                       1.700786
- odp role                       1.688055
- feel value                     1.685542
- pay lip service                1.683047
- reward strategy                1.676398
- bring back                     1.673094
- development opportunity        1.665957
- common sense                   1.659992
- improved pay                   1.656532
- career pathway                 1.651861
- telephone operation            1.636881
- annual leave                   1.628918
- staff member                   1.608527
- low level                      1.586100
- bad pay                        1.584810
- new manager                    1.579015
- similar role                   1.571003
- shift pattern                  1.567056
- civil service department       1.563755
- field worker                   1.561020
- general public                 1.556123
- telephone unit                 1.553329
- enable staff                   1.538008
- less bureaucratic              1.497495
- pay range                      1.495062
- team member                    1.492242
- car park                       1.489309
- start work                     1.482519
- timely decision                1.480188
- treat fairly                   1.476877
- decent pay rise                1.470661
- treat staff                    1.465721
- reward people                  1.450940
- work remotely                  1.443172
- right tool                     1.428386
- reward staff                   1.421332
- clear understanding            1.420303
- free coffee                    1.414678
- clear direction                1.408216
- manage people                  1.403351
- allow manager                  1.402104
- increased pay                  1.399596
- entry zone                     1.380484
- upper management               1.374068
- less hierarchy                 1.373866
- ons work                       1.366749
- temporary promotion            1.361483
- team work                      1.357357
- progression pay                1.354903
- qualified trainer              1.351518
- lengthy process                1.344483
- internal communication         1.341639
- stop try                       1.339901
- slow down                      1.337545
- great transparency             1.335560
- evidence base                  1.321464
- great deal                     1.313594
- life balance                   1.312198
- feel isolate                   1.308009
- enjoy work                     1.304628
- less change                    1.299702
- newport office                 1.283639
- social event                   1.280897
- day work                       1.263191
- negative comment               1.261949
- new department                 1.259439
- increase salary                1.251113
- leadership team                1.250736
- lower grade                    1.248980
- people skill                   1.241422
- less cronyism                  1.232044
- new equipment                  1.219867
- daily job                      1.219176
- hr team                        1.209582
- long way                       1.195878
- enable people                  1.192877
- second class citizen           1.191858
- food chain                     1.190455
- minimum pay                    1.188104
- agile delivery                 1.185380
- share skill                    1.181549
- quality statistic              1.176475
- feel we                        1.174836
- stop change                    1.163511
- hourly rate                    1.162350
- hr policy                      1.157077
- pay band                       1.156980
- poor performer                 1.154050
- timely manner                  1.147986
- flexible hour                  1.145738
- senior civil servant           1.145627
- old system                     1.143941
- sometimes we                   1.139280
- encourage participation        1.135764
- work pattern                   1.133340
- less meeting                   1.128055
- performance management process 1.127954
- we work                        1.121640
- hard work                      1.118384
- ao grade                       1.118232
- promotion opportunity          1.116440
- exist staff                    1.113441
- less talk                      1.107641
- senior leader                  1.098415
- mental health issue            1.098102
- involve staff                  1.096149
- vocal minority                 1.095482
- work i.e                       1.090813
- high staff turnover            1.090622
- performance related pay        1.085634
- big decision                   1.085540
- new people                     1.069169
- response rate                  1.063507
- legacy system                  1.060680
- fair wage                      1.057401
- daily basis                    1.039872
- benefit package                1.034358
- office staff                   1.030010
- management team                1.028658
- less red tape                  1.024843
- pay deal                       1.024548
- working hour                   1.011407
- time consuming                 1.008553
- eo grade                       1.005443
- ensure fairness                1.005203
- scs member                     1.003591
- small team                     1.000600
- reliable computer system       1.000361
+ great place                    7.439562
+ job title                      3.583500
+ senior manager                 3.244965
+ team meeting                   2.832480
+ field interviewer              2.622592
+ less bureaucracy               2.306076
+ improve communication          2.274475
+ blame culture                  2.239435
+ change happen                  2.131112
+ management skill               2.000000
+ smart working                  1.781926
+ low level                      1.712049
+ less contractor                1.656798
+ senior staff                   1.595324
+ recruitment process            1.513093
+ low grade                      1.507570
+ clear understanding            1.494118
+ clear direction                1.471380
+ feel isolate                   1.337949
+ food chain                     1.264855
+ private sector                 1.241903
+ senior management              1.227904
+ decent pay rise                1.215487
+ field force                    1.172402
+ civil service department       1.159330
+ senior level                   1.134477
+ staff feel value               1.125400
+ work condition                 1.106811
+ deliver change                 1.104007
+ feel value                     1.095747
+ dont feel                      1.058371
+ civil service                  1.049217
+ team leader                    1.044477
+ long term impact               1.042804
+ performance management         1.042290
+ move towards                   1.038149
+ government department          1.035725
+ work hard                      1.029380
+ proper analysis                1.006521
+ treat people                   1.005699
  work satisfactory              1.000000
- long service                   0.990906
- believe ons                    0.987192
- short term                     0.981258
- stop assuming                  0.979831
- remuneration package           0.978203
- difficult question             0.975299
- doesnt work                    0.975266
- london office                  0.971155
- pay package                    0.970761
- great idea                     0.968665
- properly reward                0.967864
- experienced staff              0.967629
- team leader                    0.965266
- data science campus            0.963922
- second job                     0.960787
- work hour                      0.960512
- reward system                  0.958720
- starting point                 0.956499
- software we                    0.956395
- minimum wage                   0.954462
- affect staff                   0.954150
- move towards                   0.952085
- field interviewer we           0.948729
- technical skill                0.947874
- management attitude            0.946653
- office base staff              0.940566
- improve system                 0.937120
- proper analysis                0.935710
- flexible work                  0.927852
- performance review system      0.927211
- career path                    0.923332
- work environment               0.920328
- low level manager              0.913119
- change sake                    0.913016
- regular basis                  0.911786
- encourage staff                0.909896
- site meeting                   0.909753
- training opportunity           0.908937
- hospital appointment           0.908356
- easily accessible              0.906344
- deliver change                 0.901065
+ ons work                       0.982427
+ work life balance              0.963931
+ doesnt work                    0.952983
+ less intelligent               0.946475
+ senior leader                  0.942917
+ junior staff                   0.935880
+ plain english                  0.907287
+ top down                       0.900201
+ wider team                     0.895871
+ slow down                      0.878490
+ previous department            0.877889
+ ... ... ...                    0.866293
+ general public                 0.861846
+ right level                    0.861082
+ love work                      0.853902
+ monetary reward                0.853815
+ constant change                0.848545
+ currently work                 0.831790
+ information technology         0.823026
+ people skill train             0.819677
+ way people                     0.818739
+ eg tableu                      0.816060
+ new technology                 0.805860
+ reasonable time                0.797387
+ shift pattern                  0.793901
+ big decision                   0.791951
+ lip service                    0.789680
+ work place                     0.788047
+ empire building                0.785597
+ real responsibility            0.784825
+ fully understand               0.777441
+ utter contempt                 0.776672
+ current staff                  0.775700
+ pay lip service                0.772376
+ research officer               0.769307
+ work hour                      0.760179
+ front line staff               0.757034
+ beating heart                  0.754799
+ work thinking                  0.754066
+ office politics                0.753687
+ right people                   0.753467
+ second class citizen           0.753462
+ recently return                0.749640
+ working environment            0.748557
+ we tend                        0.747754
+ competent manager              0.745760
+ statistical push               0.736439
+ long time                      0.735431
+ transformation process         0.725660
+ deputy director                0.722005
+ working culture                0.707107
+ work practice                  0.698218
+ daily basis                    0.691042
+ reward strategy                0.690294
+ ons strategy                   0.688053
+ stop assuming                  0.676504
+ clear join                     0.675789
+ red tape                       0.663064
+ statistical output             0.660342
+ resolve immediately instead    0.659733
+ team work                      0.658007
+ time consuming                 0.656798
+ standard employee              0.656341
+ religion throughout            0.655373
+ civil servant                  0.651706
+ middle management              0.651046
+ level downwards                0.650836
+ stop pay lip                   0.636625
+ transformation programme       0.635475
+ team long                      0.632253
+ new technology quicker         0.630419
+ new idea                       0.629906
+ service pay rise               0.626152
+ towards staff                  0.620741
+ increase opportunity           0.620365
+ team suggestion                0.619874
+ reward scheme                  0.619717
+ wider ons decision             0.613396
+ perform correctly              0.613396
+ perform transformation         0.609443
+ team down                      0.608473
+ decision appear                0.607973
+ improve contact                0.603797
+ strongly influence moral       0.602076
+ work hour available            0.592989
+ similarly poor performance     0.591143
+ work time                      0.584814
+ pay progression                0.579763
+ shift allocation               0.578343
+ write english                  0.577350
+ lower morale                   0.574001
+ waste money                    0.573589
+ line manager                   0.572826
+ vision ons                     0.572018
+ vocal minority                 0.571880
+ work forward                   0.569426
+ self development               0.568089
+ high level decision            0.559848
+ people feel                    0.551673
+ workload management            0.550586
+ part-time role                 0.548809
+ large number                   0.548269
+ uk population                  0.546040
+ survey work                    0.544729
+ ensure people                  0.543033
+ practice etc                   0.542770
+ job role                       0.541986
+ high level staff               0.540659
+ target zone                    0.540169
+ involve staff                  0.539916
+ high leadership team           0.538666
+ new system                     0.534313
+ subject matter expertise       0.533291
+ support deliver work           0.531133
+ new face                       0.527394
+ pay less                       0.524413
+ shoot down                     0.522868
+ regard staff                   0.519808
+ technical resource we          0.515803
+ change reach                   0.514328
+ time career package            0.510054
+ stop try                       0.509433
+ pay zone                       0.509201
+ week leave                     0.505777
+ start work                     0.505082
+ job share                      0.504145
+ white noise communication      0.500000
+ field interviewer we           0.498597
+ motivate staff                 0.497484
+ training opportunity           0.494827
+ we understand                  0.487907
+ personal goal                  0.485970
+ real mechanism                 0.483806
+ team dont talk                 0.482381
+ sadly delude                   0.481050
+ coal face                      0.481006
+ resource e.g train             0.479248
+ visibility- closer alignment   0.478870
+ part time job                  0.478346
+ development opportunity        0.477126
+ work day                       0.474348
+ past experience                0.474239
+ management attitude            0.472864
+ value people                   0.471319
+ sc stand                       0.470500
+ lower grade                    0.469183
+ substantially less             0.469075
+ timely decision                0.468544
+ ridiculously low               0.466125
+ life/work balance              0.464184
+ receive management training    0.463352
+ working pattern                0.461870
+ busy shift                     0.461640
+ staff fairly                   0.456193
+ titchfielder vent              0.454365
+ timely manner                  0.449269
+ visible plan                   0.448864
+ work fairly accord             0.448821
+ waffle emailsmore interaction  0.447214
+ fail fast                      0.446091
+ internal communication         0.444681
+ play political game            0.442109
+ unpleasant working environment 0.441542
+ strong word                    0.441021
+ visit whilst                   0.439625
+ systemsclear internal communication 0.439559
+ high level                     0.438568
+ leg work                       0.437339
+ im help                        0.437278
+ improve ability                0.436723
+ wider context                  0.436009
+ old process                    0.435644
+ system break down              0.435513
+ staff member                   0.435076
+ work/life balance              0.434616
+ senior doesnt mean             0.434208
+ trust people regardless        0.433500
+ decent payrise                 0.430899
+ serious concern                0.430362
+ regular e-mail                 0.426338
+ work week                      0.424281
+ enable staff                   0.424062
+ positive outcome               0.422973
+ work pattern                   0.422925
+ leave work early               0.422756
+ taff talk                      0.422140
+ random shift                   0.421680
+ new starter                    0.420386
+ stop pointless meeting         0.419306
+ pay grade                      0.417753
+ unacceptable behaviour         0.417429
+ portfolio committee            0.417386
+ work currently undertaken.much 0.413666
+ proper plan                    0.412334
+ short staffed                  0.411938
+ we deserve                     0.409810
+ lead visibly                   0.409308
+ unified set                    0.408248
+ work environment               0.407234
+ new manager                    0.406898
+ achieve goal                   0.406129
+ tell we                        0.405999
+ short space                    0.405608
+ new recruit                    0.405129
+ support change                 0.405058
+ effective planning             0.403785
+ promote people                 0.401746
+ resign due                     0.401447
+ hard work                      0.401397

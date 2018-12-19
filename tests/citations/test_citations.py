@@ -21,7 +21,7 @@ class TestCitation(unittest.TestCase):
     def test_citation_before(self):
         actual_popular_terms, _, _ = self.tfidf_inst.detect_popular_ngrams_in_docs_set()
         actual_top_five_bef_citation = actual_popular_terms[0:5]
-        expected_top_five_bef_citation = ['semiconductor substrat', 'corn plant', 'semiconductor devic', 'pharmaceut composit', 'liquid crystal display']
+        expected_top_five_bef_citation = ['semiconductor substrat', 'corn plant', 'semiconductor devic', 'liquid crystal display', 'pharmaceut composit']
 
         print(f"The top five TFIDF before without citation weighting should be {expected_top_five_bef_citation}")
         print(f"The top five TFIDF before without citation weighting  {actual_top_five_bef_citation}")

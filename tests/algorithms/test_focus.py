@@ -12,8 +12,8 @@ class TestFocus(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.num_ngrams   = 5
-        cold_tfidf   = TFIDF(ReferenceData.cold_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
+        cls.num_ngrams = 5
+        cold_tfidf = TFIDF(ReferenceData.cold_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
         random_tfidf = TFIDF(ReferenceData.random_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
         cls.tfocus = TermFocus(cold_tfidf, random_tfidf)
         cls.args = FakeArgs()

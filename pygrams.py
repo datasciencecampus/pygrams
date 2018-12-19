@@ -252,7 +252,6 @@ def main():
     elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
         df = pd.read_excel(doc_source_file_name)
 
-
     if isinstance(args.filter_columns, type(None)):
         docs_set = None
     else:
