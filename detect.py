@@ -4,6 +4,7 @@ import json
 import os
 import pickle
 import sys
+import calendar
 
 from pandas import Timestamp, read_pickle, ExcelWriter
 
@@ -15,18 +16,32 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
+from scripts.utils.argschecker import ArgsChecker
 
 
-def year2pandas_latest_date(year_in):
-    if year_in == 0:
+def choose_last_day(year_in, month_in):
+    return str(calendar.monthrange(int(year_in), int(month_in))[1])
+
+
+def year2pandas_latest_date(year_in, month_in):
+    if year_in is None:
         return Timestamp.now()
 
-    year_string = str(year_in) + '-12-31'
+    if month_in is None:
+        return Timestamp(str(year_in) + '-12-31')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
     return Timestamp(year_string)
 
 
-def year2pandas_earliest_date(year_in):
-    year_string = str(year_in) + '-01-01'
+def year2pandas_earliest_date(year_in, month_in):
+    if year_in is None:
+        return Timestamp('2000-01-01')
+
+    if month_in is None:
+        return Timestamp(str(year_in) + '-01-01')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-01'
     return Timestamp(year_string)
 
 
@@ -47,8 +62,12 @@ def get_args(command_line_arguments):
                         help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
-    parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the patent cohort")
-    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the patent cohort (0 is now)")
+    parser.add_argument("-yf", "--year_from", default=None,
+                        help="The first year for the document cohort in YYYY format")
+    parser.add_argument("-mf", "--month_from", default=None,
+                        help="The first month for the document cohort in MM format")
+    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
+    parser.add_argument("-mt", "--month_to", default=None, help="The last month for the document cohort in MM format")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -80,48 +99,20 @@ def get_args(command_line_arguments):
     return args
 
 
-def checkargs(args):
-    app_exit = False
-    if args.year_to != 0:
-        if args.year_from >= args.year_to:
-            print("year_from must be less than year_to")
-            app_exit = True
-
-    if args.min_n > args.max_n:
-        print("minimum ngram count should be less or equal to higher ngram count")
-        app_exit = True
-
-    if args.num_ngrams_wordcloud <= 20:
-        print("at least 20 ngrams needed for wordcloud")
-        app_exit = True
-
-    if args.num_ngrams_report <= 10:
-        print("at least 10 ngrams needed for report")
-        app_exit = True
-
-    if args.output == 'table' or args.output == 'all':
-        if args.focus is None:
-            print('define a focus before requesting table (or all) output')
-            app_exit = True
-
-    if app_exit:
-        exit(0)
-
-
 def check_cpc_between_years(args, df):
     cpc = args.cpc_classification if args.cpc_classification is not None else "all"
     lendf = len(df)
     if lendf <= 100:
-        print(str(lendf) + " records found for cpc=" + cpc + ", between " + str(args.year_from) + " and " + str(
-            args.year_to))
+        print(str(lendf) + " records found for cpc=" + cpc + ", between " + str(args.month_from) + "-" +
+              str(args.year_from) + " and " + str(args.month_from) + "-" + str(args.year_to))
         print(
             "Not sufficient for tf-idf analysis. Please change parameters to raise the resulting patents cohort count")
         exit(0)
 
 
 def get_tfidf(args, pickle_file_name, cpc):
-    date_from = year2pandas_earliest_date(args.year_from)
-    date_to = year2pandas_latest_date(args.year_to)
+    date_from = year2pandas_earliest_date(args.year_from, args.month_from)
+    date_to = year2pandas_latest_date(args.year_to, args.month_to)
 
     df = PatentsPickle2DataFrame(pickle_file_name, classification=cpc, date_from=date_from, date_to=date_to).data_frame
     check_cpc_between_years(args, df)
@@ -152,9 +143,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
-                                                                            citation_count_dict, ngram_multiplier,
-                                                                            num_ngrams)
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
+                                                                            num_ngrams, docs_set=None)
 
     with open(args.report_name, 'w') as file:
         counter = 1
@@ -183,14 +173,19 @@ def write_config_to_json(args, patent_pickle_file_name):
     report_file_name = os.path.abspath(args.report_name)
     json_file_name = os.path.splitext(report_file_name)[0] + '.json'
 
+    month_from = args.month_from if args.month_from is not None else '01'
+    month_to = args.month_to if args.month_to is not None else '12'
+    year_from = args.year_from if args.year_from is not None else '2000'
+    year_to = args.year_to if args.year_to is not None else str(Timestamp.now().year)
+
     json_data = {
         'paths': {
             'data': patent_pickle_file_name,
             'tech_report': report_file_name
         },
         'year': {
-            'from': args.year_from,
-            'to': args.year_to
+            'from': month_from + '_' + year_from,
+            'to': month_to + '_' + year_to
         },
         'parameters': {
             'cpc': '' if args.cpc_classification is None else args.cpc_classification,
@@ -247,7 +242,9 @@ def main():
         os.makedirs(path, exist_ok=True)
 
     args = get_args(sys.argv[1:])
-    checkargs(args)
+    args_default = get_args([])
+    argscheck = ArgsChecker(args, args_default)
+    argscheck.checkargs()
 
     patent_pickle_file_name = os.path.join('data', args.patent_source + ".pkl.bz2")
 
