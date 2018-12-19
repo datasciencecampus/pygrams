@@ -253,7 +253,8 @@ def main():
     if isinstance(args.filter_columns, type(None)):
         docs_set = None
     else:
-        filter_headers = args.filter_columns.split('+')
+        filter_headers = args.filter_columns.split(',')
+        filter_headers = [header.strip() for header in filter_headers]
         filter_by = args.filter_by
 
         filter_df = df.copy()
