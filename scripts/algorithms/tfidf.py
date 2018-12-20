@@ -226,7 +226,7 @@ class TFIDF:
         if self.__lost_state:
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
-                self.__unbias_ngrams( i + 1)
+                 self.__unbias_ngrams(i + 1)
             self.__lost_state = False
 
         if time:
