@@ -37,12 +37,46 @@ class TestTFIDF(unittest.TestCase):
                            columns=['patent_id', 'abstract', 'classifications_cpc', 'publication_date'])
         df = df.append(df2)
 
-        tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer())
-        actual_popular_terms, _, _ = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=[1000])
+        tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer(), normalize_doc_length=False)
+        actual_popular_terms, ngrams_scores = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=[1000])
+        actual_scores = [score[0] for score in ngrams_scores]
         expected_popular_terms = ['audio encod', 'audio sourc stream', 'encod audio output stream']
+        expected_scores = [0.17716887713942972, 0.08858443856971486, 0.08858443856971486, 0.08858443856971486, 0.08858443856971486]
 
-        expected_in_results = expected_popular_terms[0] in actual_popular_terms and expected_popular_terms[1] in actual_popular_terms
+        expected_in_results = expected_popular_terms[0] in actual_popular_terms and expected_popular_terms[
+            1] in actual_popular_terms
+
         self.assertEquals(expected_in_results, True)
+        self.assertEqual(expected_scores, actual_scores[:5])
+
+    def test_popular_terms_from_1000_samples_via_stems_and_normalization(self):
+        abstract_from_US09315032_20160419 = (
+            '''A system and method are disclosed for providing improved processing of video data. A multi-instance 
+        encoding module receives combined video and audio input, which is then separated into a video and audio 
+        source streams. The video source stream is pre-processed and corresponding video encoder instances are 
+        initiated. The preprocessed video source stream is split into video data components, which are assigned to a 
+        corresponding encoder instance. Encoding operations are performed by each video encoder instance to generate 
+        video output components. The video output components are then assembled in a predetermined sequence to 
+        generate an encoded video output stream. Concurrently, the audio source stream is encoded with an audio 
+        encoder to generate an encoded audio output stream. The encoded video and audio output streams are combined 
+        to generate a combined encoded output stream, which is provided as combined video and audio output. ''')
+
+        df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
+        df2 = pd.DataFrame([['US09315032-20160419', abstract_from_US09315032_20160419, None, None]],
+                           columns=['patent_id', 'abstract', 'classifications_cpc', 'publication_date'])
+        df = df.append(df2)
+
+        tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer(), normalize_doc_length=True)
+        actual_popular_terms, ngrams_scores = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=[1000])
+        actual_scores = [score[0] for score in ngrams_scores]
+        expected_popular_terms = ['audio encod', 'audio sourc stream', 'encod audio output stream']
+        expected_scores = [0.17716887713942953, 0.08858443856971476, 0.08858443856971476, 0.08858443856971476, 0.08858443856971476]
+
+        expected_in_results = expected_popular_terms[0] in actual_popular_terms and expected_popular_terms[
+            1] in actual_popular_terms
+
+        self.assertEquals(expected_in_results, True)
+        self.assertEqual(expected_scores, actual_scores[:5])
 
 
 class Test_lowercase_strip_accents_and_ownership(unittest.TestCase):

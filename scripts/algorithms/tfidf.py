@@ -165,7 +165,7 @@ class TFIDF:
             ngram_range=ngram_range,
             analyzer=WordAnalyzer.analyzer
         )
-        
+
         self.__abstract_header = header
 
         num_docs_before_sift = self.__dataframe.shape[0]
@@ -179,7 +179,6 @@ class TFIDF:
 
         if normalize_doc_length:
             self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
-            #self.__ngram_counts = self.__ngram_counts.astype(float)
             self.__normalize_rows()
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
@@ -275,7 +274,6 @@ class TFIDF:
                 self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
             self.__lost_state = True
 
-
         # pick filter
         tfidf_csc_matrix = self.__tfidf_matrix.tocsc()
 
@@ -320,20 +318,17 @@ class TFIDF:
 
         ngrams_scores_tuple.sort(key=lambda tup: -tup[0])
 
-        return [feature_score_tuple[1]
-                for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.__tfidf_matrix
+        ngrams_scores_slice = ngrams_scores_tuple[:number_of_ngrams_to_return]
 
-    # def get_tfidf_sum_vector(self):
-    #     tfidf = self.tfidf_vectorizer.transform(self.abstracts)
-    #     tfidf_summary = (tfidf.sum(axis=0)).flatten()
-    #     return tfidf_summary.tolist()[0]
+        return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
+                if feature_score_tuple[0] > 0], ngrams_scores_slice
 
     def __normalize_rows(self):
         print('normalize')
+
         for idx, text in enumerate(self.abstracts):
             text_len = len(text)
-            self.__ngram_counts.data[self.__ngram_counts.indptr[idx] : self.__ngram_counts.indptr[idx + 1]] /= text_len
+            self.__ngram_counts.data[self.__ngram_counts.indptr[idx]: self.__ngram_counts.indptr[idx + 1]] /= text_len
 
     def __unbias_ngrams(self, ngram_length):
 
@@ -356,21 +351,17 @@ class TFIDF:
                     idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
                     idx_ngram_minus_back  = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
-                    slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
-
+                    indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
                     ngram_counts = self.__tfidf_matrix.data[j]
-                    if idx_ngram_minus_front in slice:
-                        idx = slice.tolist().index(idx_ngram_minus_front)
 
-                        if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
-                            self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
-                        else:
-                            self.__tfidf_matrix.data[start_idx_ptr + idx] = 0
+                    self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
+                    self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
 
-                    if idx_ngram_minus_back in slice:
-                        idx = slice.tolist().index(idx_ngram_minus_back)
+    def __unbias_ngrams_slice(self, dindices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr):
+        if idx_ngram_minus_front in dindices_slice:
+            idx = dindices_slice.tolist().index(idx_ngram_minus_front)
 
-                        if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
-                            self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
-                        else:
-                            self.__tfidf_matrix.data[start_idx_ptr + idx] = 0
+            if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
+                self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
+            else:
+                self.__tfidf_matrix.data[start_idx_ptr + idx] = 0
