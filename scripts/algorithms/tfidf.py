@@ -4,11 +4,11 @@ import string
 import numpy as np
 from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.stem import WordNetLemmatizer
+from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
 from tqdm import tqdm
 from nltk.corpus import wordnet
 from scripts import FilePaths
-from scripts.utils.utils import Utils as ut
 from sklearn.feature_extraction.text import CountVectorizer
 
 
@@ -176,15 +176,18 @@ class TFIDF:
 
         self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__abstract_header])
         self.__feature_names = self.__vectorizer.get_feature_names()
-        self.__ngram_counts = self.__unbias_ngrams(self.__ngram_counts, ngram_range[0])
 
         if normalize_doc_length:
-            self.__ngram_counts = self.__ngram_counts.astype(float)
-            self.__ngram_counts = self.__normalize_rows(self.__ngram_counts)
+            self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
+            #self.__ngram_counts = self.__ngram_counts.astype(float)
+            self.__normalize_rows()
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+        for i in range(ngram_range[0], ngram_range[1]):
+            self.__unbias_ngrams(i+1)
         self.__lost_state = False
+        self.__ngram_range = ngram_range
 
 
     @property
@@ -222,6 +225,8 @@ class TFIDF:
 
         if self.__lost_state:
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+            for i in range(self.__ngram_range[0], self.__ngram_range[1]):
+                self.__unbias_ngrams( i + 1)
             self.__lost_state = False
 
         if time:
@@ -319,44 +324,53 @@ class TFIDF:
                 for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
                 if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.__tfidf_matrix
 
-    def get_tfidf_sum_vector(self):
-        tfidf = self.tfidf_vectorizer.transform(self.abstracts)
-        tfidf_summary = (tfidf.sum(axis=0)).flatten()
-        return tfidf_summary.tolist()[0]
+    # def get_tfidf_sum_vector(self):
+    #     tfidf = self.tfidf_vectorizer.transform(self.abstracts)
+    #     tfidf_summary = (tfidf.sum(axis=0)).flatten()
+    #     return tfidf_summary.tolist()[0]
 
-    def __normalize_rows(self, mat_csr):
+    def __normalize_rows(self):
+        print('normalize')
         for idx, text in enumerate(self.abstracts):
             text_len = len(text)
-            mat_csr.data[mat_csr.indptr[idx] : mat_csr.indptr[idx + 1]] /= text_len
-        return mat_csr
+            self.__ngram_counts.data[self.__ngram_counts.indptr[idx] : self.__ngram_counts.indptr[idx + 1]] /= text_len
 
-    def __unbias_ngrams(self, mtx_csr, min_ngram_len):
+    def __unbias_ngrams(self, ngram_length):
 
         # iterate through rows ( docs)
         for i in range(len(self.abstracts)):
-            start_idx_ptr = mtx_csr.indptr[i]
-            end_idx_ptr = mtx_csr.indptr[i + 1]
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
 
             # iterate through columns with non-zero entries
             for j in range(start_idx_ptr, end_idx_ptr):
 
-                col_idx = mtx_csr.indices[j]
+                col_idx = self.__tfidf_matrix.indices[j]
                 big_ngram = self.__feature_names[col_idx]
                 big_ngram_terms = big_ngram.split()
 
-                if len(big_ngram_terms) > min_ngram_len:
+                if len(big_ngram_terms) == ngram_length:
 
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
                     ngram_minus_back  = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
                     idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
                     idx_ngram_minus_back  = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
-                    if idx_ngram_minus_front in mtx_csr.indices[start_idx_ptr:end_idx_ptr]:
-                        idx = mtx_csr.indices[start_idx_ptr:end_idx_ptr].tolist().index(idx_ngram_minus_front)
-                        mtx_csr.data[start_idx_ptr + idx] = 0
+                    slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
 
-                    if idx_ngram_minus_back in mtx_csr.indices[start_idx_ptr:end_idx_ptr]:
-                        idx = mtx_csr.indices[start_idx_ptr:end_idx_ptr].tolist().index(idx_ngram_minus_back)
-                        mtx_csr.data[start_idx_ptr + idx] = 0
+                    ngram_counts = self.__tfidf_matrix.data[j]
+                    if idx_ngram_minus_front in slice:
+                        idx = slice.tolist().index(idx_ngram_minus_front)
 
-        return mtx_csr
+                        if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
+                            self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
+                        else:
+                            self.__tfidf_matrix.data[start_idx_ptr + idx] = 0
+
+                    if idx_ngram_minus_back in slice:
+                        idx = slice.tolist().index(idx_ngram_minus_back)
+
+                        if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
+                            self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
+                        else:
+                            self.__tfidf_matrix.data[start_idx_ptr + idx] = 0

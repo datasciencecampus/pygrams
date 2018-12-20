@@ -30,7 +30,7 @@ class TestCitation(unittest.TestCase):
     def test_citation_after(self):
         actual_popular_terms, _, _ = self.tfidf_inst.detect_popular_ngrams_in_docs_set(citation_count_dict=self.citation_count_dict)
         actual_top_five_aft_citation = actual_popular_terms[0:5]
-        expected_top_five_aft_citation = ['network interfac', 'actuat member', 'surgic clip applier', 'transpar transistor', 'flow control valv']
+        expected_top_five_aft_citation = ['network interfac', 'actuat member', 'form part', 'surgic clip applier', 'transpar transistor']
         print(f"The top five TFIDF after citation weighting should be {expected_top_five_aft_citation}")
         print(f"The top five TFIDF after citation weighting were {actual_top_five_aft_citation}")
         self.assertListEqual(expected_top_five_aft_citation, actual_top_five_aft_citation)

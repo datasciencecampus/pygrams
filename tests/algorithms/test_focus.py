@@ -1,6 +1,5 @@
 import unittest
 
-from scripts.algorithms import term_focus
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import TFIDF, LemmaTokenizer
 from tests.utils import ReferenceData
