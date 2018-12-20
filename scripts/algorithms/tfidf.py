@@ -225,7 +225,7 @@ class TFIDF:
         if self.__lost_state:
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
-                self.__unbias_ngrams( i + 1)
+                 self.__unbias_ngrams(i + 1)
             self.__lost_state = False
 
         if time:
@@ -324,7 +324,6 @@ class TFIDF:
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
     def __normalize_rows(self):
-        print('normalize')
 
         for idx, text in enumerate(self.abstracts):
             text_len = len(text)
