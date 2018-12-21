@@ -356,9 +356,9 @@ class TFIDF:
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
 
-    def __unbias_ngrams_slice(self, dindices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr):
-        if idx_ngram_minus_front in dindices_slice:
-            idx = dindices_slice.tolist().index(idx_ngram_minus_front)
+    def __unbias_ngrams_slice(self, dindices_slice, idx_ngram, ngram_counts, start_idx_ptr):
+        if idx_ngram in dindices_slice:
+            idx = dindices_slice.tolist().index(idx_ngram)
 
             if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
                 self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts

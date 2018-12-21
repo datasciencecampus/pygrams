@@ -202,10 +202,8 @@ def write_config_to_json(args, doc_pickle_file_name):
         json.dump(json_data, json_file)
 
 
-def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, docs_set):
-    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time, docs_set=docs_set)
+def output_tfidf(tfidf_base_filename, tfidf):
+
     try:
         publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                               [d.isocalendar() for d in tfidf.publication_dates]]
@@ -299,7 +297,7 @@ def main():
         run_fdg(dict_freqs, tfidf, args)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time, docs_set)
+        output_tfidf(args.doc_source, tfidf)
 
 
 if __name__ == '__main__':
