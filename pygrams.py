@@ -16,6 +16,8 @@ from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
+#-fc="Communications,Leadership, IT systems"
+
 
 def year2pandas_latest_date(year_in):
     if year_in == 0:
@@ -35,6 +37,7 @@ def get_args(command_line_arguments):
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true", help="normalize tf-idf scores by document length")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data',  help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
@@ -133,7 +136,7 @@ def get_tfidf(args, pickle_file_name, df=None):
             else:
                 doc_set = doc_set.union(set(indices))
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header), doc_set
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, normalize_doc_length = args.normalize_doc_length), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
@@ -199,10 +202,8 @@ def write_config_to_json(args, doc_pickle_file_name):
         json.dump(json_data, json_file)
 
 
-def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, docs_set):
-    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time, docs_set=docs_set)
+def output_tfidf(tfidf_base_filename, tfidf):
+
     try:
         publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                               [d.isocalendar() for d in tfidf.publication_dates]]
@@ -215,13 +216,13 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
         patent_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
 
 
-    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
+    tfidf_data = [tfidf.tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
-    term_present_matrix = tfidf_matrix > 0
+    term_present_matrix = tfidf.tfidf_matrix > 0
     term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
     os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
@@ -248,7 +249,6 @@ def main():
         df = pd.read_csv(doc_source_file_name)
     elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
         df = pd.read_excel(doc_source_file_name)
-
 
     if isinstance(args.filter_columns, type(None)):
         docs_set = None
@@ -297,7 +297,7 @@ def main():
         run_fdg(dict_freqs, tfidf, args)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time, docs_set)
+        output_tfidf(args.doc_source, tfidf)
 
 
 if __name__ == '__main__':

@@ -19,18 +19,18 @@ class TestCitation(unittest.TestCase):
         cls.citation_count_dict.update(citation_count_dict_pt2)
 
     def test_citation_before(self):
-        actual_popular_terms, _, _ = self.tfidf_inst.detect_popular_ngrams_in_docs_set()
+        actual_popular_terms, _ = self.tfidf_inst.detect_popular_ngrams_in_docs_set()
         actual_top_five_bef_citation = actual_popular_terms[0:5]
-        expected_top_five_bef_citation = ['semiconductor substrat', 'corn plant', 'semiconductor devic', 'pharmaceut composit', 'liquid crystal display']
+        expected_top_five_bef_citation = ['semiconductor substrat', 'corn plant', 'semiconductor devic', 'liquid crystal display', 'pharmaceut composit']
 
         print(f"The top five TFIDF before without citation weighting should be {expected_top_five_bef_citation}")
         print(f"The top five TFIDF before without citation weighting  {actual_top_five_bef_citation}")
         self.assertListEqual(expected_top_five_bef_citation, actual_top_five_bef_citation)
 
     def test_citation_after(self):
-        actual_popular_terms, _, _ = self.tfidf_inst.detect_popular_ngrams_in_docs_set(citation_count_dict=self.citation_count_dict)
+        actual_popular_terms, _ = self.tfidf_inst.detect_popular_ngrams_in_docs_set(citation_count_dict=self.citation_count_dict)
         actual_top_five_aft_citation = actual_popular_terms[0:5]
-        expected_top_five_aft_citation = ['network interfac', 'actuat member', 'surgic clip applier', 'transpar transistor', 'flow control valv']
+        expected_top_five_aft_citation = ['network interfac', 'actuat member', 'form part', 'surgic clip applier', 'transpar transistor']
         print(f"The top five TFIDF after citation weighting should be {expected_top_five_aft_citation}")
         print(f"The top five TFIDF after citation weighting were {actual_top_five_aft_citation}")
         self.assertListEqual(expected_top_five_aft_citation, actual_top_five_aft_citation)
