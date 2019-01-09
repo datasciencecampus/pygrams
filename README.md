@@ -168,6 +168,15 @@ Terms identified may be unigrams, bigrams, or trigrams. The following arguments 
 python detect.py -mn=2 -mx=3
 ```
 
+### N-Gram frequency limits
+
+Terms identified are filtered by the maximum number of documents that use this term; default is 0.3, representing
+an upper limit of 30% of documents mentioning this term. If a term occurs in more that 30% of documents it is rejected.
+For example, to set the upper document frequency limit to 5%, use:
+```
+python detect.py -mdf 0.05
+```
+
 ### Time limits
 This will restrict the patents cohort to only those from 2000 up to now.
 
