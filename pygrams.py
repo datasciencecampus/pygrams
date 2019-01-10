@@ -2,11 +2,11 @@ import argparse
 import bz2
 import json
 import os
-import pandas as pd
 import pickle
 import sys
-import numpy as np
 
+import numpy as np
+import pandas as pd
 from pandas import Timestamp, ExcelWriter
 
 from scripts.algorithms.term_focus import TermFocus
@@ -17,7 +17,8 @@ from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
-#-fc="Communications,Leadership, IT systems"
+
+# -fc="Communications,Leadership, IT systems"
 
 
 def year2pandas_latest_date(year_in):
@@ -27,9 +28,11 @@ def year2pandas_latest_date(year_in):
     year_string = str(year_in) + '-12-31'
     return Timestamp(year_string)
 
+
 def year2pandas_earliest_date(year_in):
     year_string = str(year_in) + '-01-01'
     return Timestamp(year_string)
+
 
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
@@ -38,11 +41,12 @@ def get_args(command_line_arguments):
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
-    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true", help="normalize tf-idf scores by document length")
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
+                        help="normalize tf-idf scores by document length")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
-    parser.add_argument("-pt", "--path", default='data',  help="the data path")
+    parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
-    parser.add_argument("-fc", "--filter_columns",  default = None, help="list of columns to filter by")
+    parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
 
@@ -54,7 +58,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the document cohort")
-    parser.add_argument("-yt", "--year_to", type=int, default=0, help="The last year for the documents cohort (0 is now)")
+    parser.add_argument("-yt", "--year_to", type=int, default=0,
+                        help="The last year for the documents cohort (0 is now)")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -139,27 +144,29 @@ def get_tfidf(args, pickle_file_name, df=None):
             else:
                 doc_set = doc_set.union(set(indices))
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, normalize_doc_length = args.normalize_doc_length,
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header,
+                 normalize_doc_length=args.normalize_doc_length,
                  max_document_frequency=args.max_document_frequency), doc_set
 
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
-
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random,  num_ngrams, args, ngram_multiplier, writer)
+    table_output(tfidf, tfidf_random, num_ngrams, args, ngram_multiplier, writer)
 
 
 # TODO: common interface wrapper class, hence left citation_count_dict refs
-def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None, docs_set=None):
+def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=False, citation_count_dict=None,
+               docs_set=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
-                                                                                num_ngrams, docs_set=docs_set)
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
+                                                                            citation_count_dict, ngram_multiplier,
+                                                                            num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
         for score, term in dict_freqs.items():
@@ -178,7 +185,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
 def run_fdg(dict_freq_in, tf_idf, args):
     num_ngrams = args.num_ngrams_report
-    graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
+    graph = TermsGraph(list(dict_freq_in.items())[:num_ngrams], tf_idf)
     graph.save_graph_report(args)
 
 
@@ -208,10 +215,9 @@ def write_config_to_json(args, doc_pickle_file_name):
 
 
 def output_tfidf(tfidf_base_filename, tfidf):
-
     try:
         publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                              [d.isocalendar() for d in tfidf.publication_dates]]
+                                  [d.isocalendar() for d in tfidf.publication_dates]]
     except KeyError:
         publication_week_dates = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
 
@@ -219,7 +225,6 @@ def output_tfidf(tfidf_base_filename, tfidf):
         patent_ids = tfidf.patent_ids
     except KeyError:
         patent_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
-
 
     tfidf_data = [tfidf.tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
@@ -251,23 +256,24 @@ def output_term_counts(tfidf_base_filename, tfidf):
 
 
 def main():
-    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'), os.path.join('outputs', 'table')]
+    paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
+             os.path.join('outputs', 'table')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
     args = get_args(sys.argv[1:])
     checkargs(args)
 
-    doc_source_file_name = os.path.join(args.path, args.doc_source )
+    doc_source_file_name = os.path.join(args.path, args.doc_source)
 
-    df=None
-    if doc_source_file_name[len(doc_source_file_name)-3:] == 'bz2':
+    df = None
+    if doc_source_file_name[len(doc_source_file_name) - 3:] == 'bz2':
         df = pd.read_pickle(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'xls':
+    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'xls':
         df = pd.read_excel(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name)-3:] == 'csv':
+    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'csv':
         df = pd.read_csv(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name)-4:] == 'xlsx':
+    elif doc_source_file_name[len(doc_source_file_name) - 4:] == 'xlsx':
         df = pd.read_excel(doc_source_file_name)
 
     if isinstance(args.filter_columns, type(None)):
@@ -287,7 +293,7 @@ def main():
         if filter_by == 'any':
             docs_set = filter_df[filter_df['filter'] > 0].index.values.tolist()
         else:
-            docs_set = filter_df[filter_df['filter'] == filter_df.shape[1]-1].index.values.tolist()
+            docs_set = filter_df[filter_df['filter'] == filter_df.shape[1] - 1].index.values.tolist()
 
     if args.json:
         write_config_to_json(args, doc_source_file_name)
