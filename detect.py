@@ -63,6 +63,8 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
+    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.3,
+                        help="the maximum document frequency to contribute to TF/IDF")
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
@@ -125,7 +127,8 @@ def get_tfidf(args, pickle_file_name, cpc):
 
     df = PatentsPickle2DataFrame(pickle_file_name, classification=cpc, date_from=date_from, date_to=date_to).data_frame
     check_cpc_between_years(args, df)
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n))
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n),
+                 max_document_frequency=args.max_document_frequency)
 
 
 def load_citation_count_dict():
@@ -173,7 +176,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
 def run_fdg(dict_freq_in, tf_idf, args):
     num_ngrams = args.num_ngrams_report
-    graph = TermsGraph( list(dict_freq_in.items())[:num_ngrams], tf_idf)
+    graph = TermsGraph(list(dict_freq_in.items())[:num_ngrams], tf_idf)
     graph.save_graph_report(args)
     graph.save_graph("key-terms", 'data')
 
