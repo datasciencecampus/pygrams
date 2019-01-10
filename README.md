@@ -257,8 +257,8 @@ usage: detect.py [-h] [-f {set,chi2,mutual}] [-c] [-t]
                  [-yf YEAR_FROM] [-yt YEAR_TO] [-np NUM_NGRAMS_REPORT]
                  [-nd NUM_NGRAMS_WORDCLOUD] [-nf NUM_NGRAMS_FDG]
                  [-ps PATENT_SOURCE] [-fs FOCUS_SOURCE] [-mn {1,2,3}]
-                 [-mx {1,2,3}] [-rn REPORT_NAME] [-wn WORDCLOUD_NAME]
-                 [-wt WORDCLOUD_TITLE] [-tn TABLE_NAME]
+                 [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY] [-rn REPORT_NAME]
+                 [-wn WORDCLOUD_NAME] [-wt WORDCLOUD_TITLE] [-tn TABLE_NAME]
                  [-cpc CPC_CLASSIFICATION] [-nltk NLTK_PATH]
 
 create report, wordcloud, and fdg graph for patent texts
@@ -299,6 +299,8 @@ optional arguments:
                         the minimum ngram value
   -mx {1,2,3}, --max_n {1,2,3}
                         the maximum ngram value
+  -mdf MAX_DOCUMENT_FREQUENCY, --max_document_frequency MAX_DOCUMENT_FREQUENCY
+                        the maximum document frequency to contribute to TF/IDF
   -rn REPORT_NAME, --report_name REPORT_NAME
                         report filename
   -wn WORDCLOUD_NAME, --wordcloud_name WORDCLOUD_NAME
