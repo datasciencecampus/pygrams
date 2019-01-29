@@ -1,15 +1,16 @@
-import copy
 import datetime
 import string
 
 import numpy as np
 from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.stem import WordNetLemmatizer
-from sklearn.feature_extraction.text import TfidfVectorizer, strip_accents_ascii
+from scipy.sparse import csr_matrix
+from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
 from tqdm import tqdm
 from nltk.corpus import wordnet
 from scripts import FilePaths
-from scripts.utils.utils import Utils as ut
+from sklearn.feature_extraction.text import CountVectorizer
+
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
 New BSD License
@@ -150,7 +151,7 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract'):
+    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', normalize_doc_length=False):
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -158,33 +159,43 @@ class TFIDF:
             preprocess=lowercase_strip_accents_and_ownership,
             ngram_range=ngram_range)
 
-        self.tfidf_vectorizer = TfidfVectorizer(
+        self.__vectorizer = CountVectorizer(
             max_df=max_document_frequency,
             min_df=1,
             ngram_range=ngram_range,
             analyzer=WordAnalyzer.analyzer
         )
-        
+
         self.__abstract_header = header
 
-        number_of_patents_before_sift = self.__dataframe.shape[0]
+        num_docs_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
-        number_of_patents_after_sift = self.__dataframe.shape[0]
-        number_of_patents_sifted = number_of_patents_before_sift - number_of_patents_after_sift
-        print(f'Dropped {number_of_patents_sifted:,} patents due to empty abstracts')
+        num_docs_after_sift = self.__dataframe.shape[0]
+        num_docs_sifted = num_docs_before_sift - num_docs_after_sift
+        print(f'Dropped {num_docs_sifted:,} docs due to empty abstracts')
 
-        self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
-        self.__feature_names = self.tfidf_vectorizer.get_feature_names()
+        self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__abstract_header])
+        self.__feature_names = self.__vectorizer.get_feature_names()
 
-        self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
+        if normalize_doc_length:
+            self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
+            self.__normalize_rows()
 
-        self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, ngram_range[0])
+        self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
+        self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+        for i in range(ngram_range[0], ngram_range[1]):
+            self.__unbias_ngrams(i+1)
         self.__lost_state = False
-        self.__min_ngram_count = ngram_range[0]
+        self.__ngram_range = ngram_range
+
 
     @property
-    def tfidf_mat(self):
-        return self.tfidf_matrix
+    def tfidf_matrix(self):
+        return self.__tfidf_matrix
+
+    @property
+    def vectorizer(self):
+        return self.__vectorizer
 
     @property
     def abstracts(self):
@@ -205,22 +216,17 @@ class TFIDF:
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                           citation_count_dict=None, docs_set=None):
         if docs_set is None:
-            print(f'Processing TFIDF of {self.tfidf_matrix.shape[0]:,} documents')
+            print(f'Processing TFIDF of {self.__tfidf_matrix.shape[0]:,} documents')
 
-        if self.tfidf_matrix.shape[0] == 0:
+        if self.__tfidf_matrix.shape[0] == 0:
             print('...skipping as 0 patents...')
             return []
 
         if self.__lost_state:
-
-            self.tfidf_vectorizer.fit(self.__dataframe[self.__abstract_header])
-            self.__feature_names = self.tfidf_vectorizer.get_feature_names()
-
-            self.tfidf_matrix = self.tfidf_vectorizer.transform(self.__dataframe[self.__abstract_header])
-
-            self.tfidf_matrix = self.unbias_ngrams(self.tfidf_matrix, self.__min_ngram_count)
+            self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+            for i in range(self.__ngram_range[0], self.__ngram_range[1]):
+                 self.__unbias_ngrams(i + 1)
             self.__lost_state = False
-
 
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
@@ -239,7 +245,7 @@ class TFIDF:
                 time_weights[patent_index] = X_std
 
             for i, v in enumerate(time_weights):
-                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
+                self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
                 self.__lost_state=True
 
         if citation_count_dict:
@@ -265,12 +271,11 @@ class TFIDF:
             list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
 
             for i, v in enumerate(list_of_citation_counts):
-                self.tfidf_matrix.data[self.tfidf_matrix.indptr[i]:self.tfidf_matrix.indptr[i + 1]] *= v
+                self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
             self.__lost_state = True
 
-
         # pick filter
-        tfidf_csc_matrix = self.tfidf_matrix.tocsc()
+        tfidf_csc_matrix = self.__tfidf_matrix.tocsc()
 
         if pick == 'median':
             pick_func = np.median
@@ -313,55 +318,49 @@ class TFIDF:
 
         ngrams_scores_tuple.sort(key=lambda tup: -tup[0])
 
-        return [feature_score_tuple[1]
-                for feature_score_tuple in ngrams_scores_tuple[:number_of_ngrams_to_return]
-                if feature_score_tuple[0] > 0], ngrams_scores_tuple[:number_of_ngrams_to_return], self.tfidf_matrix
+        ngrams_scores_slice = ngrams_scores_tuple[:number_of_ngrams_to_return]
 
-    def get_tfidf_sum_vector(self):
-        tfidf = self.tfidf_vectorizer.transform(self.abstracts)
-        tfidf_summary = (tfidf.sum(axis=0)).flatten()
-        return tfidf_summary.tolist()[0]
+        return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
+                if feature_score_tuple[0] > 0], ngrams_scores_slice
 
-    def unbias_ngrams(self, mtx_csr, min_ngram_len):
+    def __normalize_rows(self):
+
+        for idx, text in enumerate(self.abstracts):
+            text_len = len(text)
+            self.__ngram_counts.data[self.__ngram_counts.indptr[idx]: self.__ngram_counts.indptr[idx + 1]] /= text_len
+
+    def __unbias_ngrams(self, ngram_length):
 
         # iterate through rows ( docs)
-        for i in range(0, len(mtx_csr.indptr) -1):
-            start_idx_ptr = mtx_csr.indptr[i]
-            end_idx_ptr = mtx_csr.indptr[i + 1]
+        for i in range(len(self.abstracts)):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
 
             # iterate through columns with non-zero entries
             for j in range(start_idx_ptr, end_idx_ptr):
 
-                col_idx = mtx_csr.indices[j]
-                big_ngram = self.feature_names[col_idx]
+                col_idx = self.__tfidf_matrix.indices[j]
+                big_ngram = self.__feature_names[col_idx]
                 big_ngram_terms = big_ngram.split()
 
-                if len(big_ngram_terms) > min_ngram_len:
+                if len(big_ngram_terms) == ngram_length:
 
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
-                    ngram_minus_back = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
+                    ngram_minus_back  = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
+                    idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
+                    idx_ngram_minus_back  = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
-                    j_1 = j+1
-                    col_idx_1 = mtx_csr.indices[j_1]
-                    prev_nonzero_ngram = self.feature_names[col_idx_1]
+                    indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
+                    ngram_counts = self.__tfidf_matrix.data[j]
 
-                    while prev_nonzero_ngram > ngram_minus_back and j_1 >= start_idx_ptr:
-                        j_1 += 1
-                        col_idx_1 = mtx_csr.indices[j_1]
-                        prev_nonzero_ngram = self.feature_names[col_idx_1]
+                    self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
+                    self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
 
-                    if prev_nonzero_ngram == ngram_minus_back:
-                        mtx_csr.data[j_1] = 0.0
+    def __unbias_ngrams_slice(self, dindices_slice, idx_ngram, ngram_counts, start_idx_ptr):
+        if idx_ngram in dindices_slice:
+            idx = dindices_slice.tolist().index(idx_ngram)
 
-                    if big_ngram > ngram_minus_front:
-                        start, end = 0, col_idx-1
-                    else:
-                        start, end = col_idx+1, len(self.feature_names)-1
-
-                    term_idx, found = ut.bisearch_csr(self.feature_names, ngram_minus_front, start, end)
-
-                    if found and term_idx in mtx_csr.indices[start_idx_ptr:end_idx_ptr]:
-                        idx = mtx_csr.indices[start_idx_ptr:end_idx_ptr].tolist().index(term_idx)
-                        mtx_csr.data[start_idx_ptr + idx] = 0.0
-
-        return mtx_csr
+            if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
+                self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
+            else:
+                self.__tfidf_matrix.data[start_idx_ptr + idx] = 0

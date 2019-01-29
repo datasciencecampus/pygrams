@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 
 class TermFocus():
@@ -12,7 +13,7 @@ class TermFocus():
         time = args.time
         focus = args.focus
 
-        terms, ngrams_scores_tuple, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
+        terms, ngrams_scores_tuple = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
             pick=pick, time=time,
             citation_count_dict=citation_count_dict, docs_set=docs_set)
@@ -45,12 +46,12 @@ class TermFocus():
 
     def popular_ngrams_by_set_difference(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                          citation_count_dict=None, docs_set=None):
-        terms, _, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
+        terms, _ = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
             pick=pick, time=time, citation_count_dict=citation_count_dict, docs_set=docs_set)
         set_terms = set(terms)
 
-        terms_random, _, _ = self.__tfidf_random.detect_popular_ngrams_in_docs_set(
+        terms_random, _, = self.__tfidf_random.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=number_of_ngrams_to_return,
             pick=pick, time=time, citation_count_dict=citation_count_dict, docs_set=docs_set)
 
@@ -78,10 +79,12 @@ class TermFocus():
 
         ch2 = SelectKBest(score_func, k=num_ngrams_report)
 
-        tfidf_matrix = self.__tfidf.tfidf_vectorizer.fit_transform(X)
+        counter = self.__tfidf.vectorizer.fit_transform(X)
+        tfidf_transformer = TfidfTransformer(smooth_idf=False)
+        tfidf_matrix = tfidf_transformer.fit_transform(counter)
         ch2.fit(tfidf_matrix, y)
 
-        ngram_chi2_tuples = [(self.__tfidf.tfidf_vectorizer.get_feature_names()[i], ch2.scores_[i])
+        ngram_chi2_tuples = [(self.__tfidf.vectorizer.get_feature_names()[i], ch2.scores_[i])
                              for i in ch2.get_support(indices=True)]
         ngram_chi2_tuples.sort(key=lambda tup: -tup[1])
 

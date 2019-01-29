@@ -12,11 +12,14 @@ from pandas import Timestamp, ExcelWriter
 
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
+from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 from scripts.utils.argschecker import ArgsChecker
+
+#-fc="Communications,Leadership, IT systems"
 
 
 def choose_last_day(year_in, month_in):
@@ -52,6 +55,7 @@ def get_args(command_line_arguments):
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true", help="normalize tf-idf scores by document length")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
@@ -63,8 +67,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
     parser.add_argument("-o", "--output", default='report',
-                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
+                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts', 'all'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
     parser.add_argument("-yf", "--year_from", default=None,
@@ -87,6 +91,8 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
+    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.3,
+                        help="the maximum document frequency to contribute to TF/IDF")
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
@@ -128,8 +134,8 @@ def get_tfidf(args, pickle_file_name, df=None):
             else:
                 doc_set = doc_set.union(set(indices))
 
-    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n),
-                 header=args.abstract_header), doc_set
+    return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), header=args.abstract_header, normalize_doc_length = args.normalize_doc_length,
+                 max_document_frequency=args.max_document_frequency), doc_set
 
 
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
@@ -200,10 +206,8 @@ def write_config_to_json(args, doc_pickle_file_name):
         json.dump(json_data, json_file)
 
 
-def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick, time, docs_set):
-    terms, ngrams_scores_tuple, tfidf_matrix = tfidf.detect_popular_ngrams_in_docs_set(
-        number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-        pick=pick, time=time, docs_set=docs_set)
+def output_tfidf(tfidf_base_filename, tfidf):
+
     try:
         publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                                   [d.isocalendar() for d in tfidf.publication_dates]]
@@ -215,18 +219,33 @@ def output_tfidf(tfidf_base_filename, tfidf, ngram_multiplier, num_ngrams, pick,
     except KeyError:
         patent_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
 
-    tfidf_data = [tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
+    tfidf_data = [tfidf.tfidf_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
         pickle.dump(tfidf_data, pickle_file)
 
-    term_present_matrix = tfidf_matrix > 0
+    term_present_matrix = tfidf.tfidf_matrix > 0
     term_present_data = [term_present_matrix, tfidf.feature_names, publication_week_dates, patent_ids]
     term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
     os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
     with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:
         pickle.dump(term_present_data, pickle_file)
+
+
+def output_term_counts(tfidf_base_filename, tfidf):
+
+    publication_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+                              [d.isocalendar() for d in tfidf.publication_dates]]
+
+    term_counts_per_week, number_of_patents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
+        tfidf.tfidf_matrix, publication_week_dates)
+
+    term_counts_data = [term_counts_per_week, tfidf.feature_names, number_of_patents_per_week, week_iso_dates]
+    term_counts_filename = os.path.join('outputs', 'termcounts', tfidf_base_filename + '-term_counts.pkl.bz2')
+    os.makedirs(os.path.dirname(term_counts_filename), exist_ok=True)
+    with bz2.BZ2File(term_counts_filename, 'wb') as pickle_file:
+        pickle.dump(term_counts_data, pickle_file)
 
 
 def main():
@@ -299,7 +318,10 @@ def main():
         run_fdg(dict_freqs, tfidf, args)
 
     if out == 'tfidf' or out == 'all':
-        output_tfidf(args.doc_source, tfidf, ngram_multiplier, args.num_ngrams_report, args.pick, args.time, docs_set)
+        output_tfidf(args.doc_source, tfidf)
+
+    if out == 'termcounts' or out == 'all':
+        output_term_counts(args.doc_source, tfidf)
 
 
 if __name__ == '__main__':
