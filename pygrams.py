@@ -18,7 +18,7 @@ from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 #-fc="Communications,Leadership, IT systems"
-
+#-ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
 
 def year2pandas_latest_date(year_in):
     if year_in == 0:
@@ -67,9 +67,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2',
                         help="the doc source for the focus function")
 
-    parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
+    parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
-    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.3,
+    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
                         help="the maximum document frequency to contribute to TF/IDF")
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
