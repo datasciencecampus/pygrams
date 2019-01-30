@@ -151,7 +151,7 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', normalize_doc_length=False):
+    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', normalize_doc_length=False, uni_factor=0.8):
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -167,6 +167,7 @@ class TFIDF:
         )
 
         self.__abstract_header = header
+        self.__uni_factor = uni_factor
 
         num_docs_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
@@ -185,7 +186,7 @@ class TFIDF:
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
         max_bi_freq = self.__max_bigram()
         print(max_bi_freq)
-        self.__clean_unigrams(max_bi_freq, 0.8)
+        self.__clean_unigrams(max_bi_freq, self.__uni_factor)
         for i in range(ngram_range[0], ngram_range[1]):
             self.__unbias_ngrams(i+1)
 
@@ -229,7 +230,7 @@ class TFIDF:
         if self.__lost_state:
             max_bi_freq = self.__max_bigram()
             print(max_bi_freq)
-            self.__clean_unigrams(max_bi_freq, 5.0)
+            self.__clean_unigrams(max_bi_freq, self.__uni_factor)
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
                  self.__unbias_ngrams(i + 1)
