@@ -185,7 +185,6 @@ class TFIDF:
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
         max_bi_freq = self.__max_bigram()
-        print(max_bi_freq)
         self.__clean_unigrams(max_bi_freq, self.__uni_factor)
         for i in range(ngram_range[0], ngram_range[1]):
             self.__unbias_ngrams(i+1)
@@ -229,7 +228,6 @@ class TFIDF:
 
         if self.__lost_state:
             max_bi_freq = self.__max_bigram()
-            print(max_bi_freq)
             self.__clean_unigrams(max_bi_freq, self.__uni_factor)
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
