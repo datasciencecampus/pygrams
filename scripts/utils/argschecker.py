@@ -6,6 +6,7 @@ class ArgsChecker():
 
     def checkargs(self):
         app_exit = False
+
         if isinstance(self.args.year_to, str) & isinstance(self.args.year_from, str):
             if isinstance(self.args.month_to, str) & isinstance(self.args.month_from, str):
                 if self.args.year_from + self.args.month_from > self.args.year_to + self.args.month_to:
@@ -96,6 +97,31 @@ class ArgsChecker():
         if self.args.table_name != self.args_default.table_name:
             if self.args.output != 'table' or self.args.output != 'all':
                 print('argument [-tn] can only be used when output includes table [-o] "table" or "all"')
+                app_exit = True
+
+
+        if app_exit:
+            exit(0)
+
+    def checkdf(self, df):
+        app_exit = False
+
+        if self.args.id_header not in df.columns:
+            print(f"id_header '{self.args.id_header}' not in dataframe")
+            app_exit = True
+
+        if self.args.text_header not in df.columns:
+            print(f"text_header '{self.args.text_header}' not in dataframe")
+            app_exit = True
+
+        if isinstance(self.args.year_from, str):
+            if self.args.date_header not in df.columns:
+                print(f"date_header '{self.args.date_header}' not in dataframe")
+                app_exit = True
+
+        if isinstance(self.args.year_to, str):
+            if self.args.date_header not in df.columns:
+                print(f"date_header '{self.args.date_header}' not in dataframe")
                 app_exit = True
 
         if app_exit:
