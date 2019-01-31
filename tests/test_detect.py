@@ -48,8 +48,8 @@ class TestDetect(unittest.TestCase):
                 'tech_report': report_file_name
             },
             'year': {
-                'from': 2000,
-                'to': 0
+                'from': '01_2000',
+                'to': '12_2019'
             },
             'parameters': {
                 'cite': False,
@@ -83,8 +83,8 @@ class TestDetect(unittest.TestCase):
                 'tech_report': report_file_name
             },
             'year': {
-                'from': 1998,
-                'to': 2001
+                'from': '01_1998',
+                'to': '12_2001'
             },
             'parameters': {
                 'cite': True,
