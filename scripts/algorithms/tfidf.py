@@ -188,8 +188,7 @@ class TFIDF:
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
         max_bi_freq = self.__max_bigram()
-        print(max_bi_freq)
-        self.__clean_unigrams(max_bi_freq, self.__uni_factor)
+        self.__clean_unigrams(max_bi_freq)
         for i in range(ngram_range[0], ngram_range[1]):
             self.__unbias_ngrams(i+1)
 
@@ -232,8 +231,7 @@ class TFIDF:
 
         if self.__lost_state:
             max_bi_freq = self.__max_bigram()
-            print(max_bi_freq)
-            self.__clean_unigrams(max_bi_freq, self.__uni_factor)
+            self.__clean_unigrams(max_bi_freq)
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
                  self.__unbias_ngrams(i + 1)
@@ -335,7 +333,7 @@ class TFIDF:
         return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
-    def __clean_unigrams(self, max_bi_freq, factor):
+    def __clean_unigrams(self, max_bi_freq):
 
         # iterate through rows ( docs)
         for i in range(len(self.text)):
@@ -350,7 +348,7 @@ class TFIDF:
                 ngram_terms = ngram.split()
 
                 if len(ngram_terms) == 1:
-                    if self.__tfidf_matrix.data[j] < factor*max_bi_freq:
+                    if self.__tfidf_matrix.data[j] < self.__uni_factor * max_bi_freq:
                         self.__tfidf_matrix.data[j] = 0.0
         return 0
 
