@@ -5,9 +5,11 @@
 
 # pyGrams 
  
+<p align="center"><img align="center" src="meta/images/pygrams-logo.png" width="400px"></p>
+ 
 ## Description of tool
 
-This python-based app (pyGrams.py) is designed to extract popular n-grams from free text within a large (>1000) corpus of documents.
+This python-based app (`pygrams.py`) is designed to extract popular n-grams from free text within a large (>1000) corpus of documents.
 
 ## Installation guide
 
