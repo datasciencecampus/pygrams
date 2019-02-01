@@ -88,7 +88,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=250,
                         help="number of ngrams to return for fdg graph")
 
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-100000.pkl.bz2', help="the doc source to process")
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2',
                         help="the doc source for the focus function")
 
@@ -166,7 +166,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
                docs_set=None, citation_count_dict=None):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
-    tfocus = TermFocus(tfidf, tfidf_random)
+    tfocus = TermFocus(tfidf, tfidf_random, id_header=args.id_header,
+                 text_header=args.text_header, date_header=args.date_header)
     dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
                                                                             num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
