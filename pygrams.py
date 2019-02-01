@@ -88,8 +88,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=250,
                         help="number of ngrams to return for fdg graph")
 
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-100000.pkl.bz2', help="the doc source to process")
-    parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2',
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
+    parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
                         help="the doc source for the focus function")
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")

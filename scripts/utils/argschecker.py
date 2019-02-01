@@ -106,6 +106,12 @@ class ArgsChecker():
     def checkdf(self, df):
         app_exit = False
 
+        if self.args.id_header == 'none':
+            print(f"id column is empty, will construct an id column")
+            df.insert(0, 'id', range(0, 0 + len(df)))
+            self.args.id_header = 'id'
+            app_exit = False
+
         if self.args.id_header not in df.columns:
             print(f"id_header '{self.args.id_header}' not in dataframe")
             app_exit = True
