@@ -152,7 +152,7 @@ class WordAnalyzer(object):
 
 class TFIDF:
     def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
-                 id_header='id', text_header='text', date_header='date', normalize_doc_length=False, uni_factor=0.8):
+                 id_header='patent_id', text_header='abstract', date_header='publication_date', normalize_doc_length=False, uni_factor=0.8):
         self.__dataframe = docs_df
 
         WordAnalyzer.init(

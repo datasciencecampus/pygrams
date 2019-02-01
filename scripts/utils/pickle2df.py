@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 class PatentsPickle2DataFrame(object):
     def __init__(self, data_frame_pickle_file_name, date_from=None, date_to=None, classification=None,
-                 pickle_reader=pd.read_pickle, date_header='date', print_func=print):
+                 pickle_reader=pd.read_pickle, date_header='publication_date', print_func=print):
 
         self.__print_func = print_func
         self.__data_frame = pickle_reader(data_frame_pickle_file_name)
