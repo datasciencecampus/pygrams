@@ -60,7 +60,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-c", "--cite", default=False, action="store_true", help="weight terms by citations (for patents only)")
     parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
-    parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
+    parser.add_argument("-th", "--text_header", default='text', help="the column name for the free text")
     parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
     parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
@@ -226,15 +226,16 @@ def write_config_to_json(args, doc_pickle_file_name):
 def output_tfidf(tfidf_base_filename, tfidf):
 
     try:
+        dates = tfidf.dates
         document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                                  [d.isocalendar() for d in tfidf.dates]]
-    except KeyError:
-        document_week_dates = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
+                               [d.isocalendar() for d in dates]]
+    except (KeyError, ValueError):
+        document_week_dates = [None] * len(tfidf.feature_names)
 
     try:
         doc_ids = tfidf.doc_ids
     except KeyError:
-        doc_ids = pd.Series(None, index=np.arange(len(tfidf.feature_names)))
+        doc_ids = [None] * len(tfidf.feature_names)
 
     tfidf_data = [tfidf.tfidf_matrix, tfidf.feature_names, document_week_dates, doc_ids]
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
@@ -252,8 +253,13 @@ def output_tfidf(tfidf_base_filename, tfidf):
 
 def output_term_counts(tfidf_base_filename, tfidf):
 
-    document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                              [d.isocalendar() for d in tfidf.dates]]
+    try:
+        dates = tfidf.dates
+        document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+                               [d.isocalendar() for d in dates]]
+    except ValueError:
+        dates = [None] * len(tfidf.doc_ids)
+
 
     term_counts_per_week, number_of_documents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
         tfidf.tfidf_matrix, document_week_dates)
