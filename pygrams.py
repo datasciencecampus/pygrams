@@ -59,9 +59,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
     parser.add_argument("-c", "--cite", default=False, action="store_true", help="weight terms by citations (for patents only)")
     parser.add_argument("-pt", "--path", default='data', help="the data path")
-    parser.add_argument("-ih", "--id_header", default='patent_id', help="the column name for the unique ID")
+    parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
-    parser.add_argument("-dh", "--date_header", default='publication_date', help="the column name for the date")
+    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
     parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' "
