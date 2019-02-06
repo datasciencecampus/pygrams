@@ -4,6 +4,8 @@ import json
 import os
 import pickle
 import sys
+import numpy as np
+import calendar
 
 import numpy as np
 import pandas as pd
@@ -16,21 +18,35 @@ from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
+from scripts.utils.argschecker import ArgsChecker
+
+#-fc="Communications,Leadership, IT systems"
+#-ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
+
+def choose_last_day(year_in, month_in):
+    return str(calendar.monthrange(int(year_in), int(month_in))[1])
 
 
-# -fc="Communications,Leadership, IT systems"
-
-
-def year2pandas_latest_date(year_in):
-    if year_in == 0:
+def year2pandas_latest_date(year_in, month_in):
+    if year_in is None:
         return Timestamp.now()
 
-    year_string = str(year_in) + '-12-31'
+    if month_in is None:
+        return Timestamp(str(year_in) + '-12-31')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
     return Timestamp(year_string)
 
 
-def year2pandas_earliest_date(year_in):
-    year_string = str(year_in) + '-01-01'
+def year2pandas_earliest_date(year_in, month_in):
+    if year_in is None:
+        return Timestamp('2000-01-01')
+
+    if month_in is None:
+        return Timestamp(str(year_in) + '-01-01')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-01'
+
     return Timestamp(year_string)
 
 
@@ -48,7 +64,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-ah", "--abstract_header", default='abstract', help="the data path")
     parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
-                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' or any are 'Yes")
+                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' "
+                             "or any are 'Yes")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
@@ -57,9 +74,13 @@ def get_args(command_line_arguments):
                         help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
-    parser.add_argument("-yf", "--year_from", type=int, default=2000, help="The first year for the document cohort")
-    parser.add_argument("-yt", "--year_to", type=int, default=0,
-                        help="The last year for the documents cohort (0 is now)")
+
+    parser.add_argument("-yf", "--year_from", default=None,
+                        help="The first year for the document cohort in YYYY format")
+    parser.add_argument("-mf", "--month_from", default=None,
+                        help="The first month for the document cohort in MM format")
+    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
+    parser.add_argument("-mt", "--month_to", default=None, help="The last month for the document cohort in MM format")
 
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
@@ -72,14 +93,15 @@ def get_args(command_line_arguments):
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2',
                         help="the doc source for the focus function")
 
-    parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
+    parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
-    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.3,
+    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
                         help="the maximum document frequency to contribute to TF/IDF")
 
     parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
                         help="report filename")
-    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds', 'wordcloud_tech.png'),
+    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds',
+                                                                        'wordcloud_tech.png'),
                         help="wordcloud filename")
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
@@ -92,38 +114,10 @@ def get_args(command_line_arguments):
     return args
 
 
-def checkargs(args):
-    app_exit = False
-    if args.year_to != 0:
-        if args.year_from >= args.year_to:
-            print("year_from must be less than year_to")
-            app_exit = True
-
-    if args.min_n > args.max_n:
-        print("minimum ngram count should be less or equal to higher ngram count")
-        app_exit = True
-
-    if args.num_ngrams_wordcloud <= 20:
-        print("at least 20 ngrams needed for wordcloud")
-        app_exit = True
-
-    if args.num_ngrams_report <= 10:
-        print("at least 10 ngrams needed for report")
-        app_exit = True
-
-    if args.output == 'table' or args.output == 'all':
-        if args.focus == None:
-            print('define a focus before requesting table (or all) output')
-            app_exit = True
-
-    if app_exit:
-        exit(0)
-
-
 def get_tfidf(args, pickle_file_name, df=None):
-    date_from = year2pandas_earliest_date(args.year_from)
-    date_to = year2pandas_latest_date(args.year_to)
-    if df is None:
+    date_from = year2pandas_earliest_date(args.year_from, args.month_from)
+    date_to = year2pandas_latest_date(args.year_to, args.month_to)
+    if df is None or args.year_from is not None or args.year_to is not None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
@@ -149,7 +143,6 @@ def get_tfidf(args, pickle_file_name, df=None):
                  max_document_frequency=args.max_document_frequency), doc_set
 
 
-
 def run_table(args, ngram_multiplier, tfidf, tfidf_random):
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
     print(f'Writing table to {args.table_name}')
@@ -164,8 +157,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
-                                                                            citation_count_dict, ngram_multiplier,
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
                                                                             num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
@@ -194,14 +186,19 @@ def write_config_to_json(args, doc_pickle_file_name):
     report_file_name = os.path.abspath(args.report_name)
     json_file_name = os.path.splitext(report_file_name)[0] + '.json'
 
+    month_from = args.month_from if args.month_from is not None else '01'
+    month_to = args.month_to if args.month_to is not None else '12'
+    year_from = args.year_from if args.year_from is not None else '2000'
+    year_to = args.year_to if args.year_to is not None else str(Timestamp.now().year)
+
     json_data = {
         'paths': {
             'data': doc_pickle_file_name,
             'tech_report': report_file_name
         },
-        'year': {
-            'from': args.year_from,
-            'to': args.year_to
+        'month_year': {
+            'from': month_from + '_' + year_from,
+            'to': month_to + '_' + year_to
         },
         'parameters': {
             'pick': args.pick,
@@ -262,7 +259,9 @@ def main():
         os.makedirs(path, exist_ok=True)
 
     args = get_args(sys.argv[1:])
-    checkargs(args)
+    args_default = get_args([])
+    argscheck = ArgsChecker(args, args_default)
+    argscheck.checkargs()
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 

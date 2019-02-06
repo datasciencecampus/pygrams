@@ -153,8 +153,10 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
+
     def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
-                 header='abstract', normalize_doc_length=False):
+                 header='abstract', normalize_doc_length=False, uni_factor=0.8):
+
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -170,6 +172,7 @@ class TFIDF:
         )
 
         self.__abstract_header = header
+        self.__uni_factor = uni_factor
 
         num_docs_before_sift = self.__dataframe.shape[0]
         self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
@@ -186,8 +189,11 @@ class TFIDF:
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+        max_bi_freq = self.__max_bigram()
+        self.__clean_unigrams(max_bi_freq)
         for i in range(ngram_range[0], ngram_range[1]):
             self.__unbias_ngrams(i + 1)
+
         self.__lost_state = False
         self.__ngram_range = ngram_range
 
@@ -225,10 +231,13 @@ class TFIDF:
             return []
 
         if self.__lost_state:
+            max_bi_freq = self.__max_bigram()
+            self.__clean_unigrams(max_bi_freq)
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
                 self.__unbias_ngrams(i + 1)
             self.__lost_state = False
+
 
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
@@ -325,6 +334,44 @@ class TFIDF:
         return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
+    def __clean_unigrams(self, max_bi_freq):
+
+        # iterate through rows ( docs)
+        for i in range(len(self.abstracts)):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+
+                col_idx = self.__tfidf_matrix.indices[j]
+                ngram = self.__feature_names[col_idx]
+                ngram_terms = ngram.split()
+
+                if len(ngram_terms) == 1:
+                    if self.__tfidf_matrix.data[j] < self.__uni_factor * max_bi_freq:
+                        self.__tfidf_matrix.data[j] = 0.0
+        return 0
+
+    def __max_bigram(self):
+        max_tf = 0.0
+        # iterate through rows ( docs)
+        for i in range(len(self.abstracts)):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+
+                col_idx = self.__tfidf_matrix.indices[j]
+                ngram = self.__feature_names[col_idx]
+                ngram_terms = ngram.split()
+
+                if len(ngram_terms) == 2:
+                    max_tf = max(self.__tfidf_matrix.data[j], max_tf)
+        return max_tf
+
+
     def __normalize_rows(self):
 
         for idx, text in enumerate(self.abstracts):
@@ -357,9 +404,9 @@ class TFIDF:
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
 
-    def __unbias_ngrams_slice(self, dindices_slice, idx_ngram, ngram_counts, start_idx_ptr):
-        if idx_ngram in dindices_slice:
-            idx = dindices_slice.tolist().index(idx_ngram)
+    def __unbias_ngrams_slice(self, indices_slice, idx_ngram, ngram_counts, start_idx_ptr):
+        if idx_ngram in indices_slice:
+            idx = indices_slice.tolist().index(idx_ngram)
 
             if ngram_counts < self.__tfidf_matrix.data[start_idx_ptr + idx]:
                 self.__tfidf_matrix.data[start_idx_ptr + idx] -= ngram_counts
