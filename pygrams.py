@@ -170,10 +170,10 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     return dict_freqs
 
 
-def run_fdg(dict_freq_in, tf_idf, args):
-    num_ngrams = args.num_ngrams_report
-    graph = TermsGraph(list(dict_freq_in.items())[:num_ngrams], tf_idf)
-    graph.save_graph_report(args)
+def run_fdg(dict_freq_in, tf_idf, report_name, num_ngrams):
+
+    graph = TermsGraph(dict_freq_in, tf_idf)
+    graph.save_graph_report(report_name, num_ngrams)
 
 
 def write_config_to_json(args, doc_pickle_file_name):
@@ -315,7 +315,9 @@ def main():
         run_table(args, ngram_multiplier, tfidf, newtfidf)
 
     if out == 'fdg' or out == 'all':
-        run_fdg(dict_freqs, tfidf, args)
+        num_ngrams = args.num_ngrams_report
+        freqs_list = list(dict_freqs.items())[:num_ngrams]
+        run_fdg(freqs_list, tfidf, args.report_name, args.num_ngrams_report)
 
     if out == 'tfidf' or out == 'all':
         output_tfidf(args.doc_source, tfidf)
