@@ -19,8 +19,8 @@ from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
-#-fc="Communications,Leadership, IT systems"
-#-ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
+# -fc="Communications,Leadership, IT systems"
+# -ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
 
 def choose_last_day(year_in, month_in):
     return str(calendar.monthrange(int(year_in), int(month_in))[1])
@@ -51,15 +51,19 @@ def year2pandas_earliest_date(year_in, month_in):
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
 
-    parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
+    parser.add_argument("-cpc", "--cpc_classification", default=None,
+                        help="the desired cpc classification (for patents only)")
+    parser.add_argument("-c", "--cite", default=False, action="store_true",
+                        help="weight terms by citations (for patents only)")
+
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
-    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true", help="normalize tf-idf scores by document length")
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
+                        help="normalize tf-idf scores by document length")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
-    parser.add_argument("-c", "--cite", default=False, action="store_true",
-                        help="weight terms by citations (for patents only)")
+
     parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
@@ -227,7 +231,6 @@ def write_config_to_json(args, doc_pickle_file_name):
 
 
 def output_tfidf(tfidf_base_filename, tfidf):
-
     try:
         dates = tfidf.dates
         document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
