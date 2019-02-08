@@ -51,6 +51,7 @@ def year2pandas_earliest_date(year_in, month_in):
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for document abstracts")
 
+    parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
@@ -110,11 +111,43 @@ def get_args(command_line_arguments):
     return args
 
 
-def get_tfidf(args, pickle_file_name, df=None):
+def write_config_to_json(args, patent_pickle_file_name):
+    patent_pickle_file_name = os.path.abspath(patent_pickle_file_name)
+    report_file_name = os.path.abspath(args.report_name)
+    json_file_name = os.path.splitext(report_file_name)[0] + '.json'
+
+    month_from = args.month_from if args.month_from is not None else '01'
+    month_to = args.month_to if args.month_to is not None else '12'
+    year_from = args.year_from if args.year_from is not None else '2000'
+    year_to = args.year_to if args.year_to is not None else str(Timestamp.now().year)
+
+    json_data = {
+        'paths': {
+            'data': patent_pickle_file_name,
+            'tech_report': report_file_name
+        },
+        'year': {
+            'from': month_from + '_' + year_from,
+            'to': month_to + '_' + year_to
+        },
+        'parameters': {
+            'cpc': '' if args.cpc_classification is None else args.cpc_classification,
+            'pick': args.pick,
+            'time': args.time,
+            'cite': args.cite,
+            'focus': args.focus
+        }
+    }
+
+    with open(json_file_name, 'w') as json_file:
+        json.dump(json_data, json_file)
+
+
+def get_tfidf(args, pickle_file_name, df=None, cpc=None):
     date_from = year2pandas_earliest_date(args.year_from, args.month_from)
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
-        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, classification=cpc).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
     doc_set = None
@@ -297,7 +330,7 @@ def main():
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df)
+    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df, cpc=args.cpc_classification)
 
     newtfidf = None
     if args.focus or args.output == 'table':

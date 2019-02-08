@@ -8,8 +8,10 @@ from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
 from tqdm import tqdm
 from nltk.corpus import wordnet
+from numba import jit
 from scripts import FilePaths
 from sklearn.feature_extraction.text import CountVectorizer
+
 
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
@@ -234,7 +236,6 @@ class TFIDF:
                  self.__unbias_ngrams(i + 1)
             self.__lost_state = False
 
-
         if time:
             self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
             epoch = datetime.datetime.utcfromtimestamp(0)
@@ -330,6 +331,7 @@ class TFIDF:
         return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
+    @jit
     def __clean_unigrams(self, max_bi_freq):
 
         # iterate through rows ( docs)
@@ -349,6 +351,7 @@ class TFIDF:
                         self.__tfidf_matrix.data[j] = 0.0
         return 0
 
+    @jit
     def __max_bigram(self):
         max_tf = 0.0
         # iterate through rows ( docs)
@@ -374,6 +377,7 @@ class TFIDF:
             text_len = len(text)
             self.__ngram_counts.data[self.__ngram_counts.indptr[idx]: self.__ngram_counts.indptr[idx + 1]] /= text_len
 
+    @jit
     def __unbias_ngrams(self, ngram_length):
 
         # iterate through rows ( docs)
