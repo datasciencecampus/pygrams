@@ -5,6 +5,7 @@ import numpy as np
 from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
+from numba import jit
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
@@ -151,7 +152,9 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
-    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), header='abstract', normalize_doc_length=False, uni_factor=0.8):
+    def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
+                 id_header='patent_id', text_header='abstract', date_header='publication_date',
+                 normalize_doc_length=False, uni_factor=0.8):
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -166,16 +169,18 @@ class TFIDF:
             analyzer=WordAnalyzer.analyzer
         )
 
-        self.__abstract_header = header
+        self.__id_header = id_header
+        self.__text_header = text_header
+        self.__date_header = date_header
         self.__uni_factor = uni_factor
 
         num_docs_before_sift = self.__dataframe.shape[0]
-        self.__dataframe.dropna(subset=[self.__abstract_header], inplace=True)
+        self.__dataframe.dropna(subset=[self.__text_header], inplace=True)
         num_docs_after_sift = self.__dataframe.shape[0]
         num_docs_sifted = num_docs_before_sift - num_docs_after_sift
-        print(f'Dropped {num_docs_sifted:,} docs due to empty abstracts')
+        print(f'Dropped {num_docs_sifted:,} docs due to empty text field')
 
-        self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__abstract_header])
+        self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__text_header])
         self.__feature_names = self.__vectorizer.get_feature_names()
 
         if normalize_doc_length:
@@ -202,20 +207,20 @@ class TFIDF:
         return self.__vectorizer
 
     @property
-    def abstracts(self):
-        return self.__dataframe[self.__abstract_header]
+    def text(self):
+        return self.__dataframe[self.__text_header]
 
     @property
     def feature_names(self):
         return self.__feature_names
 
     @property
-    def publication_dates(self):
-        return list(self.__dataframe['publication_date'])
+    def dates(self):
+        return list(self.__dataframe[self.__date_header])
 
     @property
-    def patent_ids(self):
-        return list(self.__dataframe['patent_id'])
+    def doc_ids(self):
+        return list(self.__dataframe[self.__id_header])
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
                                           citation_count_dict=None, docs_set=None, verbose=True):
@@ -223,7 +228,7 @@ class TFIDF:
             print(f'Processing TFIDF of {self.__tfidf_matrix.shape[0]:,} documents')
 
         if self.__tfidf_matrix.shape[0] == 0:
-            print('...skipping as 0 patents...')
+            print('...skipping as 0 documents...')
             return []
 
         if self.__lost_state:
@@ -234,22 +239,21 @@ class TFIDF:
                  self.__unbias_ngrams(i + 1)
             self.__lost_state = False
 
-
         if time:
-            self.__dataframe = self.__dataframe.sort_values(by=['publication_date'])
+            self.__dataframe = self.__dataframe.sort_values(by=[self.__date_header])
             epoch = datetime.datetime.utcfromtimestamp(0)
-            num_docs = len(self.__dataframe['publication_date'])
+            num_docs = len(self.__dataframe[self.__date_header])
             time_weights = [0.0] * num_docs
-            for patent_index, pub_date in enumerate(self.__dataframe['publication_date']):
-                time_weights[patent_index] = (pub_date - epoch).total_seconds()
+            for id_index, date in enumerate(self.__dataframe[self.__date_header]):
+                time_weights[id_index] = (date - epoch).total_seconds()
 
             mx = max(time_weights)
             mn = min(time_weights)
 
-            for patent_index, pub_date in enumerate(self.__dataframe['publication_date']):
-                X = time_weights[patent_index]
+            for id_index, date in enumerate(self.__dataframe[self.__date_header]):
+                X = time_weights[id_index]
                 X_std = (X - mn) / (mx - mn)
-                time_weights[patent_index] = X_std
+                time_weights[id_index] = X_std
 
             for i, v in enumerate(time_weights):
                 self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
@@ -257,25 +261,25 @@ class TFIDF:
 
         if citation_count_dict:
             #TODO check if we need -2 below. If not, we only need one dict for both citations and docs_set
-            patent_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe.patent_id)}
-            citation_count_for_patent_id_dict = {}
-            for key, _ in tqdm(patent_id_dict.items()):
-                citation_count_for_patent_id_dict[key] = citation_count_dict.get(key, .0)
+            doc_id_dict = {k[:-2]: v for v, k in enumerate(self.__dataframe[self.__id_header])}
+            citation_count_for_doc_id_dict = {}
+            for key, _ in tqdm(doc_id_dict.items()):
+                citation_count_for_doc_id_dict[key] = citation_count_dict.get(key, .0)
 
-            max_citation_count_val = float(max(citation_count_for_patent_id_dict.values()))
+            max_citation_count_val = float(max(citation_count_for_doc_id_dict.values()))
             min_citation_count_val = 0.05
 
             if max_citation_count_val == 0:
-                for patent_id in citation_count_for_patent_id_dict:
-                    citation_count_for_patent_id_dict[patent_id] = 1.0
+                for doc_id in citation_count_for_doc_id_dict:
+                    citation_count_for_doc_id_dict[doc_id] = 1.0
             else:
-                for patent_id in citation_count_for_patent_id_dict:
-                    citation_count_for_patent_id_dict_std = min_citation_count_val + (
-                            (float(citation_count_for_patent_id_dict[patent_id]) - min_citation_count_val) / (
+                for doc_id in citation_count_for_doc_id_dict:
+                    citation_count_for_doc_id_dict_std = min_citation_count_val + (
+                            (float(citation_count_for_doc_id_dict[doc_id]) - min_citation_count_val) / (
                             max_citation_count_val - min_citation_count_val))
-                    citation_count_for_patent_id_dict[patent_id] = citation_count_for_patent_id_dict_std
+                    citation_count_for_doc_id_dict[doc_id] = citation_count_for_doc_id_dict_std
 
-            list_of_citation_counts = list(citation_count_for_patent_id_dict.values())
+            list_of_citation_counts = list(citation_count_for_doc_id_dict.values())
 
             for i, v in enumerate(list_of_citation_counts):
                 self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
@@ -333,10 +337,11 @@ class TFIDF:
         return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
+    @jit
     def __clean_unigrams(self, max_bi_freq):
 
         # iterate through rows ( docs)
-        for i in range(len(self.abstracts)):
+        for i in range(len(self.text)):
             start_idx_ptr = self.__tfidf_matrix.indptr[i]
             end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
 
@@ -352,10 +357,11 @@ class TFIDF:
                         self.__tfidf_matrix.data[j] = 0.0
         return 0
 
+    @jit
     def __max_bigram(self):
         max_tf = 0.0
         # iterate through rows ( docs)
-        for i in range(len(self.abstracts)):
+        for i in range(len(self.text)):
             start_idx_ptr = self.__tfidf_matrix.indptr[i]
             end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
 
@@ -373,14 +379,15 @@ class TFIDF:
 
     def __normalize_rows(self):
 
-        for idx, text in enumerate(self.abstracts):
+        for idx, text in enumerate(self.text):
             text_len = len(text)
             self.__ngram_counts.data[self.__ngram_counts.indptr[idx]: self.__ngram_counts.indptr[idx + 1]] /= text_len
 
+    @jit
     def __unbias_ngrams(self, ngram_length):
 
         # iterate through rows ( docs)
-        for i in range(len(self.abstracts)):
+        for i in range(len(self.text)):
             start_idx_ptr = self.__tfidf_matrix.indptr[i]
             end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
 
