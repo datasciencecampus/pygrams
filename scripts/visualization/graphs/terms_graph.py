@@ -1,6 +1,7 @@
 import json
-from numba import jit
 import os
+
+from tqdm import tqdm
 
 
 class TermsGraph(object):
@@ -9,21 +10,22 @@ class TermsGraph(object):
 
     def __init__(self, list_tfidf_term, tfidf_obj):
 
-        self.___ndocs = len(tfidf_obj.abstracts)
+        self.___ndocs = len(tfidf_obj.text)
         self.__terms_list = [term for _, term in list_tfidf_term]
         self.__tfidf_term_list = list_tfidf_term
         self.__tfidf_obj = tfidf_obj
         self.__node_links_dict = self.__update_dict()
         self.__update_graph()
 
-    @jit
     def __update_dict(self):
         node_links_dict = {}
         for term in self.__terms_list:
             node_links_dict[term]={}
 
-        for idx in range(self.___ndocs):
-            _, list_term_tfidf = self.__tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[idx], number_of_ngrams_to_return=10)
+        for idx in tqdm(range(self.___ndocs), leave=False, desc='Searching TFIDF', unit='ngram'):
+            _, list_term_tfidf = self.__tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[idx],
+                                                                                    number_of_ngrams_to_return=10,
+                                                                                    verbose=False)
             for idx_t1, term_tfidf_tup in enumerate(list_term_tfidf):
                 if term_tfidf_tup[1] not in node_links_dict:
                         continue
@@ -37,7 +39,6 @@ class TermsGraph(object):
                         node_links_dict[term_tfidf_tup[1]][term_freq2[1]] += weight
         return node_links_dict
 
-    @jit
     def __update_graph(self):
         nodes=[]
         links =[]
@@ -65,17 +66,17 @@ class TermsGraph(object):
                 links.append(term_record)
         self.__graph = {'nodes': nodes, 'links': links}
 
-    def save_graph_report(self, args):
+    def save_graph_report(self, report_name, num_ngrams):
 
         links = self.__graph['links']
 
-        with open(args.report_name[:len(args.report_name) - 4] + "_graph.txt", 'w') as file:
+        with open(report_name[:len(report_name) - 4] + "_graph.txt", 'w') as file:
             counter = 1
             for score, term in self.__tfidf_term_list:
                 file.write(f'{counter}. {term:10}:{score:1.2f}  -> ')
                 print(f'{counter}. {term:10} -> ', end='', flush=True)
                 counter += 1
-                if counter > args.num_ngrams_report:
+                if counter > num_ngrams:
                     break
                 out_str = []
                 for link in links:

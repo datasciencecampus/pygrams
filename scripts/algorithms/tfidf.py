@@ -3,16 +3,14 @@ import string
 
 import numpy as np
 from nltk import word_tokenize, PorterStemmer, pos_tag
+from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from scipy.sparse import csr_matrix
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
 from tqdm import tqdm
-from nltk.corpus import wordnet
-from numba import jit
+
 from scripts import FilePaths
-from sklearn.feature_extraction.text import CountVectorizer
-
-
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
 New BSD License
@@ -154,7 +152,8 @@ class WordAnalyzer(object):
 
 class TFIDF:
     def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
-                 id_header='patent_id', text_header='abstract', date_header='publication_date', normalize_doc_length=False, uni_factor=0.8):
+                 id_header='patent_id', text_header='abstract', date_header='publication_date',
+                 normalize_doc_length=False, uni_factor=0.8):
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -223,7 +222,7 @@ class TFIDF:
         return list(self.__dataframe[self.__id_header])
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
-                                          citation_count_dict=None, docs_set=None):
+                                          citation_count_dict=None, docs_set=None, verbose=True):
         if docs_set is None:
             print(f'Processing TFIDF of {self.__tfidf_matrix.shape[0]:,} documents')
 
@@ -298,8 +297,11 @@ class TFIDF:
             pick_func = np.sum
 
         ngrams_scores_tuple = []
-        for ngram_index, ngram in enumerate(
-                tqdm(self.__feature_names, leave=False, desc='Searching TFIDF', unit='ngram')):
+        feature_iterator = self.__feature_names
+        if verbose:
+            feature_iterator = tqdm(feature_iterator, leave=False, desc='Searching TFIDF', unit='ngram')
+
+        for ngram_index, ngram in enumerate(feature_iterator):
 
             start_idx_inptr = tfidf_csc_matrix.indptr[ngram_index]
             end_idx_inptr = tfidf_csc_matrix.indptr[ngram_index+1]
@@ -334,7 +336,6 @@ class TFIDF:
         return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
-    @jit
     def __clean_unigrams(self, max_bi_freq):
 
         # iterate through rows ( docs)
@@ -354,7 +355,6 @@ class TFIDF:
                         self.__tfidf_matrix.data[j] = 0.0
         return 0
 
-    @jit
     def __max_bigram(self):
         max_tf = 0.0
         # iterate through rows ( docs)
@@ -380,7 +380,6 @@ class TFIDF:
             text_len = len(text)
             self.__ngram_counts.data[self.__ngram_counts.indptr[idx]: self.__ngram_counts.indptr[idx + 1]] /= text_len
 
-    @jit
     def __unbias_ngrams(self, ngram_length):
 
         # iterate through rows ( docs)

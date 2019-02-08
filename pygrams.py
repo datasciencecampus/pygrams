@@ -3,10 +3,10 @@ import bz2
 import calendar
 import json
 import os
-import pandas as pd
 import pickle
 import sys
 
+import pandas as pd
 from pandas import Timestamp, ExcelWriter
 
 from scripts.algorithms.term_focus import TermFocus
@@ -19,8 +19,8 @@ from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
-#-fc="Communications,Leadership, IT systems"
-#-ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
+# -fc="Communications,Leadership, IT systems"
+# -ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
 
 def choose_last_day(year_in, month_in):
     return str(calendar.monthrange(int(year_in), int(month_in))[1])
@@ -51,14 +51,19 @@ def year2pandas_earliest_date(year_in, month_in):
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
 
-    parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
+    parser.add_argument("-cpc", "--cpc_classification", default=None,
+                        help="the desired cpc classification (for patents only)")
+    parser.add_argument("-c", "--cite", default=False, action="store_true",
+                        help="weight terms by citations (for patents only)")
+
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
-    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true", help="normalize tf-idf scores by document length")
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
+                        help="normalize tf-idf scores by document length")
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
-    parser.add_argument("-c", "--cite", default=False, action="store_true", help="weight terms by citations (for patents only)")
+
     parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
@@ -118,7 +123,8 @@ def get_tfidf(args, pickle_file_name, df=None, cpc=None):
     date_from = year2pandas_earliest_date(args.year_from, args.month_from)
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
-        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, classification=cpc).data_frame
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to,
+                                     classification=cpc).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
     doc_set = None
@@ -140,11 +146,11 @@ def get_tfidf(args, pickle_file_name, df=None, cpc=None):
 
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), id_header=args.id_header,
                  text_header=args.text_header, date_header=args.date_header,
-                 normalize_doc_length = args.normalize_doc_length, max_document_frequency=args.max_document_frequency), doc_set
+                 normalize_doc_length=args.normalize_doc_length,
+                 max_document_frequency=args.max_document_frequency), doc_set
 
 
 def load_citation_count_dict():
-
     citation_count_dict = pd.read_pickle(os.path.join('data/USPTO-citation-dictionary-family-pt1.pkl.bz2'))
     citation_count_dict_pt2 = pd.read_pickle(os.path.join('data/USPTO-citation-dictionary-family-pt2.pkl.bz2'))
     citation_count_dict.update(citation_count_dict_pt2)
@@ -159,7 +165,8 @@ def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict=N
     print(f'Writing table to {args.table_name}')
     writer = ExcelWriter(args.table_name, engine='xlsxwriter')
 
-    table_output(tfidf, tfidf_random, num_ngrams, args, ngram_multiplier, writer, citation_count_dict=citation_count_dict)
+    table_output(tfidf, tfidf_random, num_ngrams, args, ngram_multiplier, writer,
+                 citation_count_dict=citation_count_dict)
 
 
 # TODO: common interface wrapper class, hence left citation_count_dict refs
@@ -168,7 +175,7 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     num_ngrams = max(args.num_ngrams_report, args.num_ngrams_wordcloud)
 
     tfocus = TermFocus(tfidf, tfidf_random, id_header=args.id_header,
-                 text_header=args.text_header, date_header=args.date_header)
+                       text_header=args.text_header, date_header=args.date_header)
     dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
                                                                             num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
@@ -187,10 +194,10 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
     return dict_freqs
 
 
-def run_fdg(dict_freq_in, tf_idf, args):
-    num_ngrams = args.num_ngrams_report
-    graph = TermsGraph(list(dict_freq_in.items())[:num_ngrams], tf_idf)
-    graph.save_graph_report(args)
+def run_fdg(dict_freq_in, tf_idf, report_name, num_ngrams):
+    graph = TermsGraph(dict_freq_in, tf_idf)
+    graph.save_graph_report(report_name, num_ngrams)
+    graph.save_graph("key-terms", 'data')
 
 
 def write_config_to_json(args, doc_pickle_file_name):
@@ -224,7 +231,6 @@ def write_config_to_json(args, doc_pickle_file_name):
 
 
 def output_tfidf(tfidf_base_filename, tfidf):
-
     try:
         dates = tfidf.dates
         document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
@@ -252,14 +258,12 @@ def output_tfidf(tfidf_base_filename, tfidf):
 
 
 def output_term_counts(tfidf_base_filename, tfidf):
-
     try:
         dates = tfidf.dates
         document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                                [d.isocalendar() for d in dates]]
     except ValueError:
         dates = [None] * len(tfidf.doc_ids)
-
 
     term_counts_per_week, number_of_documents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
         tfidf.tfidf_matrix, document_week_dates)
@@ -271,13 +275,13 @@ def output_term_counts(tfidf_base_filename, tfidf):
         pickle.dump(term_counts_data, pickle_file)
 
 
-def main():
+def main(supplied_args):
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
              os.path.join('outputs', 'table')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
-    args = get_args(sys.argv[1:])
+    args = get_args(supplied_args)
     args_default = get_args([])
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
@@ -285,13 +289,13 @@ def main():
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
     df = None
-    if doc_source_file_name[len(doc_source_file_name) - 3:] == 'bz2':
+    if doc_source_file_name.endswith('.pkl.bz2'):
         df = pd.read_pickle(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'xls':
+    elif doc_source_file_name.endswith('.xls'):
         df = pd.read_excel(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'csv':
+    elif doc_source_file_name.endswith('.csv'):
         df = pd.read_csv(doc_source_file_name, engine='python', error_bad_lines=False, nrows=10000)
-    elif doc_source_file_name[len(doc_source_file_name) - 4:] == 'xlsx':
+    elif doc_source_file_name.endswith('.xlsx'):
         df = pd.read_excel(doc_source_file_name)
 
     argscheck.checkdf(df)
@@ -329,7 +333,7 @@ def main():
         path2 = os.path.join('data', args.focus_source)
         newtfidf, _ = get_tfidf(args, path2, None)
 
-    citation_count_dict=None
+    citation_count_dict = None
     if args.cite:
         citation_count_dict = load_citation_count_dict()
 
@@ -345,7 +349,9 @@ def main():
         run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
 
     if out == 'fdg' or out == 'all':
-        run_fdg(dict_freqs, tfidf, args)
+        num_ngrams = args.num_ngrams_report
+        freqs_list = list(dict_freqs.items())[:num_ngrams]
+        run_fdg(freqs_list, tfidf, args.report_name, args.num_ngrams_report)
 
     if out == 'tfidf' or out == 'all':
         output_tfidf(args.doc_source, tfidf)
@@ -355,4 +361,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
