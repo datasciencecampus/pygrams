@@ -1,7 +1,6 @@
 import json
 import os
 
-from numba import jit
 from tqdm import tqdm
 
 
@@ -11,14 +10,13 @@ class TermsGraph(object):
 
     def __init__(self, list_tfidf_term, tfidf_obj):
 
-        self.___ndocs = len(tfidf_obj.abstracts)
+        self.___ndocs = len(tfidf_obj.text)
         self.__terms_list = [term for _, term in list_tfidf_term]
         self.__tfidf_term_list = list_tfidf_term
         self.__tfidf_obj = tfidf_obj
         self.__node_links_dict = self.__update_dict()
         self.__update_graph()
 
-    @jit
     def __update_dict(self):
         node_links_dict = {}
         for term in self.__terms_list:
@@ -41,7 +39,6 @@ class TermsGraph(object):
                         node_links_dict[term_tfidf_tup[1]][term_freq2[1]] += weight
         return node_links_dict
 
-    @jit
     def __update_graph(self):
         nodes=[]
         links =[]
