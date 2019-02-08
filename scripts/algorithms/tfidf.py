@@ -336,7 +336,6 @@ class TFIDF:
         return [feature_score_tuple[1] for feature_score_tuple in ngrams_scores_slice
                 if feature_score_tuple[0] > 0], ngrams_scores_slice
 
-    @jit
     def __clean_unigrams(self, max_bi_freq):
 
         # iterate through rows ( docs)
@@ -356,7 +355,6 @@ class TFIDF:
                         self.__tfidf_matrix.data[j] = 0.0
         return 0
 
-    @jit
     def __max_bigram(self):
         max_tf = 0.0
         # iterate through rows ( docs)
@@ -382,7 +380,6 @@ class TFIDF:
             text_len = len(text)
             self.__ngram_counts.data[self.__ngram_counts.indptr[idx]: self.__ngram_counts.indptr[idx + 1]] /= text_len
 
-    @jit
     def __unbias_ngrams(self, ngram_length):
 
         # iterate through rows ( docs)
