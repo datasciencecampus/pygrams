@@ -1,23 +1,23 @@
 import argparse
 import bz2
+import calendar
 import json
 import os
 import pandas as pd
 import pickle
 import sys
-import numpy as np
-import calendar
 
 from pandas import Timestamp, ExcelWriter
 
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
+from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
-from scripts.utils.argschecker import ArgsChecker
+
 
 #-fc="Communications,Leadership, IT systems"
 #-ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
@@ -51,6 +51,7 @@ def year2pandas_earliest_date(year_in, month_in):
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
 
+    parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
@@ -60,7 +61,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-c", "--cite", default=False, action="store_true", help="weight terms by citations (for patents only)")
     parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
-    parser.add_argument("-th", "--text_header", default='text', help="the column name for the free text")
+    parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
     parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
     parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
@@ -113,11 +114,11 @@ def get_args(command_line_arguments):
     return args
 
 
-def get_tfidf(args, pickle_file_name, df=None):
+def get_tfidf(args, pickle_file_name, df=None, cpc=None):
     date_from = year2pandas_earliest_date(args.year_from, args.month_from)
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
-        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, date_header=args.date_header).data_frame
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, classification=cpc).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
     doc_set = None
@@ -149,8 +150,8 @@ def load_citation_count_dict():
     citation_count_dict.update(citation_count_dict_pt2)
     return citation_count_dict
 
-def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict=None):
 
+def run_table(args, ngram_multiplier, tfidf, tfidf_random, citation_count_dict=None):
     if citation_count_dict is None:
         citation_count_dict = load_citation_count_dict()
 
@@ -214,7 +215,6 @@ def write_config_to_json(args, doc_pickle_file_name):
         'parameters': {
             'pick': args.pick,
             'time': args.time,
-            'cite': args.cite,
             'focus': args.focus
         }
     }
@@ -322,19 +322,18 @@ def main():
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df)
+    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df, cpc=args.cpc_classification)
 
     newtfidf = None
     if args.focus or args.output == 'table':
         path2 = os.path.join('data', args.focus_source)
         newtfidf, _ = get_tfidf(args, path2, None)
 
-    out = args.output
-
-    citation_count_dict = None
+    citation_count_dict=None
     if args.cite:
         citation_count_dict = load_citation_count_dict()
 
+    out = args.output
     ngram_multiplier = 4
 
     if out != 'tfidf':
