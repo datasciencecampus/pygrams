@@ -3,14 +3,14 @@ import string
 
 import numpy as np
 from nltk import word_tokenize, PorterStemmer, pos_tag
+from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from scipy.sparse import csr_matrix
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import strip_accents_ascii, TfidfTransformer
 from tqdm import tqdm
-from nltk.corpus import wordnet
-from scripts import FilePaths
-from sklearn.feature_extraction.text import CountVectorizer
 
+from scripts import FilePaths
 
 """Sections of this code are based on scikit-learn sources; scikit-learn code is covered by the following license:
 New BSD License
@@ -218,7 +218,7 @@ class TFIDF:
         return list(self.__dataframe['patent_id'])
 
     def detect_popular_ngrams_in_docs_set(self, number_of_ngrams_to_return=200, pick='sum', time=False,
-                                          citation_count_dict=None, docs_set=None):
+                                          citation_count_dict=None, docs_set=None, verbose=True):
         if docs_set is None:
             print(f'Processing TFIDF of {self.__tfidf_matrix.shape[0]:,} documents')
 
@@ -294,8 +294,11 @@ class TFIDF:
             pick_func = np.sum
 
         ngrams_scores_tuple = []
-        for ngram_index, ngram in enumerate(
-                tqdm(self.__feature_names, leave=False, desc='Searching TFIDF', unit='ngram')):
+        feature_iterator = self.__feature_names
+        if verbose:
+            feature_iterator = tqdm(feature_iterator, leave=False, desc='Searching TFIDF', unit='ngram')
+
+        for ngram_index, ngram in enumerate(feature_iterator):
 
             start_idx_inptr = tfidf_csc_matrix.indptr[ngram_index]
             end_idx_inptr = tfidf_csc_matrix.indptr[ngram_index+1]

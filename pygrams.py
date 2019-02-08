@@ -1,23 +1,24 @@
 import argparse
 import bz2
+import calendar
 import json
 import os
-import pandas as pd
 import pickle
 import sys
-import numpy as np
-import calendar
 
+import numpy as np
+import pandas as pd
 from pandas import Timestamp, ExcelWriter
 
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
+from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
 from scripts.utils.pickle2df import PatentsPickle2DataFrame
 from scripts.utils.table_output import table_output
 from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
-from scripts.utils.argschecker import ArgsChecker
+
 
 #-fc="Communications,Leadership, IT systems"
 #-ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
@@ -171,9 +172,9 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
 
 def run_fdg(dict_freq_in, tf_idf, report_name, num_ngrams):
-
     graph = TermsGraph(dict_freq_in, tf_idf)
     graph.save_graph_report(report_name, num_ngrams)
+    graph.save_graph("key-terms", 'data')
 
 
 def write_config_to_json(args, doc_pickle_file_name):
@@ -248,13 +249,13 @@ def output_term_counts(tfidf_base_filename, tfidf):
         pickle.dump(term_counts_data, pickle_file)
 
 
-def main():
+def main(supplied_args):
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
              os.path.join('outputs', 'table')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
-    args = get_args(sys.argv[1:])
+    args = get_args(supplied_args)
     args_default = get_args([])
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
@@ -262,13 +263,13 @@ def main():
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
     df = None
-    if doc_source_file_name[len(doc_source_file_name) - 3:] == 'bz2':
+    if doc_source_file_name.endswith('.pkl.bz2'):
         df = pd.read_pickle(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'xls':
+    elif doc_source_file_name.endswith('.xls'):
         df = pd.read_excel(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name) - 3:] == 'csv':
+    elif doc_source_file_name.endswith('.csv'):
         df = pd.read_csv(doc_source_file_name)
-    elif doc_source_file_name[len(doc_source_file_name) - 4:] == 'xlsx':
+    elif doc_source_file_name.endswith('.xlsx'):
         df = pd.read_excel(doc_source_file_name)
 
     if isinstance(args.filter_columns, type(None)):
@@ -327,4 +328,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
