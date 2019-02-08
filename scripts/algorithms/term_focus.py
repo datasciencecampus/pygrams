@@ -5,9 +5,14 @@ from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 
 class TermFocus:
 
-    def __init__(self, tf_idf_in, tf_idf_random_in):
+    def __init__(self, tf_idf_in, tf_idf_random_in, id_header='patent_id', text_header='abstract',
+                 date_header='publication_date'):
+
         self.__tfidf = tf_idf_in
         self.__tfidf_random = tf_idf_random_in
+        self.__id_header = id_header
+        self.__text_header = text_header
+        self.__date_header = date_header
 
     def detect_and_focus_popular_ngrams(self, pick, time, focus, citation_count_dict, ngram_multiplier, num_ngrams,
                                         docs_set=None):
@@ -68,12 +73,12 @@ class TermFocus:
         return self.__popular_ngrams_with_selectkbest(num_ngrams_report, mutual_info_classif)
 
     def __popular_ngrams_with_selectkbest(self, num_ngrams_report, score_func):
-        df = pd.DataFrame(self.__tfidf.abstracts, columns=['abstract'])
-        df2 = pd.DataFrame(self.__tfidf_random.abstracts, columns=['abstract'])
+        df = pd.DataFrame(self.__tfidf.text, columns=[self.__text_header])
+        df2 = pd.DataFrame(self.__tfidf_random.text, columns=[self.__text_header])
         df['class_flag'] = 'Yes'
         df2['class_flag'] = 'No'
         df = pd.concat([df, df2])  # , sort=True)
-        X = df['abstract'].values.astype('U')
+        X = df[self.__text_header].values.astype('U')
         y = df['class_flag'].values.astype('U')
 
         ch2 = SelectKBest(score_func, k=num_ngrams_report)

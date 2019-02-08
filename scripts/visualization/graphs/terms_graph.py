@@ -1,9 +1,6 @@
 import json
+from numba import jit
 import os
-from collections import Counter
-
-from nltk import FreqDist
-from nltk import bigrams
 
 
 class TermsGraph(object):
@@ -19,13 +16,14 @@ class TermsGraph(object):
         self.__node_links_dict = self.__update_dict()
         self.__update_graph()
 
+    @jit
     def __update_dict(self):
         node_links_dict = {}
         for term in self.__terms_list:
             node_links_dict[term]={}
 
         for idx in range(self.___ndocs):
-            _, list_term_tfidf, _ = self.__tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[idx], number_of_ngrams_to_return=10)
+            _, list_term_tfidf = self.__tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[idx], number_of_ngrams_to_return=10)
             for idx_t1, term_tfidf_tup in enumerate(list_term_tfidf):
                 if term_tfidf_tup[1] not in node_links_dict:
                         continue
@@ -39,6 +37,7 @@ class TermsGraph(object):
                         node_links_dict[term_tfidf_tup[1]][term_freq2[1]] += weight
         return node_links_dict
 
+    @jit
     def __update_graph(self):
         nodes=[]
         links =[]
