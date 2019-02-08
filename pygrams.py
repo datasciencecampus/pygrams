@@ -114,11 +114,10 @@ def get_args(command_line_arguments):
     return args
 
 
-def get_tfidf(args, pickle_file_name, df=None):
+def get_tfidf(args, pickle_file_name, df=None, cpc=None):
     date_from = year2pandas_earliest_date(args.year_from, args.month_from)
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
-        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, date_header=args.date_header).data_frame
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, classification=cpc).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
