@@ -51,6 +51,7 @@ def year2pandas_earliest_date(year_in, month_in):
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
 
+    parser.add_argument("-cpc", "--cpc_classification", default=None, help="the desired cpc classification")
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
@@ -118,6 +119,7 @@ def get_tfidf(args, pickle_file_name, df=None):
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, date_header=args.date_header).data_frame
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to, classification=cpc).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
     doc_set = None
@@ -214,7 +216,6 @@ def write_config_to_json(args, doc_pickle_file_name):
         'parameters': {
             'pick': args.pick,
             'time': args.time,
-            'cite': args.cite,
             'focus': args.focus
         }
     }
@@ -322,19 +323,17 @@ def main():
         import nltk
         nltk.data.path.append(args.nltk_path)
 
-    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df)
+    tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df, cpc=args.cpc_classification)
 
     newtfidf = None
     if args.focus or args.output == 'table':
         path2 = os.path.join('data', args.focus_source)
         newtfidf, _ = get_tfidf(args, path2, None)
 
-    out = args.output
-
-    citation_count_dict = None
     if args.cite:
         citation_count_dict = load_citation_count_dict()
 
+    out = args.output
     ngram_multiplier = 4
 
     if out != 'tfidf':
