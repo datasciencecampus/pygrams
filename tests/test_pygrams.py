@@ -47,16 +47,14 @@ class TestPyGrams(unittest.TestCase):
                 'data': patent_pickle_absolute_file_name,
                 'tech_report': report_file_name
             },
-            'year': {
+            'month_year': {
                 'from': '01_2000',
                 'to': '12_2019'
             },
             'parameters': {
-                'cite': False,
-                'cpc': '',
-                'focus': None,
                 'pick': 'sum',
-                'time': False
+                'time': False,
+                'focus': None
             }
         }
         self.assertEqual(expected_json, actual_json)
@@ -82,16 +80,14 @@ class TestPyGrams(unittest.TestCase):
                 'data': patent_pickle_absolute_file_name,
                 'tech_report': report_file_name
             },
-            'year': {
+            'month_year': {
                 'from': '01_1998',
                 'to': '12_2001'
             },
             'parameters': {
-                'cite': True,
-                'cpc': 'Y12',
-                'focus': 'set',
                 'pick': 'max',
-                'time': True
+                'time': True,
+                'focus': 'set'
             }
         }
         self.assertEqual(expected_json, actual_json)
