@@ -101,7 +101,7 @@ class TestPyGrams(unittest.TestCase):
         report_name = os.path.join('outputs', 'reports', 'report_tech.txt')
         graph_report_name = report_name[:len(report_name) - 4] + "_graph.txt"
 
-        test_args = ['--doc_source', 'USPTO-random-1000.pkl.bz2', '-o', 'fdg', '--report_name', report_name]
+        test_args = ['--doc_source', 'USPTO-random-100.pkl.bz2', '-o', 'fdg', '--report_name', report_name]
         pygrams.main(test_args)
 
         mock_open.assert_any_call(json_file_name, 'w')
