@@ -77,8 +77,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
     parser.add_argument("-o", "--output", default='report',
-                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <all>")
+                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts', 'all'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
 
