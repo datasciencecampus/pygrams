@@ -178,7 +178,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
     tfocus = TermFocus(tfidf, tfidf_random, id_header=args.id_header,
                        text_header=args.text_header, date_header=args.date_header)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
+                                                                            citation_count_dict, ngram_multiplier,
                                                                             num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
