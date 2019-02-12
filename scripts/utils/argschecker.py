@@ -1,4 +1,4 @@
-class ArgsChecker():
+class ArgsChecker:
 
     def __init__(self, args, args_default):
         self.args = args
@@ -57,7 +57,7 @@ class ArgsChecker():
             app_exit = True
 
         if self.args.num_ngrams_report < 10:
-            print(f"at least 10 ngrams needed for report, {args.num_ngrams_report} chosen")
+            print(f"at least 10 ngrams needed for report, {self.args.num_ngrams_report} chosen")
             app_exit = True
 
         if self.args.num_ngrams_fdg < 10:
@@ -77,8 +77,8 @@ class ArgsChecker():
         if self.args.wordcloud_title != self.args_default.wordcloud_title or \
                 self.args.wordcloud_name != self.args_default.wordcloud_name or \
                 self.args.num_ngrams_wordcloud != self.args_default.num_ngrams_wordcloud:
-            if self.output != 'wordcloud' or self.output != 'all':
-                print(args.wordcloud_title)
+            if self.args.output != 'wordcloud' or self.args.output != 'all':
+                print(self.args.wordcloud_title)
                 print('arguments [-wn] [-wt] [-nd] can only be used when output includes worldcloud '
                       '[-o] "wordcloud" or "all"')
                 app_exit = True
@@ -98,7 +98,6 @@ class ArgsChecker():
             if self.args.output != 'table' or self.args.output != 'all':
                 print('argument [-tn] can only be used when output includes table [-o] "table" or "all"')
                 app_exit = True
-
 
         if app_exit:
             exit(0)
