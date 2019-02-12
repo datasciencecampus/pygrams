@@ -181,7 +181,7 @@ class TFIDF:
         self.__dataframe.dropna(subset=[self.__text_header], inplace=True)
         num_docs_after_sift = self.__dataframe.shape[0]
         num_docs_sifted = num_docs_before_sift - num_docs_after_sift
-        print(f'Dropped {num_docs_sifted:,} docs due to empty text field')
+        print(f'Dropped {num_docs_sifted:,} from {num_docs_before_sift:,} docs due to empty text field')
 
         self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__text_header])
         self.__feature_names = self.__vectorizer.get_feature_names()
