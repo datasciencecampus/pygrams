@@ -45,6 +45,7 @@ def year2pandas_earliest_date(year_in, month_in):
         return Timestamp(str(year_in) + '-01-01')
 
     year_string = str(year_in) + '-' + str(month_in) + '-01'
+
     return Timestamp(year_string)
 
 
@@ -80,6 +81,7 @@ def get_args(command_line_arguments):
                         help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
+
     parser.add_argument("-yf", "--year_from", default=None,
                         help="The first year for the document cohort in YYYY format")
     parser.add_argument("-mf", "--month_from", default=None,
@@ -176,7 +178,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
     tfocus = TermFocus(tfidf, tfidf_random, id_header=args.id_header,
                        text_header=args.text_header, date_header=args.date_header)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
+                                                                            citation_count_dict, ngram_multiplier,
                                                                             num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
