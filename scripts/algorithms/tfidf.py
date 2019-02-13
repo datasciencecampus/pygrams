@@ -79,7 +79,9 @@ class StemTokenizer(object):
 
 def lowercase_strip_accents_and_ownership(doc):
     lowercase_no_accents_doc = strip_accents_ascii(doc.lower())
-    txt= lowercase_no_accents_doc.replace('"', '').replace("\'s", "").replace("\'ve", " have").replace("\'re", " are").replace("\'", "").strip("`").strip()
+    txt = lowercase_no_accents_doc.replace('"', '').replace("\'s", "").replace("\'ve", " have").replace("\'re",
+                                                                                                        " are").replace(
+        "\'", "").strip("`").strip()
     return txt
 
 
@@ -151,9 +153,11 @@ class WordAnalyzer(object):
 
 
 class TFIDF:
+
     def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
                  id_header='patent_id', text_header='abstract', date_header='publication_date',
                  normalize_doc_length=False, uni_factor=0.8):
+
         self.__dataframe = docs_df
 
         WordAnalyzer.init(
@@ -191,11 +195,10 @@ class TFIDF:
         max_bi_freq = self.__max_bigram()
         self.__clean_unigrams(max_bi_freq)
         for i in range(ngram_range[0], ngram_range[1]):
-            self.__unbias_ngrams(i+1)
+            self.__unbias_ngrams(i + 1)
 
         self.__lost_state = False
         self.__ngram_range = ngram_range
-
 
     @property
     def tfidf_matrix(self):
@@ -235,7 +238,7 @@ class TFIDF:
             self.__clean_unigrams(max_bi_freq)
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
             for i in range(self.__ngram_range[0], self.__ngram_range[1]):
-                 self.__unbias_ngrams(i + 1)
+                self.__unbias_ngrams(i + 1)
             self.__lost_state = False
 
         if time:
@@ -256,7 +259,7 @@ class TFIDF:
 
             for i, v in enumerate(time_weights):
                 self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
-                self.__lost_state=True
+                self.__lost_state = True
 
         if citation_count_dict:
             #TODO check if we need -2 below. If not, we only need one dict for both citations and docs_set
@@ -304,16 +307,16 @@ class TFIDF:
         for ngram_index, ngram in enumerate(feature_iterator):
 
             start_idx_inptr = tfidf_csc_matrix.indptr[ngram_index]
-            end_idx_inptr = tfidf_csc_matrix.indptr[ngram_index+1]
+            end_idx_inptr = tfidf_csc_matrix.indptr[ngram_index + 1]
 
             non_zero_values_term = tfidf_csc_matrix.data[start_idx_inptr:end_idx_inptr]
 
             if docs_set is not None:
 
                 row_indices_term = tfidf_csc_matrix.indices[start_idx_inptr:end_idx_inptr]
-                non_zero_values_term_set=[]
+                non_zero_values_term_set = []
 
-                indices_idx=0
+                indices_idx = 0
                 for doc_idx in docs_set:
                     while indices_idx < len(row_indices_term) and row_indices_term[indices_idx] <= doc_idx:
                         if row_indices_term[indices_idx] == doc_idx:
@@ -321,7 +324,7 @@ class TFIDF:
                         indices_idx += 1
                 non_zero_values_term = non_zero_values_term_set
 
-            if len(non_zero_values_term)>0:
+            if len(non_zero_values_term) > 0:
                 pick_value = pick_func(non_zero_values_term)
 
                 if np.isnan(pick_value):
@@ -395,11 +398,10 @@ class TFIDF:
                 big_ngram_terms = big_ngram.split()
 
                 if len(big_ngram_terms) == ngram_length:
-
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
-                    ngram_minus_back  = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
+                    ngram_minus_back = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
                     idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
-                    idx_ngram_minus_back  = self.__vectorizer.vocabulary_.get(ngram_minus_back)
+                    idx_ngram_minus_back = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
                     ngram_counts = self.__tfidf_matrix.data[j]

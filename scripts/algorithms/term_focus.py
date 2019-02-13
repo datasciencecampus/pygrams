@@ -2,7 +2,8 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 
-class TermFocus():
+
+class TermFocus:
 
     def __init__(self, tf_idf_in, tf_idf_random_in, id_header='patent_id', text_header='abstract',
                  date_header='publication_date'):
@@ -13,10 +14,8 @@ class TermFocus():
         self.__text_header = text_header
         self.__date_header = date_header
 
-    def detect_and_focus_popular_ngrams(self,args, citation_count_dict, ngram_multiplier, num_ngrams, docs_set=None):
-        pick = args.pick
-        time = args.time
-        focus = args.focus
+    def detect_and_focus_popular_ngrams(self, pick, time, focus, citation_count_dict, ngram_multiplier, num_ngrams,
+                                        docs_set=None):
 
         terms, ngrams_scores_tuple = self.__tfidf.detect_popular_ngrams_in_docs_set(
             number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
@@ -29,9 +28,10 @@ class TermFocus():
 
         elif focus == 'set':
             print('Applying set difference focus')
-            focus_set_terms = self.popular_ngrams_by_set_difference(number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
-                                                               pick=pick, time=time,
-                                                               citation_count_dict=citation_count_dict)
+            focus_set_terms = self.popular_ngrams_by_set_difference(
+                number_of_ngrams_to_return=ngram_multiplier * num_ngrams,
+                pick=pick, time=time,
+                citation_count_dict=citation_count_dict)
         elif focus == 'chi2':
             print('Applying chi2 focus')
             focus_terms, focus_scores = self.popular_ngrams_by_chi2_importance(ngram_multiplier * num_ngrams)
@@ -67,11 +67,10 @@ class TermFocus():
         return set_terms
 
     def popular_ngrams_by_chi2_importance(self, num_ngrams_report):
-        return self.__popular_ngrams_with_selectkbest( num_ngrams_report, chi2)
+        return self.__popular_ngrams_with_selectkbest(num_ngrams_report, chi2)
 
-    def popular_ngrams_by_mutual_information(self,  num_ngrams_report):
+    def popular_ngrams_by_mutual_information(self, num_ngrams_report):
         return self.__popular_ngrams_with_selectkbest(num_ngrams_report, mutual_info_classif)
-
 
     def __popular_ngrams_with_selectkbest(self, num_ngrams_report, score_func):
         df = pd.DataFrame(self.__tfidf.text, columns=[self.__text_header])

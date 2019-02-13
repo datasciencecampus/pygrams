@@ -304,6 +304,7 @@ usage: pygrams.py [-h] [-f {set,chi2,mutual}] [-ndl] [-t] [-pt PATH]
                   [-tn TABLE_NAME] [-nltk NLTK_PATH]
 
 create report, wordcloud, and fdg graph for document abstracts
+
 ```
 It continues with a detailed description of the arguments:
 ```
