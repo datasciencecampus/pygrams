@@ -26,15 +26,42 @@ class TestGraph(unittest.TestCase):
         self.assertEquals(471, len(self.__links))
 
     def test_terms_in_nodes(self):
-        self.assertIn({'text': 'central portion', 'freq': 0.054940822918518054}, self.__nodes)
-        self.assertIn({'text': 'fluid commun', 'freq': 0.032458775009343}, self.__nodes)
-        self.assertIn({'text': 'provid seed', 'freq': 0.014660739181626243}, self.__nodes)
-        self.assertIn({'text': 'gate line', 'freq': 0.07741770854955801} , self.__nodes)
+        texts = [x['text'] for x in self.__nodes]
+
+        self.assertIn('central portion', texts)
+        self.assertIn('fluid commun', texts)
+        self.assertIn('provid seed', texts)
+        self.assertIn('gate line', texts)
+
+        idx_1 = texts.index("central portion")
+        idx_2 = texts.index("fluid commun")
+        idx_3 = texts.index("provid seed")
+        idx_4 = texts.index("gate line")
+
+        self.assertAlmostEqual(0.054940822918518054, self.__nodes[idx_1]['freq'])
+        self.assertAlmostEqual(0.032458775009343,    self.__nodes[idx_2]['freq'])
+        self.assertAlmostEqual(0.014660739181626243, self.__nodes[idx_3]['freq'])
+        self.assertAlmostEqual(0.07741770854955801,  self.__nodes[idx_4]['freq'])
 
     def test_terms_in_links(self):
-        self.assertIn({'source': 'semiconductor substrat', 'target': 'diffus barrier materi', 'size': 0.179044009721727}, self.__links)
-        self.assertIn({'source': 'lock arm', 'target': 'swing arm', 'size': 0.0969491167354179}, self.__links)
-        self.assertIn({'source': 'bodi portion', 'target': 'elastomer portion', 'size': 0.21718768050108705}, self.__links)
-        self.assertIn({'source': 'central portion', 'target': 'convex outer surfac', 'size': 0.11142954674438521} , self.__links)
+
+        texts = [(x['source'], x['target']) for x in self.__links]
+
+        self.assertIn(('semiconductor substrat', 'diffus barrier materi'), texts)
+        self.assertIn(('lock arm', 'swing arm'), texts)
+        self.assertIn(('bodi portion', 'elastomer portion'), texts)
+        self.assertIn(('central portion', 'convex outer surfac'), texts)
+
+        idx_1 = texts.index(('semiconductor substrat', 'diffus barrier materi'))
+        idx_2 = texts.index(('lock arm', 'swing arm'))
+        idx_3 = texts.index(('bodi portion', 'elastomer portion'))
+        idx_4 = texts.index(('central portion', 'convex outer surfac'))
+
+        self.assertAlmostEqual(0.179044009721727, self.__links[idx_1]['size'])
+        self.assertAlmostEqual(0.0969491167354179,    self.__links [idx_2]['size'])
+        self.assertAlmostEqual(0.21718768050108705, self.__links [idx_3]['size'])
+        self.assertAlmostEqual(0.11142954674438521,  self.__links[idx_4]['size'])
+
+
 
 
