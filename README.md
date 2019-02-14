@@ -3,21 +3,241 @@
 [![codecov](https://codecov.io/gh/datasciencecampus/pyGrams/branch/master/graph/badge.svg)](https://codecov.io/gh/datasciencecampus/pyGrams)
 [![LICENSE.](https://img.shields.io/badge/license-OGL--3-blue.svg?style=flat)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
-# patent_app_detect 
+# pyGrams 
+ 
+<p align="center"><img align="center" src="meta/images/pygrams-logo.png" width="400px"></p>
  
 ## Description of tool
 
-The tool is designed to derive popular terminology included within a particular patent technology
-area ([CPC classification](https://www.epo.org/searching-for-patents/helpful-resources/first-time-here/classification/cpc.html)), 
-based on text analysis of patent abstract information.  If the tool is targeted at the 
-[Y02 classification](https://www.epo.org/news-issues/issues/classification/classification.html), for example, 
-identified terms could include 'fuel cell' and 'heat exchanger'. A number of options are provided, for example to 
-provide report, word cloud, graphical or raw TF-IDF matrix output. Some example outputs are shown below:
+This python-based app (`pygrams.py`) is designed to extract popular n-grams from free text within a large (>1000) corpus of documents.
 
+## Installation guide
 
-### Report
+pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
-The score here is derived from the term [tf-idf](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values using the Y02 classification on a 10,000 random sample of patents. The terms are all bigrams in this example.
+1. Please make sure Python 3.6 is installed and set at your path.  
+
+   To check the Python version default for your system, run the following in command line/terminal:
+
+   ```
+   python --version
+   ```
+   
+   **_Note_**: If Python 2.x is the default Python version, but you have installed Python 3.x, your path may be setup to use `python3` instead of `python`.
+   
+2. To install pyGrams packages and dependencies, from the root directory (./pyGrams) run:
+
+   ``` 
+   pip install -e .
+   ```
+   
+   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure and we will get back to you. Or open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
+
+### System requirements
+
+We have stress-tested `pygrams.py` using Windows 10 (64-bit) with 8GB memory (VM hosted on 2.1GHz Xeon E5-2620). We observed a linear increase in both execution time and memory usage in relation to number of documents analysed, resulting in:
+
+- Processing time: 41.2 documents/sec
+- Memory usage: 236.9 documents/MB
+
+For the sample files, this was recorded as:
+
+- 1,000 documents: 0:00:37
+- 10,000 documents: 0:04:45 (285s); 283MB
+- 100,000 documents: 0:40:10 (2,410s); 810MB
+- 500,000 documents: 3:22:08 (12,128s); 2,550MB
+
+## User guide
+
+pyGrams is command line driven, and called in the following manner:
+
+```
+python pygrams.py
+```
+
+### Document Parameters
+
+#### Selecting the document source (-ds, -pt)
+
+This arguement is used to select the corpus of documents to analyse. The default source is a pre-created random 1,000 patent dataset from the USPTO, `USPTO-random-1000`. 
+
+Pre-created datasets of 100, 1,000, 10,000, 100,000, and 500,000 patents are available in the `./data` folder:
+
+- ```USPTO-random-100.pkl.bz2```
+- ```USPTO-random-1000.pkl.bz2```
+- ```USPTO-random-10000.pkl.bz2```
+- ```USPTO-random-100000.pkl.bz2```
+- ```USPTO-random-500000.pkl.bz2```
+
+For example, to load the 10,000 pickled dataset for patents, use:
+
+```
+python pygrams.py -ds=USPTO-random-10000
+```
+
+To use your own document dataset, either place in the `./data` folder of pyGrams or change the path using `-pt`. File types currently supported are:
+
+- bz2: compressed file usually used to compress a pickle (pkl) dataset
+- xlsx: new Microsoft excel format
+- xls: old Microsoft excel format
+- csv: comma separated value file (with headers)
+
+Datasets should contain the following columns:
+
+|Column			            |	    Required?  |
+| :------------------------ | -------------------:|
+|Unique ID                  |       Yes           |
+|Free text field            |       Yes           |
+|Date                       |       Optional      |
+|Boolean fields (Yes/No)    |       Optional      |
+
+The unique ID field should contain unique identifiers for each row of the dataset. The free text field can be any free text, for example an abstract. The date field should be in the format `YYYY-MM-DD HH:MM:SS`. The boolean fields can be any Yes/No data (there may be multiple)
+
+#### Selecting the column header names (-nh, -th, -dh)
+
+When loading a document dataset, you will need to provide the column header names for each, using:
+
+- `-nh`: unique ID column (default is 'id')
+- `-th`: free text field column (default is 'text')
+- `-dh`: date column (default is 'date')
+
+For example, for a corpus of book blurbs you could use:
+
+```
+python pygrams.py -nh='book_name' -th='blurb' -dh='published_date'
+```
+
+#### Word filters (-fh, -fb)
+
+If you want to filter results, such as for female, British, authors in the above example, you can specify the boolean (yes/no) column names you wish to filter by, and the type of filter you want to apply, using:
+
+- `-fh`: the list of boolean fields (default is None)
+- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
+
+```
+python pygrams.py -fh=['female','british'] -fb='union'
+```
+
+#### Time filters (-mf, -yf, -mt, -yt)
+
+This argument can be used to filter documents to a certain timeframe. For example, the below, will restrict the document cohort to only those from 2000 up to now (the default 'month from' `-mf` is January).
+
+```
+python pygrams.py -yf=2000
+```
+
+This will restrict the document cohort to only those between March 2000 and July 2016.
+
+```
+python pygrams.py -mf=03 -yf=2000 -mt=07 -yt=2016
+```
+
+### TF-IDF Parameters 
+
+#### N-gram selection (-mn, -mx)
+
+An n-gram is a contiguous sequence of n items ([source](https://en.wikipedia.org/wiki/N-gram)). N-grams can be unigrams (single words, e.g., vehicle), bigrams (sets of words, e.g., aerial vehicle), trigrams (trio of words, e.g., unmanned aerial vehicle) or any n number of continuous terms. 
+
+The following arguments will set the n-gram limit to be bigrams or trigrams (the default).
+
+```
+python pygrams.py -mn=2 -mx=3
+```
+
+To analyse only unigrams:
+
+```
+python pygrams.py -mn=1 -mx=1
+```
+
+#### Maximum document frequency (-mdf)
+
+Terms identified are filtered by the maximum number of documents that use this term; the default is 0.3, representing an upper limit of 30% of documents containing this term. If a term occurs in more that 30% of documents it is rejected.
+
+For example, to set the maximum document frequency to 5%, use:
+
+```
+python pygrams.py -mdf 0.05
+```
+
+By using a small ($\leq$ 5%) maximum document frequency for unigrams, this may help remove generic words, or stop words.
+
+#### TF-IDF score mechanics (-p)
+
+By default the TF-IDF score will be calculated as the sum of the TF-IDF values per document. However you can select:
+
+- `median`: the median value
+- `max`: the maximum value
+- `sum`: the sum of all values
+- `avg`: the average, over non zero values
+
+To choose an average scoring for example, use:
+
+```
+python pygrams.py -p='avg'
+```
+
+#### Time-weighting (-t)
+
+This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
+
+```
+python pygrams.py -t
+```
+
+#### Term focus (-f)
+
+This option utilises a second random document dataset, by default `USPTO-random-10000`
+(termed the focus source), whose terms are discounted from the filtered dataset to try and 'focus' the identified terms away from terms found more generally in a document corpus. An
+example focus (using `set` difference) is as follows:
+
+```
+python pygrams.py -f=set
+```
+
+The available focus options are:
+
+- `set`: discounts terms that are also found in the focus source
+- `chi2`: discounts terms that are not found in the focus source using chi2
+- `mutual`: discounts terms that are not found in the focus source using mutual information
+
+#### Choose focus source (-fs)
+
+This selects the set of documents for use during the term focus option, for example for a larger dataset.
+
+```
+python pygrams.py -fs=USPTO-random-100000
+```
+
+### Outputs Parameters (-o)
+
+The default option outputs a report of top ranked terms. Additional command line arguments provide alternative options, for example a word cloud or force directed graph (fdg) output. The option 'all', produces all:
+
+```
+python pygrams.py -o='report'
+python pygrams.py -o='wordcloud'
+python pygrams.py -o='fdg'
+python pygrams.py -o='table'
+python pygrams.py -o='tfidf'
+python pygrams.py -o='termcounts'
+python pygrams.py -o='all'
+```
+
+The output options generate:
+
+- `report` (default): a text file containing top n terms (default is 250 terms, see `-np` for more details)
+- `wordcloud`: a word cloud containing top n terms (default is 250 terms, see `-nd` for more details)
+- `fdg`: a force-directed graph containing top n terms (default is 250 terms, see `-nf` for more details)
+- `table`: an XLS spreadsheet to compare term rankings
+- `tfidf`: a pickle of the TFIDF matrix
+- `termcounts`: a pickle of term counts per week
+- `all`: all of the above
+
+Note that all outputs are generated in the `outputs` subfolder. Below are some example outputs:
+
+#### Report ('report')
+
+The report will output the top n number of terms (default is 250) and their associated [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) score. Below is an example for patent data, where only bigrams have been analysed.
 
 |Term			            |	    TF-IDF Score  |
 | :------------------------ | -------------------:|
@@ -32,202 +252,22 @@ The score here is derived from the term [tf-idf](https://en.wikipedia.org/wiki/T
 |9. carbon dioxide          |       1.092638      |
 |10. control unit           |       1.069478      |
 
-### Word cloud
+#### Wordcloud ('wordcloud')
 
-Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/patent_app_detect/master/outputs/wordclouds/wordcloud_tech.png) using the Y02 classification on a 10,000 random sample of patents. The greater the tf-idf score, the larger the font size of the term.
+A wordcloud, or tag cloud, is a novel visual representation of text data, where words (tags) importance is shown with font size and colour. Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/pygrams/master/outputs/wordclouds/wordcloud_tech.png) using patent data. The greater the TF-IDF score, the larger the font size of the term.
 
-### Force directed graph
+#### Force directed graph ('fdg')
 
-This output provides an interactive graph in the to be viewed in a web browser (you need to locally open the file ```outputs/fdg/index.html```). The graph shows connections between terms that are generally found in the same patent documents. The example wordcloud in the ```outputs/fdg``` folder was created using the Y02 classification on a 10,000 random sample of patents.
+This output provides an interactive HTML graph. The graph shows connections between terms that are generally found in the same documents.
 
-### TF-IDF matrix
+#### TF-IDF matrix ('tfidf')
 
-Of use for further processing, the TF-IDF matrix can be output as a pickle file. 
-This is stored in `outputs/tfidf/<data source>-tfidf.pkl.bz2`, containing a list of three items:
-- TF-IDF sparse matrix
-- List of terms (column heading)
-- List of patent publication dates (row heading)
+The TF-IDF matrix can be saved as a pickle file, containing a list of four items:
 
-### Term counts matrix
-
-Of use for further processing, the number of patents containing a term in a given week
-(stored as a matrix) can be output as a pickle file. 
-This is stored in `outputs/tfidf/<data source>-term_counts.pkl.bz2`, containing a list of three items:
-- Term counts per week (sparse matrix)
-- List of terms (column heading)
-- List of number of patents in that week
-- List of patent publication dates (row heading)
-
-## How to install
-
-The tool has been developed to work on both Windows and MacOS. To install:
-
-1. Please make sure Python 3.6 is installed and set at your path.  
-   It can be installed from [this location](https://www.python.org/downloads/release/python-360/) selecting the *relevant installer for your opearing system*. When prompted, please check the box to set the paths and environment variables for you and you should be ready to go. Python can also be installed as part of Anaconda [here](https://www.anaconda.com/download/#macos).
-
-   To check the Python version default for your system, run the following in command line/terminal:
-
-   ```
-   python --version
-   ```
-   
-   **_Note_**: If Python 2 is the default Python version, but you have installed Python 3.6, your path may be setup to use `python3` instead of `python`.
-   
-2. To install the packages and dependencies for the tool, from the root directory (patent_app_detect) run:
-   ``` 
-   pip install -e .
-   ```
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email ons.patent.explorer@gmail.com
-   with a screenshot of the failure and we will get back to you.
-
-## How to use
-
-The program is command line driven, and called in the following manner:
-
-```
-python detect.py
-```
-
-The above produces a default report output of top ranked terms, using default parameters. Additional command line arguments provide alternative options, for example a word cloud or force directed graph (fdg) output. The option 'all', produces all:
-
-```
-python detect.py -o='report'
-python detect.py -o='wordcloud'
-python detect.py -o='fdg'
-python detect.py -o='table'
-python detect.py -o='tfidf'
-python detect.py -o='termcounts'
-python detect.py -o='all'
-```
-The output options generate:
-- report: text file summarising top terms (the default option if no output is specified)
-- wordcloud: a word cloud
-- fdg: a force-directed graph
-- table: an XLS spreadsheet to compare term rankings
-- tfidf: a pickle of the TFIDF matrix
-- termcounts: a pickle of term counts per week
-- all: all of the above
-
-Note that all outputs are generated in the `outputs` subfolder.
-### Choosing patent source
-
-This selects the set of patents for use during analysis. The default source is a pre-created random 1,000 patent dataset from the USPTO, `USPTO-random-1000`. Pre-created datasets of 100, 1,000, 10,000, 100,000, and 500,000 patents are available in the `./data` folder. For example using:
-
-```
-python detect.py -ps=USPTO-random-10000
-```
-
-Will run the tool for a pre-created random dataset of 10,000 patents.
-
-### Additional patent sources
-
-Patent datasets are stored in the sub-folder ```data```, we have supplied the following files:
-- ```USPTO-random-100.pkl.bz2```
-- ```USPTO-random-1000.pkl.bz2```
-- ```USPTO-random-10000.pkl.bz2```
-- ```USPTO-random-100000.pkl.bz2```
-- ```USPTO-random-500000.pkl.bz2```
-
-The command ```python detect.py -ps=USPTO-random-10000``` instructs the program to load a pickled data frame of patents
-from a file located in ```data/USPTO-random-10000.pkl.bz2```. Hence ```-ps=NAME``` looks for ```data/NAME.pkl.bz2```.
-
-We have hosted larger datasets on a google drive, as the files are too large for GitHub version control. We have made available:
-- All USPTO patents from 2004 (477Mb, 3.1M patents): [USPTO-all.pkl.bz2](https://drive.google.com/open?id=1m7-_b7-4U7jkNSj4eBt2vE9wol2YAnJJ)
- 
-To use additional files, follow the link and download the pickle file into the data folder. Access the new data
-with ```-ps=NameWithoutFileExtension```; for example, ```USPTO-all.pkl.bz2``` would be loaded with ```-ps=USPTO-all```.
-
-### System requirements
-
-We have stress-tested `detect.py` using Windows 10 (64-bit) with 8Gb memory (VM hosted on 2.1GHz Xeon E5-2620). We observed
-a linear increase in both execution time and memory usage in relation to number of patents analysed, resulting in:
-- Processing time: 41.2 patents/sec
-- Memory usage: 236.9 patents/Mb
-
-For the sample files, this was recorded as:
-- 1,000 patents: 0:00:37
-- 10,000 patents: 0:04:45 (285s); 283Mb
-- 100,000 patents: 0:40:10 (2,410s); 810Mb
-- 500,000 patents: 3:22:08 (12,128s); 2,550Mb
-
-### Choosing CPC classification
-
-This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". In this case a larger patent dataset is generally required to allow for the reduction in patent numbers after subsetting. An example script is:
-
-```
-python detect.py -cpc=Y02 -ps=USPTO-random-10000
-```
-
-In the console the number of subset patents will be stated. For example, for `python detect.py -cpc=Y02 -ps=USPTO-random-10000` the number of Y02 patents is 197. Thus, the tf-idf will be run for 197 patents.
-
-
-### Term n-gram limits
-
-Terms identified may be unigrams, bigrams, or trigrams. The following arguments set the ngram limits for 2-3 word terms (which are the default values).
-```
-python detect.py -mn=2 -mx=3
-```
-
-### N-Gram frequency limits
-
-Terms identified are filtered by the maximum number of documents that use this term; default is 0.3, representing
-an upper limit of 30% of documents mentioning this term. If a term occurs in more that 30% of documents it is rejected.
-For example, to set the upper document frequency limit to 5%, use:
-```
-python detect.py -mdf 0.05
-```
-
-### Time limits
-This will restrict the patents cohort to only those from 2000 up to now.
-
-```
-python detect.py -yf=2000
-```
-
-This will restrict the patents cohort to only those between 2000 - 2016.
-
-```
-python detect.py -yf=2000 -yt=2016
-```
-### Time weighting
-
-This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
-```
-python detect.py -t
-```
-
-### Citation weighting
-
-This will weight the term tfidf scores by the number of citations each patent has. The weight is a normalised value between 0 and 1 with the higher the number indicating a higher number of citations.
-
-```
-python detect.py -c
-```
-
-### Term focus
-
-This option utilises a second random patent dataset, by default `USPTO-random-10000`
-(termed the focus source),
-whose terms are discounted from the chosen CPC classification to try and 'focus' the
-identified terms away from terms found more generally in the patent dataset. An
-example focus (using `set` difference) is as follows:
-
-```
-python detect.py -f=set
-```
-
-The available focus options are:
-- `set` discounts terms that are also found in the focus source
-- `chi2` discounts terms that are not found in the focus source using chi2
-- `mutual` discounts terms that are not found in the focus source using mutual information
-
-### Choose focus source
-
-This selects the set of patents for use during the term focus option, for example for a larger dataset.
-
-```
-python detect.py -fs=USPTO-random-100000
-```
+- The TF-IDF sparse matrix
+- List of unique terms
+- List of document publication dates
+- List of unique document IDs
 
 ### Config files
 
@@ -237,31 +277,34 @@ There are three configuration files available inside the config directory:
 - stopwords_n.txt
 - stopwords_uni.txt
 
-The first file (stopwords_glob.txt) contains stopwords that are applied to all ngrams.
-The second file contains stopwords that are applied to all n-grams for n>1 and the last file (stopwords_uni.txt) contain stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams.
+The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams) and the last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
 
 ## Help
 
 A help function details the range and usage of these command line arguments:
+
 ```
-python detect.py -h
+python pygrams.py -h
 ```
 
 An edited version of the help output is included below. This starts with a summary of arguments:
 
 ```
-python detect.py -h
-usage: detect.py [-h] [-f {set,chi2,mutual}] [-c] [-t]
-                 [-p {median,max,sum,avg}]
-                 [-o {fdg,wordcloud,report,table,tfidf,termcounts,all}] [-j]
-                 [-yf YEAR_FROM] [-yt YEAR_TO] [-np NUM_NGRAMS_REPORT]
-                 [-nd NUM_NGRAMS_WORDCLOUD] [-nf NUM_NGRAMS_FDG]
-                 [-ps PATENT_SOURCE] [-fs FOCUS_SOURCE] [-mn {1,2,3}]
-                 [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY] [-rn REPORT_NAME]
-                 [-wn WORDCLOUD_NAME] [-wt WORDCLOUD_TITLE] [-tn TABLE_NAME]
-                 [-cpc CPC_CLASSIFICATION] [-nltk NLTK_PATH]
+python pygrams.py -h
+usage: pygrams.py [-h] [-f {set,chi2,mutual}] [-ndl] [-t] [-pt PATH]
+                  [-ah ABSTRACT_HEADER] [-fc FILTER_COLUMNS]
+                  [-fb {union,intersection}] [-p {median,max,sum,avg}]
+                  [-o {fdg,wordcloud,report,table,tfidf,termcounts,all}] [-j]
+                  [-yf YEAR_FROM] [-yt YEAR_TO] [-np NUM_NGRAMS_REPORT]
+                  [-nd NUM_NGRAMS_WORDCLOUD] [-nf NUM_NGRAMS_FDG]
+                  [-ds DOC_SOURCE] [-fs FOCUS_SOURCE] [-mn {1,2,3}]
+                  [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
+                  [-rn REPORT_NAME] [-wn WORDCLOUD_NAME] [-wt WORDCLOUD_TITLE]
+                  [-tn TABLE_NAME] [-nltk NLTK_PATH]
 
-create report, wordcloud, and fdg graph for patent texts
+create report, wordcloud, and fdg graph for document abstracts
+
 ```
 It continues with a detailed description of the arguments:
 ```
@@ -271,8 +314,18 @@ optional arguments:
                         clean output from terms that appear in general; 'set':
                         set difference, 'chi2': chi2 for feature importance,
                         'mutual': mutual information for feature importance
-  -c, --cite            weight terms by citations
+  -ndl, --normalize_doc_length
+                        normalize tf-idf scores by document length
   -t, --time            weight terms by time
+  -pt PATH, --path PATH
+                        the data path
+  -ah ABSTRACT_HEADER, --abstract_header ABSTRACT_HEADER
+                        the data path
+  -fc FILTER_COLUMNS, --filter_columns FILTER_COLUMNS
+                        list of columns to filter by
+  -fb {union,intersection}, --filter_by {union,intersection}
+                        options are <all> <any> defaults to any. Returns
+                        filter where all are 'Yes' or any are 'Yes
   -p {median,max,sum,avg}, --pick {median,max,sum,avg}
                         options are <median> <max> <sum> <avg> defaults to
                         sum. Average is over non zero values
@@ -282,19 +335,19 @@ optional arguments:
   -j, --json            Output configuration as JSON file alongside output
                         report
   -yf YEAR_FROM, --year_from YEAR_FROM
-                        The first year for the patent cohort
+                        The first year for the document cohort
   -yt YEAR_TO, --year_to YEAR_TO
-                        The last year for the patent cohort (0 is now)
+                        The last year for the documents cohort (0 is now)
   -np NUM_NGRAMS_REPORT, --num_ngrams_report NUM_NGRAMS_REPORT
                         number of ngrams to return for report
   -nd NUM_NGRAMS_WORDCLOUD, --num_ngrams_wordcloud NUM_NGRAMS_WORDCLOUD
                         number of ngrams to return for wordcloud
   -nf NUM_NGRAMS_FDG, --num_ngrams_fdg NUM_NGRAMS_FDG
                         number of ngrams to return for fdg graph
-  -ps PATENT_SOURCE, --patent_source PATENT_SOURCE
-                        the patent source to process
+  -ds DOC_SOURCE, --doc_source DOC_SOURCE
+                        the doc source to process
   -fs FOCUS_SOURCE, --focus_source FOCUS_SOURCE
-                        the patent source for the focus function
+                        the doc source for the focus function
   -mn {1,2,3}, --min_n {1,2,3}
                         the minimum ngram value
   -mx {1,2,3}, --max_n {1,2,3}
@@ -309,8 +362,6 @@ optional arguments:
                         wordcloud title
   -tn TABLE_NAME, --table_name TABLE_NAME
                         table filename
-  -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
-                        the desired cpc classification
   -nltk NLTK_PATH, --nltk_path NLTK_PATH
                         custom path for NLTK data
 ```
@@ -337,6 +388,5 @@ project by Iryna Herasymuk is used to generate the force directed graph output.
 ### 3rd Party Library Usage
 
 Various 3rd party libraries are used in this project; these are listed
-on the [dependencies](https://github.com/datasciencecampus/patent_app_detect/network/dependencies) page,
-whose contributions we gratefully acknowledge. 
+on the [dependencies](https://github.com/datasciencecampus/pygrams/network/dependencies) page, whose contributions we gratefully acknowledge. 
 
