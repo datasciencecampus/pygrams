@@ -37,8 +37,8 @@ class TestTFIDF(unittest.TestCase):
                            columns=['patent_id', 'abstract', 'classifications_cpc', 'publication_date'])
         df = df.append(df2)
 
-        tfidf_engine = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer(), normalize_doc_length=False)
-        actual_popular_terms, ngrams_scores = tfidf_engine.detect_popular_ngrams_in_docs_set(docs_set=[1000])
+        tfidf_obj = TFIDF(df, ngram_range=(2, 4), tokenizer=StemTokenizer(), normalize_doc_length=False)
+        actual_popular_terms, ngrams_scores = tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[1000])
         actual_scores = [score[0] for score in ngrams_scores]
         expected_popular_terms = ['audio encod', 'audio sourc stream', 'encod audio output stream']
         expected_scores = [0.17716887713942972, 0.08858443856971486, 0.08858443856971486, 0.08858443856971486, 0.08858443856971486]

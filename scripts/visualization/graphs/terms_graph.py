@@ -17,6 +17,10 @@ class TermsGraph(object):
         self.__node_links_dict = self.__update_dict()
         self.__update_graph()
 
+    @property
+    def graph (self):
+        return self.__graph
+
     def __update_dict(self):
         node_links_dict = {}
         for term in self.__terms_list:
@@ -40,13 +44,13 @@ class TermsGraph(object):
         return node_links_dict
 
     def __update_graph(self):
-        nodes=[]
-        links =[]
-        node_min=float("inf")
-        node_max=0
+        nodes = []
+        links = []
+        node_min = float("inf")
+        node_max = 0
 
-        link_min=float("inf")
-        link_max=0
+        link_min = float("inf")
+        link_max = 0
         for term_tup in self.__tfidf_term_list:
             node_min = node_min if term_tup[0] > node_min else term_tup[0]
             node_max = node_max if term_tup[0] < node_max else term_tup[0]
