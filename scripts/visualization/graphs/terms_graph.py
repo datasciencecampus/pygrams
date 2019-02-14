@@ -1,9 +1,7 @@
 import json
 import os
-from collections import Counter
 
-from nltk import FreqDist
-from nltk import bigrams
+from tqdm import tqdm
 
 
 class TermsGraph(object):
@@ -12,20 +10,26 @@ class TermsGraph(object):
 
     def __init__(self, list_tfidf_term, tfidf_obj):
 
-        self.___ndocs = len(tfidf_obj.abstracts)
+        self.___ndocs = len(tfidf_obj.text)
         self.__terms_list = [term for _, term in list_tfidf_term]
         self.__tfidf_term_list = list_tfidf_term
         self.__tfidf_obj = tfidf_obj
         self.__node_links_dict = self.__update_dict()
         self.__update_graph()
 
+    @property
+    def graph (self):
+        return self.__graph
+
     def __update_dict(self):
         node_links_dict = {}
         for term in self.__terms_list:
             node_links_dict[term]={}
 
-        for idx in range(self.___ndocs):
-            _, list_term_tfidf = self.__tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[idx], number_of_ngrams_to_return=10)
+        for idx in tqdm(range(self.___ndocs), leave=False, desc='Searching TFIDF', unit='ngram'):
+            _, list_term_tfidf = self.__tfidf_obj.detect_popular_ngrams_in_docs_set(docs_set=[idx],
+                                                                                    number_of_ngrams_to_return=10,
+                                                                                    verbose=False)
             for idx_t1, term_tfidf_tup in enumerate(list_term_tfidf):
                 if term_tfidf_tup[1] not in node_links_dict:
                         continue
@@ -40,13 +44,13 @@ class TermsGraph(object):
         return node_links_dict
 
     def __update_graph(self):
-        nodes=[]
-        links =[]
-        node_min=float("inf")
-        node_max=0
+        nodes = []
+        links = []
+        node_min = float("inf")
+        node_max = 0
 
-        link_min=float("inf")
-        link_max=0
+        link_min = float("inf")
+        link_max = 0
         for term_tup in self.__tfidf_term_list:
             node_min = node_min if term_tup[0] > node_min else term_tup[0]
             node_max = node_max if term_tup[0] < node_max else term_tup[0]
