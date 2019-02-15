@@ -46,6 +46,7 @@ def year2pandas_earliest_date(year_in, month_in):
         return Timestamp(str(year_in) + '-01-01')
 
     year_string = str(year_in) + '-' + str(month_in) + '-01'
+
     return Timestamp(year_string)
 
 
@@ -81,6 +82,7 @@ def get_args(command_line_arguments):
                         help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
+
     parser.add_argument("-yf", "--year_from", default=None,
                         help="The first year for the document cohort in YYYY format")
     parser.add_argument("-mf", "--month_from", default=None,
@@ -191,7 +193,8 @@ def run_report(args, ngram_multiplier, tfidf, tfidf_random=None, wordclouds=Fals
 
     tfocus = TermFocus(tfidf, tfidf_random, id_header=args.id_header,
                        text_header=args.text_header, date_header=args.date_header)
-    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args, citation_count_dict, ngram_multiplier,
+    dict_freqs, focus_set_terms, _ = tfocus.detect_and_focus_popular_ngrams(args.pick, args.time, args.focus,
+                                                                            citation_count_dict, ngram_multiplier,
                                                                             num_ngrams, docs_set=docs_set)
     with open(args.report_name, 'w') as file:
         counter = 1
@@ -262,14 +265,14 @@ def output_tfidf(tfidf_base_filename, tfidf):
     tfidf_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-tfidf.pkl.bz2')
     os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
     with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
-        pickle.dump(tfidf_data, pickle_file)
+        pickle.dump(tfidf_data, pickle_file, protocol=4)
 
     term_present_matrix = tfidf.tfidf_matrix > 0
     term_present_data = [term_present_matrix, tfidf.feature_names, document_week_dates, doc_ids]
     term_present_filename = os.path.join('outputs', 'tfidf', tfidf_base_filename + '-term_present.pkl.bz2')
     os.makedirs(os.path.dirname(term_present_filename), exist_ok=True)
     with bz2.BZ2File(term_present_filename, 'wb') as pickle_file:
-        pickle.dump(term_present_data, pickle_file)
+        pickle.dump(term_present_data, pickle_file, protocol=4)
 
 
 def output_term_counts(tfidf_base_filename, tfidf):
@@ -287,7 +290,7 @@ def output_term_counts(tfidf_base_filename, tfidf):
     term_counts_filename = os.path.join('outputs', 'termcounts', tfidf_base_filename + '-term_counts.pkl.bz2')
     os.makedirs(os.path.dirname(term_counts_filename), exist_ok=True)
     with bz2.BZ2File(term_counts_filename, 'wb') as pickle_file:
-        pickle.dump(term_counts_data, pickle_file)
+        pickle.dump(term_counts_data, pickle_file, protocol=4)
 
 
 def main(supplied_args):
