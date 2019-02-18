@@ -129,9 +129,9 @@ class ArgsChecker:
                 print(f"date_header '{self.args.date_header}' not in dataframe")
                 app_exit = True
 
-        if self.args.output == 'termcounts':
+        if 'termcounts' in self.args.output:
             if self.args.date_header not in df.columns:
-                print(f"cannot output termcounts without a specifying a date column")
+                print(f"Cannot output termcounts without a specifying a date column")
                 app_exit = True
 
         if app_exit:
