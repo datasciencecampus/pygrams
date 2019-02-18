@@ -128,6 +128,7 @@ def get_tfidf(args, pickle_file_name, df=None, cpc=None):
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
         df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
+
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
     doc_set = set([])
