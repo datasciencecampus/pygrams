@@ -59,7 +59,7 @@ python pygrams.py
 
 #### Selecting the document source (-ds, -pt)
 
-This arguement is used to select the corpus of documents to analyse. The default source is a pre-created random 1,000 patent dataset from the USPTO, `USPTO-random-1000`. 
+This argument is used to select the corpus of documents to analyse. The default source is a pre-created random 1,000 patent dataset from the USPTO, `USPTO-random-1000.pkl.bz2`. 
 
 Pre-created datasets of 100, 1,000, 10,000, 100,000, and 500,000 patents are available in the `./data` folder:
 
@@ -72,12 +72,12 @@ Pre-created datasets of 100, 1,000, 10,000, 100,000, and 500,000 patents are ava
 For example, to load the 10,000 pickled dataset for patents, use:
 
 ```
-python pygrams.py -ds=USPTO-random-10000
+python pygrams.py -ds=USPTO-random-10000.pkl.bz2
 ```
 
 To use your own document dataset, either place in the `./data` folder of pyGrams or change the path using `-pt`. File types currently supported are:
 
-- bz2: compressed file usually used to compress a pickle (pkl) dataset
+- pkl.bz2: compressed pickle file containing a dataset
 - xlsx: new Microsoft excel format
 - xls: old Microsoft excel format
 - csv: comma separated value file (with headers)
@@ -164,7 +164,7 @@ By using a small ($\leq$ 5%) maximum document frequency for unigrams, this may h
 
 #### TF-IDF score mechanics (-p)
 
-By default the TF-IDF score will be calculated as the sum of the TF-IDF values per document. However you can select:
+By default the TF-IDF score will be calculated per n-gram as the sum of the TF-IDF values over all documents for the selected n-gram. However you can select:
 
 - `median`: the median value
 - `max`: the maximum value
@@ -187,7 +187,7 @@ python pygrams.py -t
 
 #### Term focus (-f)
 
-This option utilises a second random document dataset, by default `USPTO-random-10000`
+This option utilises a second random document dataset, by default `USPTO-random-1000.pkl.bz2`
 (termed the focus source), whose terms are discounted from the filtered dataset to try and 'focus' the identified terms away from terms found more generally in a document corpus. An
 example focus (using `set` difference) is as follows:
 
@@ -206,7 +206,7 @@ The available focus options are:
 This selects the set of documents for use during the term focus option, for example for a larger dataset.
 
 ```
-python pygrams.py -fs=USPTO-random-100000
+python pygrams.py -fs=USPTO-random-100000.pkl.bz2
 ```
 
 ### Outputs Parameters (-o)
@@ -269,6 +269,38 @@ The TF-IDF matrix can be saved as a pickle file, containing a list of four items
 - List of document publication dates
 - List of unique document IDs
 
+#### Term counts matrix
+
+Of use for further processing, the number of patents containing a term in a given week
+(stored as a matrix) can be output as a pickle file, containing a list of four items:
+- Term counts per week (sparse matrix)
+- List of terms (column heading)
+- List of number of patents in that week
+- List of patent publication dates (row heading)
+
+### Patent specific support
+
+#### Choosing CPC classification
+
+This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. 
+The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". In 
+this case a larger patent dataset is generally required to allow for the reduction in patent numbers after subsetting. 
+An example script is:
+
+```
+python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
+```
+
+In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the tf-idf will be run for 197 patents.
+
+#### Citation weighting
+
+This will weight the term TFIDF scores by the number of citations each patent has. The weight is a normalised value between 0 and 1 with the higher the number indicating a higher number of citations.
+
+```
+python pygrams.py -c
+```
+
 ### Config files
 
 There are three configuration files available inside the config directory:
@@ -292,11 +324,13 @@ An edited version of the help output is included below. This starts with a summa
 
 ```
 python pygrams.py -h
-usage: pygrams.py [-h] [-f {set,chi2,mutual}] [-ndl] [-t] [-pt PATH]
-                  [-ah ABSTRACT_HEADER] [-fc FILTER_COLUMNS]
+usage: pygrams.py [-h] [-cpc CPC_CLASSIFICATION] [-c] [-f {set,chi2,mutual}]
+                  [-ndl] [-t] [-pt PATH] [-ih ID_HEADER] [-th TEXT_HEADER]
+                  [-dh DATE_HEADER] [-fc FILTER_COLUMNS]
                   [-fb {union,intersection}] [-p {median,max,sum,avg}]
                   [-o {fdg,wordcloud,report,table,tfidf,termcounts,all}] [-j]
-                  [-yf YEAR_FROM] [-yt YEAR_TO] [-np NUM_NGRAMS_REPORT]
+                  [-yf YEAR_FROM] [-mf MONTH_FROM] [-yt YEAR_TO]
+                  [-mt MONTH_TO] [-np NUM_NGRAMS_REPORT]
                   [-nd NUM_NGRAMS_WORDCLOUD] [-nf NUM_NGRAMS_FDG]
                   [-ds DOC_SOURCE] [-fs FOCUS_SOURCE] [-mn {1,2,3}]
                   [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
@@ -310,6 +344,9 @@ It continues with a detailed description of the arguments:
 ```
 optional arguments:
   -h, --help            show this help message and exit
+  -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
+                        the desired cpc classification (for patents only)
+  -c, --cite            weight terms by citations (for patents only)
   -f {set,chi2,mutual}, --focus {set,chi2,mutual}
                         clean output from terms that appear in general; 'set':
                         set difference, 'chi2': chi2 for feature importance,
@@ -319,8 +356,12 @@ optional arguments:
   -t, --time            weight terms by time
   -pt PATH, --path PATH
                         the data path
-  -ah ABSTRACT_HEADER, --abstract_header ABSTRACT_HEADER
-                        the data path
+  -ih ID_HEADER, --id_header ID_HEADER
+                        the column name for the unique ID
+  -th TEXT_HEADER, --text_header TEXT_HEADER
+                        the column name for the free text
+  -dh DATE_HEADER, --date_header DATE_HEADER
+                        the column name for the date
   -fc FILTER_COLUMNS, --filter_columns FILTER_COLUMNS
                         list of columns to filter by
   -fb {union,intersection}, --filter_by {union,intersection}
@@ -335,9 +376,13 @@ optional arguments:
   -j, --json            Output configuration as JSON file alongside output
                         report
   -yf YEAR_FROM, --year_from YEAR_FROM
-                        The first year for the document cohort
+                        The first year for the document cohort in YYYY format
+  -mf MONTH_FROM, --month_from MONTH_FROM
+                        The first month for the document cohort in MM format
   -yt YEAR_TO, --year_to YEAR_TO
-                        The last year for the documents cohort (0 is now)
+                        The last year for the document cohort in YYYY format
+  -mt MONTH_TO, --month_to MONTH_TO
+                        The last month for the document cohort in MM format
   -np NUM_NGRAMS_REPORT, --num_ngrams_report NUM_NGRAMS_REPORT
                         number of ngrams to return for report
   -nd NUM_NGRAMS_WORDCLOUD, --num_ngrams_wordcloud NUM_NGRAMS_WORDCLOUD

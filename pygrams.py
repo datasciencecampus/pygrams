@@ -8,6 +8,7 @@ import sys
 
 import pandas as pd
 from pandas import Timestamp, ExcelWriter
+from tqdm import tqdm
 
 from scripts.algorithms.term_focus import TermFocus
 from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
@@ -120,16 +121,16 @@ def get_args(command_line_arguments):
     args = parser.parse_args(command_line_arguments)
     return args
 
-
+#not sure if this should be here. I have a feeling we may need to think of a minor refactoring, making sure things are on the right place
+#especially if other devs jump in the project. Save some of their time for useful things :)
 def get_tfidf(args, pickle_file_name, df=None, cpc=None):
     date_from = year2pandas_earliest_date(args.year_from, args.month_from)
     date_to = year2pandas_latest_date(args.year_to, args.month_to)
     if df is None or args.year_from is not None or args.year_to is not None:
-        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to,
-                                     classification=cpc).data_frame
+        df = PatentsPickle2DataFrame(pickle_file_name, date_from=date_from, date_to=date_to).data_frame
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
-    doc_set = None
+    doc_set = set([])
     if len(header_filter_cols) > 0:
         for header_idx in range(len(header_filter_cols)):
             header_list = df[header_filter_cols[header_idx]]
@@ -145,6 +146,20 @@ def get_tfidf(args, pickle_file_name, df=None, cpc=None):
                 doc_set = doc_set.intersection(set(indices))
             else:
                 doc_set = doc_set.union(set(indices))
+
+    cpc_index_list=[]
+    if cpc is not None:
+        df = df.reset_index(drop=True)
+        for index, row in tqdm(df.iterrows(), desc='Sifting documents for ' + cpc, unit='document', total=df.shape[0]):
+            cpc_list = row['classifications_cpc']
+            for cpc_item in cpc_list:
+                if cpc_item.startswith(cpc):
+                    cpc_index_list.append(index)
+                    break
+        if args.filter_by == 'intersection':
+            doc_set = doc_set.intersection(set(cpc_index_list))
+        else:
+            doc_set = doc_set.union(set(cpc_index_list))
 
     return TFIDF(df, tokenizer=LemmaTokenizer(), ngram_range=(args.min_n, args.max_n), id_header=args.id_header,
                  text_header=args.text_header, date_header=args.date_header,

@@ -41,6 +41,7 @@ class PatentsPickle2DataFrame(object):
 
         self.__data_frame.reset_index(inplace=True, drop=True)
 
+    #deprecated
     def _subset_cpc(self, cpc_in):
         indexes_to_delete = []
         for index, row in tqdm(self.__data_frame.iterrows(), desc='Sifting documents for ' + cpc_in, unit='document',
