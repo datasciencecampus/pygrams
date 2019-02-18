@@ -178,6 +178,7 @@ class TFIDF:
         self.__uni_factor = uni_factor
 
         num_docs_before_sift = self.__dataframe.shape[0]
+        print(self.__text_header)
         self.__dataframe.dropna(subset=[self.__text_header], inplace=True)
         num_docs_after_sift = self.__dataframe.shape[0]
         num_docs_sifted = num_docs_before_sift - num_docs_after_sift
