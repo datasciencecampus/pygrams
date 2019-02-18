@@ -131,7 +131,7 @@ def get_tfidf(args, pickle_file_name, df=None, cpc=None):
 
     header_filter_cols = [x.strip() for x in args.filter_columns.split(",")] if args.filter_columns is not None else []
     header_lists = []
-    doc_set = set([])
+    doc_set = None
     if len(header_filter_cols) > 0:
         for header_idx in range(len(header_filter_cols)):
             header_list = df[header_filter_cols[header_idx]]
@@ -150,6 +150,8 @@ def get_tfidf(args, pickle_file_name, df=None, cpc=None):
 
     cpc_index_list=[]
     if cpc is not None:
+        if doc_set is None:
+            doc_set = set([])
         df = df.reset_index(drop=True)
         for index, row in tqdm(df.iterrows(), desc='Sifting documents for ' + cpc, unit='document', total=df.shape[0]):
             cpc_list = row['classifications_cpc']
