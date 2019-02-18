@@ -349,7 +349,7 @@ def main(supplied_args):
     tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df, cpc=args.cpc_classification)
 
     newtfidf = None
-    if args.focus or 'table' not in args.output:
+    if args.focus or 'table' in args.output:
         path2 = os.path.join('data', args.focus_source)
         newtfidf, _ = get_tfidf(args, path2, None)
 
