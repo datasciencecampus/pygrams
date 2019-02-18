@@ -69,7 +69,7 @@ class ArgsChecker:
                 print('argument [-fs] can only be used when focus is applied [-f]')
                 app_exit = True
 
-        if self.args.output == 'table' or self.args.output == 'all':
+        if 'table' in self.args.output:
             if self.args.focus is None:
                 print('define a focus before requesting table (or all) output')
                 app_exit = True
@@ -77,26 +77,26 @@ class ArgsChecker:
         if self.args.wordcloud_title != self.args_default.wordcloud_title or \
                 self.args.wordcloud_name != self.args_default.wordcloud_name or \
                 self.args.num_ngrams_wordcloud != self.args_default.num_ngrams_wordcloud:
-            if self.args.output != 'wordcloud' or self.args.output != 'all':
+            if 'wordcloud' not in self.args.output:
                 print(self.args.wordcloud_title)
-                print('arguments [-wn] [-wt] [-nd] can only be used when output includes worldcloud '
-                      '[-o] "wordcloud" or "all"')
+                print('arguments [-wn] [-wt] [-nd] can only be used when output includes wordcloud '
+                      '[-o] "wordcloud"')
                 app_exit = True
 
         if self.args.report_name != self.args_default.report_name or \
                 self.args.num_ngrams_report != self.args_default.num_ngrams_report:
-            if self.args.output != 'report' or self.args.output != 'all':
-                print('arguments [-rn] [-np] can only be used when output includes report [-o] "report" or "all"')
+            if 'report' not in self.args.output:
+                print('arguments [-rn] [-np] can only be used when output includes report [-o] "report"')
                 app_exit = True
 
         if self.args.num_ngrams_fdg != self.args_default.num_ngrams_fdg:
-            if self.args.output != 'fdg' or self.args.output != 'all':
-                print('argument [-nf] can only be used when output includes fdg [-o] "fdg" or "all]')
+            if 'fdg' not in self.args.output:
+                print('argument [-nf] can only be used when output includes fdg [-o] "fdg"')
                 app_exit = True
 
         if self.args.table_name != self.args_default.table_name:
-            if self.args.output != 'table' or self.args.output != 'all':
-                print('argument [-tn] can only be used when output includes table [-o] "table" or "all"')
+            if 'table' not in self.args.output:
+                print('argument [-tn] can only be used when output includes table [-o] "table"')
                 app_exit = True
 
         if app_exit:
@@ -129,9 +129,9 @@ class ArgsChecker:
                 print(f"date_header '{self.args.date_header}' not in dataframe")
                 app_exit = True
 
-        if self.args.output == 'termcounts':
+        if 'termcounts' in self.args.output:
             if self.args.date_header not in df.columns:
-                print(f"cannot output termcounts without a specifying a date column")
+                print(f"Cannot output termcounts without a specifying a date column")
                 app_exit = True
 
         if app_exit:

@@ -77,9 +77,10 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
-    parser.add_argument("-o", "--output", default='report',
-                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts', 'all'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts> <all>")
+    parser.add_argument("-o", "--output", default=['report'], nargs='*',
+                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
+                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts>;"
+                             " note that this can be defined multiple times to get more than one output")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
 
@@ -350,7 +351,7 @@ def main(supplied_args):
     tfidf, doc_set = get_tfidf(args, doc_source_file_name, df=df, cpc=args.cpc_classification)
 
     newtfidf = None
-    if args.focus or args.output == 'table':
+    if args.focus or 'table' not in args.output:
         path2 = os.path.join('data', args.focus_source)
         newtfidf, _ = get_tfidf(args, path2, None)
 
@@ -361,23 +362,23 @@ def main(supplied_args):
     out = args.output
     ngram_multiplier = 4
 
-    if out != 'tfidf':
-        wordclouds_flag = (out == 'wordcloud')
+    if 'report' in out or 'wordcloud' in out or 'fdg' in out:
+        wordclouds_flag = ('wordcloud' in out)
         dict_freqs = run_report(args, ngram_multiplier, tfidf, newtfidf, wordclouds=wordclouds_flag, docs_set=doc_set,
                                 citation_count_dict=citation_count_dict)
 
-    if out == 'table' or out == 'all':
+    if 'table' in out:
         run_table(args, ngram_multiplier, tfidf, newtfidf, citation_count_dict=citation_count_dict)
 
-    if out == 'fdg' or out == 'all':
+    if 'fdg' in out:
         num_ngrams = args.num_ngrams_report
         freqs_list = list(dict_freqs.items())[:num_ngrams]
         run_fdg(freqs_list, tfidf, args.report_name, args.num_ngrams_report)
 
-    if out == 'tfidf' or out == 'all':
+    if 'tfidf' in out:
         output_tfidf(args.doc_source, tfidf)
 
-    if out == 'termcounts' or out == 'all':
+    if 'termcounts' in out:
         output_term_counts(args.doc_source, tfidf)
 
 
