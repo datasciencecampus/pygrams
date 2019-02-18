@@ -54,7 +54,7 @@ def setup_package():
             'Programming Language :: Python :: 3.6',
         ],
         install_requires=['matplotlib', 'numpy', 'scipy', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn', 'xlrd',
-                          'python-Levenshtein', 'numba'],
+                          'python-Levenshtein'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
         python_requires='>=3.6',
     )
