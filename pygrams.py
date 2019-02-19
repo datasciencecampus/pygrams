@@ -307,7 +307,6 @@ def main(supplied_args):
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
-    df = None
     if doc_source_file_name.endswith('.pkl.bz2'):
         df = pd.read_pickle(doc_source_file_name)
     elif doc_source_file_name.endswith('.xls'):
@@ -316,6 +315,9 @@ def main(supplied_args):
         df = pd.read_csv(doc_source_file_name, engine='python', error_bad_lines=False, nrows=10000)
     elif doc_source_file_name.endswith('.xlsx'):
         df = pd.read_excel(doc_source_file_name)
+    else:
+        print(f"Unrecognised file extension '{os.path.splitext(doc_source_file_name)[1]}' for document format")
+        return 1
 
     argscheck.checkdf(df)
 
@@ -378,6 +380,11 @@ def main(supplied_args):
     if out == 'termcounts' or out == 'all':
         output_term_counts(args.doc_source, tfidf)
 
+    return 0
+
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    return_code = main(sys.argv[1:])
+
+    if return_code != 0:
+        exit(return_code)
