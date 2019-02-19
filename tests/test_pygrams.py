@@ -112,6 +112,14 @@ class TestPyGrams(unittest.TestCase):
         self.assertIn('nodes', actual_json)
         self.assertIn('links', actual_json)
 
+    @mock.patch("pygrams.print", create=True)
+    def test_reports_unsupported_df_format(self, mock_print):
+        test_args = ['--doc_source', 'unknown.format']
+        return_code = pygrams.main(test_args)
+
+        self.assertEqual(1, return_code)
+        mock_print.assert_any_call("Unrecognised file extension '.format' for document format")
+
 
 if __name__ == '__main__':
     unittest.main()
