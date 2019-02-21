@@ -156,6 +156,86 @@ class TestPipeline(unittest.TestCase):
     @mock.patch("scripts.algorithms.tfidf.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
+    def test_simple_two_patents_unigrams_only_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open,
+                                                           mock_pickle_dump, mock_read_pickle):
+        fake_df_data = {
+            'abstract': [
+                'abstract one',
+                'abstract two'
+            ],
+            'patent_id': [
+                'family0',
+                'family1'
+            ],
+            'application_id': [
+                'app_orig0',
+                'app_orig1'
+            ],
+            'application_date': [
+                pd.Timestamp('1998-01-01 00:00:00'),
+                pd.Timestamp('1998-02-09 00:00:00')
+            ],
+            'publication_date': [
+                pd.Timestamp('1999-01-08 00:00:00'),
+                pd.Timestamp('1999-02-01 00:00:00')
+            ],
+            'invention_title': [
+                'title1',
+                'title1',
+            ],
+            'classifications_cpc': [
+                ['Y02'],
+                ['Q17/1234'],
+            ],
+            'inventor_names': [
+                ['A N OTHER', 'JONES FRED'],
+                ['fred']
+            ],
+            'inventor_countries': [
+                ['US', 'DE'],
+                ['GB']
+            ],
+            'inventor_cities': [
+                ['Ontario N2L 3W8', '73527 Schwäbisch Gmünd'],
+                ['Newport']
+            ],
+            'applicant_organisation': [
+                ['FISH I AM'],
+                ['Neat and tidy']
+            ],
+            'applicant_countries': [
+                ['GB'],
+                ['FR']
+            ],
+            'applicant_cities': [
+                ['Newport NP20 1XJ'],
+                ['Paris']
+            ]
+        }
+
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+                'publication_date', '--max_document_frequency', '1.0', '--max_n', '1']
+
+        return_value = pygrams.main(args)
+
+        self.assertEqual(0, return_value, 'Return value indicates failure')
+
+        def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
+            self.assertListEqual(feature_names, ['abstract', 'one', 'two'])
+            tfidf_as_lists = tfidf_matrix.todense().tolist()
+            self.assertListAlmostEqual(tfidf_as_lists[0], [0.5085, 0.8610, 0], places=4)
+            self.assertListAlmostEqual(tfidf_as_lists[1], [0.5085, 0, 0.8610], places=4)
+            self.assertListEqual(document_week_dates, [199901, 199905])
+            self.assertListEqual(doc_ids, ['family0', 'family1'])
+
+        self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+
+    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("pickle.dump", create=True)
+    @mock.patch("scripts.algorithms.tfidf.open", create=True)
+    @mock.patch("bz2.BZ2File", create=True)
+    @mock.patch("os.makedirs", create=True)
     def test_stopwords_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
         fake_df_data = {
             'abstract': [
