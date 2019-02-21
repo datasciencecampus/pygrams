@@ -1,4 +1,4 @@
-from scripts.data_reader import DataReader
+from scripts.data_factory import DataFactory
 from scripts.documents_filter import DocumentsFilter
 from scripts.tfidf_wraper import TFIDF
 from scripts.tfidf_mask import TfidfMask
@@ -12,8 +12,7 @@ class Pipeline(object):
         if pickled_tf_idf():
             print('read from pickle')
         else:
-            datareader = DataReader()
-            df = datareader.get_data_frame()
+            df = DataFactory.get_data_frame()
             filter = DocumentsFilter(df, filters)
             doc_ids=filter.get_document_indices()
             tfidf_obj = TFIDF(docs_df=df)
