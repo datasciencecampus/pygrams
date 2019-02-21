@@ -9,8 +9,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 class TFIDF:
 
     def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
-                 id_header='patent_id', text_header='abstract', date_header='publication_date',
-                 normalize_doc_length=False, uni_factor=0.8):
+                 id_header='patent_id', text_header='abstract'):
 
         self.__dataframe = docs_df
 
@@ -28,8 +27,6 @@ class TFIDF:
 
         self.__id_header = id_header
         self.__text_header = text_header
-        self.__date_header = date_header
-        self.__uni_factor = uni_factor
 
         num_docs_before_sift = self.__dataframe.shape[0]
         print(self.__text_header)
@@ -41,19 +38,9 @@ class TFIDF:
         self.__ngram_counts = self.__vectorizer.fit_transform(self.__dataframe[self.__text_header])
         self.__feature_names = self.__vectorizer.get_feature_names()
 
-        if normalize_doc_length:
-            self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
-            self.__normalize_rows()
-
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
-        max_bi_freq = self.__max_bigram()
-        self.__clean_unigrams(max_bi_freq)
-        for i in range(ngram_range[0], ngram_range[1]):
-            self.__unbias_ngrams(i + 1)
 
-        self.__lost_state = False
-        self.__ngram_range = ngram_range
 
     @property
     def tfidf_matrix(self):
@@ -72,9 +59,5 @@ class TFIDF:
         return self.__feature_names
 
     @property
-    def dates(self):
-        return list(self.__dataframe[self.__date_header])
-
-    @property
-    def doc_ids(self):
-        return list(self.__dataframe[self.__id_header])
+    def ngram_counts(self):
+        return self.__ngram_counts
