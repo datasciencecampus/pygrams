@@ -95,7 +95,7 @@ class TestPipeline(unittest.TestCase):
     def test_simple_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
         fake_df_data = {
             'abstract': [
-                'abstract one'
+                'abstract'
             ],
             'patent_id': [
                 'family0'
