@@ -11,6 +11,78 @@ from scripts import FilePaths
 
 
 class TestPipeline(unittest.TestCase):
+    data_source_name = 'dummy.pkl.bz2'
+
+    def setUp(self):
+        self.global_stopwords = '''the
+other
+'''
+        self.ngram_stopwords = '''with
+'''
+        self.unigram_stopwords = '''unusually
+because
+'''
+
+    def preparePyGrams(self, fake_df_data, mock_read_pickle, mock_open, mock_bz2file):
+        df = pd.DataFrame(data=fake_df_data)
+        mock_read_pickle.return_value = df
+
+        def open_fake_file(file_name, state):
+            self.assertEqual(state, 'r', "Only supports file.open in read mode")
+            m = MagicMock()
+            m.__enter__.return_value = Mock()
+            m.__exit__.return_value = Mock()
+
+            if file_name == FilePaths.global_stopwords_filename:
+                m.__enter__.return_value.read.return_value = self.global_stopwords
+                return m
+
+            elif file_name == FilePaths.ngram_stopwords_filename:
+                m.__enter__.return_value.read.return_value = self.ngram_stopwords
+                return m
+
+            elif file_name == FilePaths.unigram_stopwords_filename:
+                m.__enter__.return_value.read.return_value = self.unigram_stopwords
+                return m
+
+            else:
+                return None
+
+        mock_open.side_effect = open_fake_file
+
+        def bz2file_fake(file_name, state):
+            self.assertEqual(state, 'wb', "Only supports file.open in write mode")
+            m = MagicMock()
+            m.__enter__.return_value = Mock()
+            m.__exit__.return_value = Mock()
+            m.__enter__.return_value = file_name
+            return m
+
+        mock_bz2file.side_effect = bz2file_fake
+
+    def assertOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
+        mock_makedirs.assert_called_with(self.tfidfOutputFolder(), exist_ok=True)
+        results_checked = False
+        for dump_args in mock_pickle_dump.call_args_list:
+            if dump_args[0][1] == self.tfidfFileName(self.data_source_name):
+                [tfidf_matrix, feature_names, document_week_dates, doc_ids] = dump_args[0][0]
+
+                assert_func(tfidf_matrix=tfidf_matrix, feature_names=feature_names,
+                            document_week_dates=document_week_dates, doc_ids=doc_ids)
+
+                results_checked = True
+                break
+
+        if not results_checked:
+            self.fail('Results were not matched - were filenames correct?')
+
+    @staticmethod
+    def tfidfFileName(data_source_name):
+        return os.path.join('outputs', 'tfidf', data_source_name + '-tfidf.pkl.bz2')
+
+    @staticmethod
+    def tfidfOutputFolder():
+        return os.path.join('outputs', 'tfidf')
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
@@ -59,72 +131,22 @@ class TestPipeline(unittest.TestCase):
                 ['Newport NP20 1XJ']
             ]
         }
-        df = pd.DataFrame(data=fake_df_data)
-        mock_read_pickle.return_value = df
 
-        global_stopwords = '''the
-other
-'''
-        ngram_stopwords = '''with
-'''
-        unigram_stopwords = '''unusually
-because
-'''
-
-        def open_fake_file(file_name, state):
-            m = MagicMock()
-            m.__enter__.return_value = Mock()
-            m.__exit__.return_value = Mock()
-
-            if file_name == FilePaths.global_stopwords_filename:
-                m.__enter__.return_value.read.return_value = global_stopwords
-                return m
-
-            elif file_name == FilePaths.ngram_stopwords_filename:
-                m.__enter__.return_value.read.return_value = ngram_stopwords
-                return m
-
-            elif file_name == FilePaths.unigram_stopwords_filename:
-                m.__enter__.return_value.read.return_value = unigram_stopwords
-                return m
-
-            else:
-                return None
-
-        mock_open.side_effect = open_fake_file
-
-        def bz2file_fake(file_name, state):
-            m = MagicMock()
-            m.__enter__.return_value = Mock()
-            m.__exit__.return_value = Mock()
-            m.__enter__.return_value = file_name
-            return m
-
-        mock_bz2file.side_effect = bz2file_fake
-
-        data_source_name = 'dummy.pkl.bz2'
-        tfidf_file_name = os.path.join('outputs', 'tfidf', data_source_name + '-tfidf.pkl.bz2')
-        args = ['-o', 'tfidf', '-ds', data_source_name, '--id_header', 'patent_id', '--date_header', 'publication_date',
-                '--max_document_frequency', '1.0']
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+                'publication_date', '--max_document_frequency', '1.0']
 
         return_value = pygrams.main(args)
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
-        results_checked = False
-        for dump_args in mock_pickle_dump.call_args_list:
-            if dump_args[0][1] == tfidf_file_name:
-                [tfidf_matrix, feature_names, document_week_dates, doc_ids] = dump_args[0][0]
+        def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
+            self.assertEqual(tfidf_matrix.todense(), np.ones(shape=(1, 1)), 'TFIDF should be 1x1 matrix of 1')
+            self.assertListEqual(feature_names, ['abstract'])
+            self.assertListEqual(document_week_dates, [199901])
+            self.assertListEqual(doc_ids, ['family0'])
 
-                self.assertEqual(tfidf_matrix.todense(), np.ones(shape=(1, 1)), 'TFIDF should be 1x1 matrix of 1')
-                self.assertListEqual(feature_names, ['abstract'])
-                self.assertListEqual(document_week_dates, [199901])
-                self.assertListEqual(doc_ids, ['family0'])
-                results_checked = True
-                break
-
-        if not results_checked:
-            self.fail('Results were not matched - were filenames correct?')
+        self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
 
 if __name__ == '__main__':
