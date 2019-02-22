@@ -27,17 +27,14 @@ def get(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, name=N
         graph.save_graph("key-terms", 'data')
 
     elif output_type == 'wordcloud':
-        print(output_type)
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         wordcloud = MultiCloudPlot( freqsin=dict_freqs, max_words=len(output))
         filename_and_path = os.path.join('outputs', 'wordclouds', name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
     elif output_type == 'termcounts':
-        print(output_type)
         term_counts_filename = os.path.join('outputs', 'termcounts', name + '-term_counts.pkl.bz2')
         os.makedirs(os.path.dirname(term_counts_filename), exist_ok=True)
         with bz2.BZ2File(term_counts_filename, 'wb') as pickle_file:
             pickle.dump(term_counts_mat, pickle_file, protocol=4)
-
     else:
         assert 0, "Bad output type: " + output_type

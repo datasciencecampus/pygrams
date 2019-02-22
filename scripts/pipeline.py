@@ -17,8 +17,10 @@ class Pipeline(object):
     def __init__(self, data_filename, filter_columns, cpc=None, pick_method='sum', max_n=3, min_n=1,
                  normalize_rows=False, text_header='abstract', term_counts=False, dates_header=None,
                  pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df=0.1):
-        print()
+        # load data
         df = datafactory.get(data_filename)
+
+        # calculate tf-idf mat
         if pickled_tf_idf:
             print('read from pickle')
             self.__tfidf_obj = None
@@ -26,22 +28,24 @@ class Pipeline(object):
 
             self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
+        # docs subset
+        doc_ids = DocumentsFilter(df, filter_columns, filter_by, cpc).doc_indices
 
-        doc_filter_obj = DocumentsFilter(df, filter_columns, filter_by, cpc)
-        doc_ids = doc_filter_obj.doc_indices
-        doc_weights_obj = DocumentsWeights(time, citation_dict)
-        tfidf_mask_object = TfidfMask(self.__tfidf_obj, doc_weights_obj.weights,
-                                      norm_rows=normalize_rows, max_ngram_length=max_n)
-        tfidf_mask = tfidf_mask_object.get_mask()
+        # doc weights
+        doc_weights = DocumentsWeights(time, citation_dict).weights
+
+        # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
+        tfidf_mask = TfidfMask(self.__tfidf_obj, doc_weights,
+                               norm_rows=normalize_rows, max_ngram_length=max_n).tfidf_mask
 
         self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj, tfidf_mask)
         self.__term_counts_mat=None
         if term_counts:
             self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
+        #if other outputs
         term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
         filter_output_obj = FilterTerms(term_score_tuples, nterms=nterms)
         self.__term_score_tuples = filter_output_obj.term_score_tuples
-        print('done')
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:

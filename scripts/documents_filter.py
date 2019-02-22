@@ -15,13 +15,6 @@ class DocumentsFilter(object):
             else:
                 self.__doc_indices = self.__doc_indices.union(set(doc_set))
 
-
-        # if filter_by == 'any':
-        #     return filter_df[filter_df['filter'] > 0].index.values.tolist()
-        # else:
-        #     return filter_df[filter_df['filter'] == filter_df.shape[1] - 1].index.values.tolist()
-
-
     @property
     def doc_indices(self):
         return self.__doc_indices
