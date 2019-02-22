@@ -192,11 +192,28 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
+        # tf(t) = num of occurrences / number of words in doc
+        #
+        # smoothing is false, so no modification to log numerator or denominator:
+        # idf(d, t) = log [ n / df(d, t) ] + 1
+        #
+        # n = total number of docs
+        #
+        # norm='l2' by default
+
+        tfidf_abstract = (1 / 2) * (np.log(2 / 2) + 1)
+        tfidf_one = (1 / 2) * (np.log(2 / 1) + 1)
+        l2norm = np.sqrt(tfidf_abstract * tfidf_abstract + tfidf_one * tfidf_one)
+        l2norm_tfidf_abstract = tfidf_abstract / l2norm
+        l2norm_tfidf_one = tfidf_one / l2norm
+
+        # Note that 'one' will have same weight as 'two' given where it appears
+
         def assert_tfidf_outputs(tfidf_matrix, feature_names):
             self.assertListEqual(feature_names, ['abstract', 'one', 'two'])
             tfidf_as_lists = tfidf_matrix.todense().tolist()
-            self.assertListAlmostEqual(tfidf_as_lists[0], [0.5085, 0.8610, 0], places=4)
-            self.assertListAlmostEqual(tfidf_as_lists[1], [0.5085, 0, 0.8610], places=4)
+            self.assertListAlmostEqual(tfidf_as_lists[0], [l2norm_tfidf_abstract, l2norm_tfidf_one, 0], places=4)
+            self.assertListAlmostEqual(tfidf_as_lists[1], [l2norm_tfidf_abstract, 0, l2norm_tfidf_one], places=4)
 
         self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
