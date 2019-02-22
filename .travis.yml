@@ -54,7 +54,7 @@ script:
   # for codecov support
   - pip install pytest pytest-cov
   # command to run tests
-  - pytest --cov-config ../.coveragerc --cov=./ tests/
+  - pytest --cov-config .coveragerc --cov=./ tests/
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
