@@ -1,16 +1,12 @@
-import bz2
-import os
-import pickle
-
 import scripts.data_factory as datafactory
+import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
 from scripts.filter_output_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wrapper import TFIDF
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
-import scripts.output_factory as output_factory
+from scripts.tfidf_wrapper import TFIDF
 
 
 class Pipeline(object):
@@ -25,7 +21,6 @@ class Pipeline(object):
             print('read from pickle')
             self.__tfidf_obj = None
         else:
-
             self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
         # docs subset
@@ -39,10 +34,10 @@ class Pipeline(object):
                                norm_rows=normalize_rows, max_ngram_length=max_n).tfidf_mask
 
         self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj, tfidf_mask)
-        self.__term_counts_mat=None
+        self.__term_counts_mat = None
         if term_counts:
             self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
-        #if other outputs
+        # if other outputs
         term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
         filter_output_obj = FilterTerms(term_score_tuples, nterms=nterms)
         self.__term_score_tuples = filter_output_obj.term_score_tuples
