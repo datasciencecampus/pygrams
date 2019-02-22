@@ -49,6 +49,6 @@ class Pipeline(object):
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:
-            output_factory.get(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
-                               tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                               nterms=nterms, term_counts_mat=self.__term_counts_mat)
+            output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
+                                  tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
+                                  nterms=nterms, term_counts_mat=self.__term_counts_mat)
