@@ -8,35 +8,36 @@ class TermsGraph(object):
     MAX_NODES = 50
     MAX_LINKS = 10
 
-    def __init__(self, list_tfidf_term, tfidf_obj):
+    def __init__(self, list_tfidf_term, tfidf_reduce_obj):
 
-        self.___ndocs = len(tfidf_obj.text)
+        self.___ndocs = len(tfidf_reduce_obj.feature_names)
         self.__terms_list = [term for _, term in list_tfidf_term]
         self.__tfidf_term_list = list_tfidf_term
-        self.__tfidf_obj = tfidf_obj
+        self.__tfidf_reduce_obj = tfidf_reduce_obj
         self.__node_links_dict = self.__update_dict()
         self.__update_graph()
 
     @property
-    def graph (self):
+    def graph(self):
         return self.__graph
 
     def __update_dict(self):
         node_links_dict = {}
         for term in self.__terms_list:
-            node_links_dict[term]={}
+            node_links_dict[term] = {}
 
         for idx in tqdm(range(self.___ndocs), leave=False, desc='Searching TFIDF', unit='ngram'):
-            _, list_term_tfidf = self.__tfidf_obj.extract_ngrams_from_docs_set(docs_set=[idx],
-                                                                               number_of_ngrams_to_return=10,
-                                                                               verbose=False)
+            list_term_tfidf = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(docs_subset=[idx],
+                                                                                   pick_method='sum',
+                                                                                   verbose=False)
+            list_term_tfidf = list_term_tfidf[:10]
             for idx_t1, term_tfidf_tup in enumerate(list_term_tfidf):
                 if term_tfidf_tup[1] not in node_links_dict:
-                        continue
+                    continue
                 for idx_t2, term_freq2 in enumerate(list_term_tfidf):
                     if idx_t1 == idx_t2:
                         continue
-                    weight = term_freq2[0] if term_freq2[1] not in self.__terms_list else 5*term_freq2[0]
+                    weight = term_freq2[0] if term_freq2[1] not in self.__terms_list else 5 * term_freq2[0]
                     if term_freq2[1] not in node_links_dict[term_tfidf_tup[1]]:
                         node_links_dict[term_tfidf_tup[1]][term_freq2[1]] = weight
                     else:
@@ -97,7 +98,8 @@ class TermsGraph(object):
         links = graph['links']
         new_links = []
         for link in links:
-            if link['target'] in self.__terms_list[:self.MAX_NODES] and link['source'] in self.__terms_list[:self.MAX_NODES]:
+            if link['target'] in self.__terms_list[:self.MAX_NODES] and link['source'] in self.__terms_list[
+                                                                                          :self.MAX_NODES]:
                 new_links.append(link)
 
         graph['links'] = new_links
@@ -115,5 +117,5 @@ class TermsGraph(object):
     def graph(self):
         return self.__graph
 
-    def normalize(self,x, minx, maxx, offset=0.0):
-        return((x-minx)/(maxx-minx)) + offset
+    def normalize(self, x, minx, maxx, offset=0.0):
+        return ((x - minx) / (maxx - minx)) + offset

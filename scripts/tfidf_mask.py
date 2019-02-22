@@ -1,33 +1,32 @@
 import numpy as np
 
+
 class TfidfMask(object):
-    def __init__(self, tfidf_mat, tf_mat, feature_names, doc_weights, text_abstracts, vectorizer, unigrams=True,
+    def __init__(self, tfidf_obj, doc_weights,  unigrams=True,
                  norm_rows=False, max_ngram_length=3, uni_factor=0.8):
         print('creating the tf-idf mask')
-        self.__tfidf_matrix = tfidf_mat
-        self.__feature_names = feature_names
+        self.__tfidf_matrix = tfidf_obj.tfidf_matrix
+        self.__feature_names = tfidf_obj.feature_names
         self.__doc_weights = doc_weights
-        self.__text_abstracts = text_abstracts
-        self.__tfidf_mask = np.ones(len(tfidf_mat.data))
-        self.__vectorizer = vectorizer
-        self.__tf_mat = tf_mat
+        self.__text_abstracts = tfidf_obj.text
+        self.__tfidf_mask = np.ones(len(self.__tfidf_matrix.data))
+        self.__vectorizer = tfidf_obj.vectorizer
+        self.__tf_mat = tfidf_obj.ngram_counts
         self.__uni_factor=uni_factor
 
         # self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
 
-        #do unigrams
+        # do unigrams
         if unigrams:
             self.__clean_unigrams(self.__max_bigram())
 
-        #normalize rows to text length
+        # normalize rows to text length
         if norm_rows:
             if doc_weights is None:
-                self.__doc_weights=np.ones(len(text_abstracts))
+                self.__doc_weights=np.ones(len(self.__text_abstracts))
             self.__normalize_rows()
 
         self.__unbias_ngrams(max_ngram_length)
-
-
 
     def get_mask(self):
         return self.__tfidf_mask
@@ -93,13 +92,21 @@ class TfidfMask(object):
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
                     ngram_counts = self.__tf_mat.data[j]
-
+                    print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_front])
+                    print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_back])
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
 
-    def __unbias_ngrams_slice(self, indices_slice, idx_ngram, ngram_counts, start_idx_ptr):
-        if idx_ngram in indices_slice:
-            idx = indices_slice.tolist().index(idx_ngram)
-            ratio = (self.__tf_mat.data[start_idx_ptr + idx] - ngram_counts)/ngram_counts
+    def __unbias_ngrams_slice(self, indices_slice, idx_small_ngram, big_ngram_counts, start_idx_ptr):
+        if idx_small_ngram in indices_slice:
+            idx = indices_slice.tolist().index(idx_small_ngram)
+            small_term_counts = self.__tf_mat.data[start_idx_ptr + idx]
+            col_idx = self.__tfidf_matrix.indices[start_idx_ptr + idx]
+            ngram = self.__feature_names[col_idx]
+            print(ngram)
+            print("big: " + str(big_ngram_counts))
+            print("small: " + str(small_term_counts))
+            ratio = (small_term_counts - big_ngram_counts) / small_term_counts
+            print('ratio: ' + str(ratio))
             self.__tfidf_mask[start_idx_ptr + idx] *= ratio
 
