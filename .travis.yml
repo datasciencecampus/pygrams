@@ -40,7 +40,7 @@ before_install: |
   fi
 
   export BOTO_CONFIG=/dev/null
-  
+
 install:
   - python --version
   - python -m pip install -U pip
