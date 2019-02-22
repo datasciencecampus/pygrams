@@ -54,7 +54,7 @@ def get_args(command_line_arguments):
                         help="number of ngrams to return for report")
     parser.add_argument("-nd", "--num_ngrams_wordcloud", type=int, default=250,
                         help="number of ngrams to return for wordcloud")
-    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=250,
+    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=50,
                         help="number of ngrams to return for fdg graph")
 
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
@@ -66,8 +66,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
                         help="the maximum document frequency to contribute to TF/IDF")
 
-    parser.add_argument("-rn", "--report_name", default=os.path.join('outputs', 'reports', 'report_tech.txt'),
-                        help="report filename")
+    parser.add_argument("-rn", "--report_name", default='report_tech.txt', help="report filename")
     parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds',
                                                                         'wordcloud_tech.png'),
                         help="wordcloud filename")
@@ -96,9 +95,9 @@ def main(supplied_args):
     doc_source_file_name = os.path.join(args.path, args.doc_source)
     pipeline = Pipeline(doc_source_file_name, filter_columns=args.filter_columns, cpc=args.cpc_classification, pick_method=args.pick,
                         max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length, filter_by=args.filter_by,
-                        nterms=args.num_ngrams_report)
+                        nterms=args.num_ngrams_report, text_header=args.text_header)
 
-    pipeline.output(args.output)
+    pipeline.output(args.output, wordcloud_title=args.wordcloud_title, wordcloud_name=args.wordcloud_name, reportname=args.report_name, nterms=50)
 
 
 if __name__ == '__main__':

@@ -3,36 +3,40 @@ from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
 from scripts.filter_output_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wraper import TFIDF
+from scripts.tfidf_wrapper import TFIDF
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 import scripts.output_factory as output_factory
 
 
 class Pipeline(object):
-    def __init__(self, data_filename,  filter_columns, cpc = None, pick_method='sum', max_n=3, min_n=1, normalize_rows=False,
-                 pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df = 0.1):
+    def __init__(self, data_filename, filter_columns, cpc=None, pick_method='sum', max_n=3, min_n=1,
+                 normalize_rows=False, text_header='abstract',
+                 pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df=0.1):
         print()
+        df = datafactory.get(data_filename)
         if pickled_tf_idf:
             print('read from pickle')
+            self.__tfidf_obj = None
         else:
-            df = datafactory.get(data_filename)
-            doc_filter_obj = DocumentsFilter(df, filter_columns, filter_by, cpc)
-            doc_ids=doc_filter_obj.doc_indices
-            doc_weights_obj = DocumentsWeights(time, citation_dict)
 
-            tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
-                              tokenizer=LemmaTokenizer())
-            tfidf_mat = tfidf_obj.tfidf_matrix
-            tfidf_mask_object = TfidfMask(tfidf_mat, tfidf_obj.ngram_counts, tfidf_obj.feature_names, doc_weights_obj.weights, tfidf_obj.text,
-                                          tfidf_obj.vectorizer, norm_rows=normalize_rows, max_ngram_length=max_n)
-            tfidf_mask = tfidf_mask_object.get_mask()
-            tfidf_reduce_obj = TfidfReduce(tfidf_mat, tfidf_obj.feature_names, tfidf_mask, doc_ids, pick_method)
-            term_score_tuples = tfidf_reduce_obj.term_score_tuples
-            filter_output_obj = FilterTerms(term_score_tuples,nterms=nterms)
-            self.__term_score_tuples = filter_output_obj.term_score_tuples
-            print('done')
+            self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
+                                     tokenizer=LemmaTokenizer(), text_header=text_header)
 
-    def output(self, output_types):
+        doc_filter_obj = DocumentsFilter(df, filter_columns, filter_by, cpc)
+        doc_ids = doc_filter_obj.doc_indices
+        doc_weights_obj = DocumentsWeights(time, citation_dict)
+        tfidf_mask_object = TfidfMask(self.__tfidf_obj, doc_weights_obj.weights,
+                                      norm_rows=normalize_rows, max_ngram_length=max_n)
+        tfidf_mask = tfidf_mask_object.get_mask()
+        self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj, tfidf_mask)
+        term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
+        filter_output_obj = FilterTerms(term_score_tuples, nterms=nterms)
+        self.__term_score_tuples = filter_output_obj.term_score_tuples
+        print('done')
+
+    def output(self, output_types, wordcloud_title=None, wordcloud_name=None, reportname=None, nterms=50):
         for output_type in output_types:
-            output_factory.get(output_type, self.__term_score_tuples)
+            output_factory.get(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
+                               wordcloud_name=wordcloud_name, tfidf_reduce_obj=self.__tfidf_reduce_obj, name=reportname,
+                               nterms=nterms)
