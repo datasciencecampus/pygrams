@@ -8,7 +8,6 @@ from scripts.utils.argschecker import ArgsChecker
 # -ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
 
 
-
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
 
@@ -37,8 +36,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
-                        choices=['fdg', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
-                        help="options are: <fdg> <wordcloud> <report> <table> <tfidf> <termcounts>;"
+                        choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
+                        help="options are: <graph> <wordcloud> <report> <table> <tfidf> <termcounts>;"
                              " note that this can be defined multiple times to get more than one output")
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
@@ -66,10 +65,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
                         help="the maximum document frequency to contribute to TF/IDF")
 
-    parser.add_argument("-rn", "--report_name", default='report_tech.txt', help="report filename")
-    parser.add_argument("-wn", "--wordcloud_name", default=os.path.join('outputs', 'wordclouds',
-                                                                        'wordcloud_tech.png'),
-                        help="wordcloud filename")
+    parser.add_argument("-on", "--outputs_name", default='out', help="outputs filename")
+
     parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
 
     parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
@@ -97,7 +94,7 @@ def main(supplied_args):
                         max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length, filter_by=args.filter_by,
                         nterms=args.num_ngrams_report, text_header=args.text_header)
 
-    pipeline.output(args.output, wordcloud_title=args.wordcloud_title, wordcloud_name=args.wordcloud_name, reportname=args.report_name, nterms=50)
+    pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
 
 if __name__ == '__main__':

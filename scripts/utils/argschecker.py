@@ -75,7 +75,7 @@ class ArgsChecker:
                 app_exit = True
 
         if self.args.wordcloud_title != self.args_default.wordcloud_title or \
-                self.args.wordcloud_name != self.args_default.wordcloud_name or \
+                self.args.outputs_name != self.args_default.outputs_name or \
                 self.args.num_ngrams_wordcloud != self.args_default.num_ngrams_wordcloud:
             if 'wordcloud' not in self.args.output:
                 print(self.args.wordcloud_title)
@@ -83,7 +83,7 @@ class ArgsChecker:
                       '[-o] "wordcloud"')
                 app_exit = True
 
-        if self.args.report_name != self.args_default.report_name or \
+        if self.args.outputs_name != self.args_default.outputs_name or \
                 self.args.num_ngrams_report != self.args_default.num_ngrams_report:
             if 'report' not in self.args.output:
                 print('arguments [-rn] [-np] can only be used when output includes report [-o] "report"')

@@ -1,3 +1,7 @@
+import bz2
+import os
+import pickle
+
 import scripts.data_factory as datafactory
 from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
@@ -11,7 +15,7 @@ import scripts.output_factory as output_factory
 
 class Pipeline(object):
     def __init__(self, data_filename, filter_columns, cpc=None, pick_method='sum', max_n=3, min_n=1,
-                 normalize_rows=False, text_header='abstract',
+                 normalize_rows=False, text_header='abstract', term_counts=False, dates_header=None,
                  pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df=0.1):
         print()
         df = datafactory.get(data_filename)
@@ -29,14 +33,18 @@ class Pipeline(object):
         tfidf_mask_object = TfidfMask(self.__tfidf_obj, doc_weights_obj.weights,
                                       norm_rows=normalize_rows, max_ngram_length=max_n)
         tfidf_mask = tfidf_mask_object.get_mask()
+
         self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj, tfidf_mask)
+        self.__term_counts_mat=None
+        if term_counts:
+            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
         term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
         filter_output_obj = FilterTerms(term_score_tuples, nterms=nterms)
         self.__term_score_tuples = filter_output_obj.term_score_tuples
         print('done')
 
-    def output(self, output_types, wordcloud_title=None, wordcloud_name=None, reportname=None, nterms=50):
+    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:
             output_factory.get(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
-                               wordcloud_name=wordcloud_name, tfidf_reduce_obj=self.__tfidf_reduce_obj, name=reportname,
-                               nterms=nterms)
+                               tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
+                               nterms=nterms, term_counts_mat=self.__term_counts_mat)
