@@ -238,8 +238,8 @@ class TestPygrams2(unittest.TestCase):
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
-    def test_stopwords_export_termcounts(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump,
-                                         mock_read_pickle):
+    def test_stopwords_and_unbias_export_termcounts(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump,
+                                                    mock_read_pickle):
         fake_df_data = {
             'abstract': [
                 'abstract 1, of the patent with extra stuff'
