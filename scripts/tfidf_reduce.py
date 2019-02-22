@@ -1,6 +1,8 @@
 import numpy as np
 from tqdm import tqdm
 
+from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
+
 
 class TfidfReduce(object):
     def __init__(self, tfidf_obj,  tfidf_mask):
@@ -74,3 +76,17 @@ class TfidfReduce(object):
         ngrams_scores_tuple.sort(key=lambda tup: -tup[0])
         return ngrams_scores_tuple
 
+    def create_terms_count(self, df, dates_header):
+        try:
+            dates = df[dates_header]
+            document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+                                   [d.isocalendar() for d in dates]]
+        except ValueError:
+            # do we need this?
+            dates = [None] * len(df)
+
+        term_counts_per_week, number_of_documents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
+            self.__tfidf_matrix, document_week_dates)
+
+        term_counts_data = [term_counts_per_week, self.__feature_names, number_of_documents_per_week,
+                            week_iso_dates]

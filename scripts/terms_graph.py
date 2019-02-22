@@ -71,11 +71,11 @@ class TermsGraph(object):
                 links.append(term_record)
         self.__graph = {'nodes': nodes, 'links': links}
 
-    def save_graph_report(self, report_name, num_ngrams):
+    def save_graph_report(self, name_and_path, num_ngrams):
 
         links = self.__graph['links']
 
-        with open(report_name[:len(report_name) - 4] + "_graph.txt", 'w') as file:
+        with open(name_and_path, 'w') as file:
             counter = 1
             for score, term in self.__tfidf_term_list:
                 file.write(f'{counter}. {term:10}:{score:1.2f}  -> ')
