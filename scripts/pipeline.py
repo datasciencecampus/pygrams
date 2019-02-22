@@ -31,7 +31,7 @@ class Pipeline(object):
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
         tfidf_mask = TfidfMask(self.__tfidf_obj, doc_weights,
-                               norm_rows=normalize_rows, max_ngram_length=max_n).tfidf_mask
+                               norm_rows=normalize_rows, min_ngram_length=min_n, max_ngram_length=max_n).tfidf_mask
 
         self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj, tfidf_mask)
         self.__term_counts_mat = None

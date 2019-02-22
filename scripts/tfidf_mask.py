@@ -2,8 +2,8 @@ import numpy as np
 
 
 class TfidfMask(object):
-    def __init__(self, tfidf_obj, doc_weights,  unigrams=True,
-                 norm_rows=False, max_ngram_length=3, uni_factor=0.8):
+    def __init__(self, tfidf_obj, doc_weights, unigrams=True,
+                 norm_rows=False, min_ngram_length=1, max_ngram_length=3, uni_factor=0.8):
         print('creating the tf-idf mask')
         self.__tfidf_matrix = tfidf_obj.tfidf_matrix
         self.__feature_names = tfidf_obj.feature_names
@@ -26,7 +26,8 @@ class TfidfMask(object):
                 self.__doc_weights=np.ones(len(self.__text_abstracts))
             self.__normalize_rows()
 
-        self.__unbias_ngrams(max_ngram_length)
+        for i in range(min_ngram_length, max_ngram_length):
+            self.__unbias_ngrams(i + 1)
 
     @property
     def tfidf_mask(self):
