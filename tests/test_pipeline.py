@@ -27,6 +27,59 @@ class TestPipeline(unittest.TestCase):
             self.assertAlmostEqual(a, b, places=places)
 
     def preparePyGrams(self, fake_df_data, mock_read_pickle, mock_open, mock_bz2file):
+
+        self.number_of_rows = len(fake_df_data['abstract'])
+        self.patent_id_auto_tested = 'patent_id' not in fake_df_data
+        self.application_id_auto_tested = 'application_id' not in fake_df_data
+        self.application_date_auto_tested = 'application_date' not in fake_df_data
+        self.publication_date_auto_tested = 'publication_date' not in fake_df_data
+        self.invention_title_auto_tested = 'invention_title' not in fake_df_data
+        self.classifications_cpc_auto_tested = 'classifications_cpc' not in fake_df_data
+        self.inventor_names_auto_tested = 'inventor_names' not in fake_df_data
+        self.inventor_countries_auto_tested = 'inventor_countries' not in fake_df_data
+        self.inventor_cities_auto_tested = 'inventor_cities' not in fake_df_data
+        self.applicant_organisation_auto_tested = 'applicant_organisation' not in fake_df_data
+        self.applicant_countries_auto_tested = 'applicant_countries' not in fake_df_data
+        self.applicant_cities_auto_tested = 'applicant_cities' not in fake_df_data
+
+        if self.patent_id_auto_tested:
+            fake_df_data['patent_id'] = [f'patent_id-{pid}' for pid in range(self.number_of_rows)]
+
+        if self.application_id_auto_tested:
+            fake_df_data['application_id'] = [f'application_id-{pid}' for pid in range(self.number_of_rows)]
+
+        if self.application_date_auto_tested:
+            fake_df_data['application_date'] = [pd.Timestamp('1998-01-01 00:00:00') + pd.DateOffset(weeks=row) for row
+                                                in range(self.number_of_rows)]
+
+        if self.publication_date_auto_tested:
+            fake_df_data['publication_date'] = [pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(weeks=row) for row
+                                                in range(self.number_of_rows)]
+
+        if self.invention_title_auto_tested:
+            fake_df_data['invention_title'] = [f'invention_title-{pid}' for pid in range(self.number_of_rows)]
+
+        if self.classifications_cpc_auto_tested:
+            fake_df_data['classifications_cpc'] = [[f'Y{row:02}'] for row in range(self.number_of_rows)]
+
+        if self.inventor_names_auto_tested:
+            fake_df_data['inventor_names'] = [[f'Fred {row:02}'] for row in range(self.number_of_rows)]
+
+        if self.inventor_countries_auto_tested:
+            fake_df_data['inventor_countries'] = [['GB']] * self.number_of_rows
+
+        if self.inventor_cities_auto_tested:
+            fake_df_data['inventor_cities'] = [['Newport']] * self.number_of_rows
+
+        if self.applicant_organisation_auto_tested:
+            fake_df_data['applicant_organisation'] = [['Neat and tidy']] * self.number_of_rows
+
+        if self.applicant_countries_auto_tested:
+            fake_df_data['applicant_countries'] = [['GB']] * self.number_of_rows
+
+        if self.applicant_cities_auto_tested:
+            fake_df_data['applicant_cities'] = [['Newport']] * self.number_of_rows
+
         df = pd.DataFrame(data=fake_df_data)
         mock_read_pickle.return_value = df
 
@@ -73,6 +126,12 @@ class TestPipeline(unittest.TestCase):
                 assert_func(tfidf_matrix=tfidf_matrix, feature_names=feature_names,
                             document_week_dates=document_week_dates, doc_ids=doc_ids)
 
+                if self.patent_id_auto_tested:
+                    self.assertListEqual(doc_ids, [f'patent_id-{pid}' for pid in range(self.number_of_rows)])
+
+                if self.application_date_auto_tested:
+                    self.assertListEqual(document_week_dates, [200052 - row for row in range(self.number_of_rows)])
+
                 results_checked = True
                 break
 
@@ -96,42 +155,6 @@ class TestPipeline(unittest.TestCase):
         fake_df_data = {
             'abstract': [
                 'abstract'
-            ],
-            'patent_id': [
-                'family0'
-            ],
-            'application_id': [
-                'app_orig0'
-            ],
-            'application_date': [
-                pd.Timestamp('1998-01-01 00:00:00')
-            ],
-            'publication_date': [
-                pd.Timestamp('1999-01-08 00:00:00')
-            ],
-            'invention_title': [
-                'title1'
-            ],
-            'classifications_cpc': [
-                'Y02'
-            ],
-            'inventor_names': [
-                ['A N OTHER', 'JONES FRED']
-            ],
-            'inventor_countries': [
-                ['US', 'DE']
-            ],
-            'inventor_cities': [
-                ['Ontario N2L 3W8', '73527 Schwäbisch Gmünd']
-            ],
-            'applicant_organisation': [
-                ['FISH I AM']
-            ],
-            'applicant_countries': [
-                ['GB']
-            ],
-            'applicant_cities': [
-                ['Newport NP20 1XJ']
             ]
         }
 
@@ -146,8 +169,6 @@ class TestPipeline(unittest.TestCase):
         def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
             self.assertEqual(tfidf_matrix.todense(), np.ones(shape=(1, 1)), 'TFIDF should be 1x1 matrix of 1')
             self.assertListEqual(feature_names, ['abstract'])
-            self.assertListEqual(document_week_dates, [199901])
-            self.assertListEqual(doc_ids, ['family0'])
 
         self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
@@ -162,54 +183,6 @@ class TestPipeline(unittest.TestCase):
             'abstract': [
                 'abstract one',
                 'abstract two'
-            ],
-            'patent_id': [
-                'family0',
-                'family1'
-            ],
-            'application_id': [
-                'app_orig0',
-                'app_orig1'
-            ],
-            'application_date': [
-                pd.Timestamp('1998-01-01 00:00:00'),
-                pd.Timestamp('1998-02-09 00:00:00')
-            ],
-            'publication_date': [
-                pd.Timestamp('1999-01-08 00:00:00'),
-                pd.Timestamp('1999-02-01 00:00:00')
-            ],
-            'invention_title': [
-                'title1',
-                'title1',
-            ],
-            'classifications_cpc': [
-                ['Y02'],
-                ['Q17/1234'],
-            ],
-            'inventor_names': [
-                ['A N OTHER', 'JONES FRED'],
-                ['fred']
-            ],
-            'inventor_countries': [
-                ['US', 'DE'],
-                ['GB']
-            ],
-            'inventor_cities': [
-                ['Ontario N2L 3W8', '73527 Schwäbisch Gmünd'],
-                ['Newport']
-            ],
-            'applicant_organisation': [
-                ['FISH I AM'],
-                ['Neat and tidy']
-            ],
-            'applicant_countries': [
-                ['GB'],
-                ['FR']
-            ],
-            'applicant_cities': [
-                ['Newport NP20 1XJ'],
-                ['Paris']
             ]
         }
 
@@ -226,8 +199,6 @@ class TestPipeline(unittest.TestCase):
             tfidf_as_lists = tfidf_matrix.todense().tolist()
             self.assertListAlmostEqual(tfidf_as_lists[0], [0.5085, 0.8610, 0], places=4)
             self.assertListAlmostEqual(tfidf_as_lists[1], [0.5085, 0, 0.8610], places=4)
-            self.assertListEqual(document_week_dates, [199901, 199905])
-            self.assertListEqual(doc_ids, ['family0', 'family1'])
 
         self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
@@ -240,42 +211,6 @@ class TestPipeline(unittest.TestCase):
         fake_df_data = {
             'abstract': [
                 'abstract 1, of the patent with extra stuff'
-            ],
-            'patent_id': [
-                '47'
-            ],
-            'application_id': [
-                '100'
-            ],
-            'application_date': [
-                pd.Timestamp('1998-01-01 00:00:00')
-            ],
-            'publication_date': [
-                pd.Timestamp('1999-01-08 00:00:00')
-            ],
-            'invention_title': [
-                'title1'
-            ],
-            'classifications_cpc': [
-                'Y02'
-            ],
-            'inventor_names': [
-                ['A N OTHER', 'JONES FRED']
-            ],
-            'inventor_countries': [
-                ['US', 'DE']
-            ],
-            'inventor_cities': [
-                ['Ontario N2L 3W8', '73527 Schwäbisch Gmünd']
-            ],
-            'applicant_organisation': [
-                ['FISH I AM']
-            ],
-            'applicant_countries': [
-                ['GB']
-            ],
-            'applicant_cities': [
-                ['Newport NP20 1XJ']
             ]
         }
 
@@ -288,13 +223,9 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
         def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
-            tfidf_dense_matrix = tfidf_matrix.todense()
-            tfidf_row0 = tfidf_dense_matrix.tolist()[0]
+            tfidf_as_lists = tfidf_matrix.todense().tolist()
             self.assertListEqual(feature_names, ['abstract', 'extra', 'extra stuff', 'patent', 'stuff', 'with'])
-            self.assertListAlmostEqual(tfidf_row0, [0.4082, 0, 0.4082, 0.4082, 0, 0.4082], places=4)
-
-            self.assertListEqual(document_week_dates, [199901])
-            self.assertListEqual(doc_ids, ['47'])
+            self.assertListAlmostEqual(tfidf_as_lists[0], [0.4082, 0, 0.4082, 0.4082, 0, 0.4082], places=4)
 
         self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
