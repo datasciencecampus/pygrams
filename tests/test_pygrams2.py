@@ -54,8 +54,8 @@ class TestPygrams2(unittest.TestCase):
                                                 in range(self.number_of_rows)]
 
         if self.publication_date_auto_tested:
-            fake_df_data['publication_date'] = [pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(weeks=row) for row
-                                                in range(self.number_of_rows)]
+            fake_df_data['publication_date'] = [pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(
+                weeks=self.number_of_rows - row - 1) for row in range(self.number_of_rows)]
 
         if self.invention_title_auto_tested:
             fake_df_data['invention_title'] = [f'invention_title-{pid}' for pid in range(self.number_of_rows)]
@@ -128,7 +128,8 @@ class TestPygrams2(unittest.TestCase):
                 [tfidf_matrix, feature_names, document_week_dates, doc_ids] = dump_args[0][0]
                 assert_func(tfidf_matrix, feature_names)
                 self.assertListEqual(doc_ids, [f'patent_id-{pid}' for pid in range(self.number_of_rows)])
-                self.assertListEqual(document_week_dates, [200052 - row for row in range(self.number_of_rows)])
+                self.assertListEqual(document_week_dates,
+                                     [200052 - (self.number_of_rows - row - 1) for row in range(self.number_of_rows)])
 
                 results_checked = True
                 break
@@ -147,7 +148,8 @@ class TestPygrams2(unittest.TestCase):
                 [term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates] = dump_args[0][0]
 
                 assert_func(term_counts_per_week, feature_names, number_of_documents_per_week)
-                self.assertListEqual(week_iso_dates, [200052 - row for row in range(self.number_of_rows)])
+                self.assertListEqual(week_iso_dates,
+                                     [200052 - (self.number_of_rows - row - 1) for row in range(self.number_of_rows)])
 
                 results_checked = True
                 break
@@ -194,6 +196,66 @@ class TestPygrams2(unittest.TestCase):
             self.assertEqual(term_counts_per_week.todense(), np.ones(shape=(1, 1)),
                              'term_counts_per_week should be 1x1 matrix of 1')
             self.assertListEqual(feature_names, ['abstract'])
+            self.assertListEqual([1], number_of_documents_per_week)
+
+        self.assertTermCountsOutputsExceptTermCountsAndFeatureNames(assert_termcounts_outputs, mock_pickle_dump,
+                                                                    mock_makedirs)
+
+    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("pickle.dump", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
+    @mock.patch("bz2.BZ2File", create=True)
+    @mock.patch("os.makedirs", create=True)
+    def test_simple_two_patents_unigrams_only_export_termcounts(self, mock_makedirs, mock_bz2file, mock_open,
+                                                                mock_pickle_dump, mock_read_pickle):
+        fake_df_data = {
+            'abstract': [
+                'abstract one',
+                'abstract two'
+            ]
+        }
+
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--outputs_name', self.outputs_name,
+                '--id_header', 'patent_id', '--date_header',
+                'publication_date', '--max_document_frequency', '1.0', '--min_n', '1', '--max_n', '1']
+
+        pygrams2.main(args)
+
+        def assert_termcounts_outputs(term_counts_per_week, feature_names, number_of_documents_per_week):
+            term_counts_as_lists = term_counts_per_week.todense().tolist()
+            self.assertListEqual(feature_names, ['abstract', 'one', 'two'])
+            self.assertListAlmostEqual(term_counts_as_lists[0], [1, 1, 0])
+            self.assertListAlmostEqual(term_counts_as_lists[1], [1, 0, 1])
+            self.assertListEqual([1, 1], number_of_documents_per_week)
+
+        self.assertTermCountsOutputsExceptTermCountsAndFeatureNames(assert_termcounts_outputs, mock_pickle_dump,
+                                                                    mock_makedirs)
+
+    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("pickle.dump", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
+    @mock.patch("bz2.BZ2File", create=True)
+    @mock.patch("os.makedirs", create=True)
+    def test_stopwords_export_termcounts(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump,
+                                         mock_read_pickle):
+        fake_df_data = {
+            'abstract': [
+                'abstract 1, of the patent with extra stuff'
+            ]
+        }
+
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--outputs_name', self.outputs_name,
+                '--id_header', 'patent_id', '--date_header',
+                'publication_date', '--max_document_frequency', '1.0', '--min_n', '1']
+
+        pygrams2.main(args)
+
+        def assert_termcounts_outputs(term_counts_per_week, feature_names, number_of_documents_per_week):
+            term_counts_as_lists = term_counts_per_week.todense().tolist()
+            self.assertListEqual(feature_names, ['abstract', 'extra', 'extra stuff', 'patent', 'stuff', 'with'])
+            self.assertListEqual(term_counts_as_lists[0], [1, 0, 1, 1, 0, 1])
             self.assertListEqual([1], number_of_documents_per_week)
 
         self.assertTermCountsOutputsExceptTermCountsAndFeatureNames(assert_termcounts_outputs, mock_pickle_dump,
