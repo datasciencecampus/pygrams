@@ -28,7 +28,8 @@ class TfidfMask(object):
 
         self.__unbias_ngrams(max_ngram_length)
 
-    def get_mask(self):
+    @property
+    def tfidf_mask(self):
         return self.__tfidf_mask
 
     def __clean_unigrams(self, max_bi_freq):
