@@ -41,7 +41,7 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj, tfidf_mask)
         self.__term_counts_mat=None
         if term_counts:
-            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
+            self.term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
         #if other outputs
         term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
         filter_output_obj = FilterTerms(term_score_tuples, nterms=nterms)
@@ -51,4 +51,4 @@ class Pipeline(object):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, term_counts_mat=self.__term_counts_mat)
+                                  nterms=nterms, term_counts_data=self.term_counts_data)
