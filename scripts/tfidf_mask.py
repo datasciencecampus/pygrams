@@ -91,22 +91,17 @@ class TfidfMask(object):
                     idx_ngram_minus_back = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
-                    ngram_counts = self.__tf_mat.data[j]
-                    print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_front])
-                    print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_back])
+                    ngram_counts = self.__tfidf_matrix.data[j]
+
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
 
     def __unbias_ngrams_slice(self, indices_slice, idx_small_ngram, big_ngram_counts, start_idx_ptr):
         if idx_small_ngram in indices_slice:
             idx = indices_slice.tolist().index(idx_small_ngram)
-            small_term_counts = self.__tf_mat.data[start_idx_ptr + idx]
-            col_idx = self.__tfidf_matrix.indices[start_idx_ptr + idx]
-            ngram = self.__feature_names[col_idx]
-            print(ngram)
-            print("big: " + str(big_ngram_counts))
-            print("small: " + str(small_term_counts))
-            ratio = (small_term_counts - big_ngram_counts) / small_term_counts
-            print('ratio: ' + str(ratio))
+            small_term_counts = self.__tfidf_matrix.data[start_idx_ptr + idx]
+            ratio = 0.0
+            if small_term_counts > big_ngram_counts:
+                ratio = (small_term_counts - big_ngram_counts) / small_term_counts
             self.__tfidf_mask[start_idx_ptr + idx] *= ratio
 
