@@ -116,21 +116,19 @@ class TestPipeline(unittest.TestCase):
 
         mock_bz2file.side_effect = bz2file_fake
 
-    def assertOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
+    def assertOutputsExceptTfidfFeatureNames(self, assert_func, mock_pickle_dump, mock_makedirs):
+        self.assertTrue(self.publication_date_auto_tested)
+        self.assertTrue(self.patent_id_auto_tested)
+
         mock_makedirs.assert_called_with(self.tfidfOutputFolder(), exist_ok=True)
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == self.tfidfFileName(self.data_source_name):
                 [tfidf_matrix, feature_names, document_week_dates, doc_ids] = dump_args[0][0]
 
-                assert_func(tfidf_matrix=tfidf_matrix, feature_names=feature_names,
-                            document_week_dates=document_week_dates, doc_ids=doc_ids)
-
-                if self.patent_id_auto_tested:
-                    self.assertListEqual(doc_ids, [f'patent_id-{pid}' for pid in range(self.number_of_rows)])
-
-                if self.application_date_auto_tested:
-                    self.assertListEqual(document_week_dates, [200052 - row for row in range(self.number_of_rows)])
+                assert_func(tfidf_matrix=tfidf_matrix, feature_names=feature_names)
+                self.assertListEqual(doc_ids, [f'patent_id-{pid}' for pid in range(self.number_of_rows)])
+                self.assertListEqual(document_week_dates, [200052 - row for row in range(self.number_of_rows)])
 
                 results_checked = True
                 break
@@ -166,11 +164,11 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
-        def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
+        def assert_tfidf_outputs(tfidf_matrix, feature_names):
             self.assertEqual(tfidf_matrix.todense(), np.ones(shape=(1, 1)), 'TFIDF should be 1x1 matrix of 1')
             self.assertListEqual(feature_names, ['abstract'])
 
-        self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
@@ -194,13 +192,13 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
-        def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
+        def assert_tfidf_outputs(tfidf_matrix, feature_names):
             self.assertListEqual(feature_names, ['abstract', 'one', 'two'])
             tfidf_as_lists = tfidf_matrix.todense().tolist()
             self.assertListAlmostEqual(tfidf_as_lists[0], [0.5085, 0.8610, 0], places=4)
             self.assertListAlmostEqual(tfidf_as_lists[1], [0.5085, 0, 0.8610], places=4)
 
-        self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
@@ -222,12 +220,12 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
-        def assert_tfidf_outputs(tfidf_matrix, feature_names, document_week_dates, doc_ids):
+        def assert_tfidf_outputs(tfidf_matrix, feature_names):
             tfidf_as_lists = tfidf_matrix.todense().tolist()
             self.assertListEqual(feature_names, ['abstract', 'extra', 'extra stuff', 'patent', 'stuff', 'with'])
             self.assertListAlmostEqual(tfidf_as_lists[0], [0.4082, 0, 0.4082, 0.4082, 0, 0.4082], places=4)
 
-        self.assertOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
 
 if __name__ == '__main__':
