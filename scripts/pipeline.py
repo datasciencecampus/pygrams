@@ -1,3 +1,4 @@
+import pickle
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
@@ -12,17 +13,22 @@ from scripts.tfidf_wrapper import TFIDF
 class Pipeline(object):
     def __init__(self, data_filename, filter_columns, cpc=None, pick_method='sum', max_n=3, min_n=1,
                  normalize_rows=False, text_header='abstract', term_counts=False, dates_header=None,
-                 pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df=0.1):
+                 pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df=0.1,
+                 tfidf_wrapper_filename=None):
         # load data
         df = datafactory.get(data_filename)
 
-        # calculate tf-idf mat
-        if pickled_tf_idf:
-            print('read from pickle')
-            self.__tfidf_obj = None
+        # read or create & save tfidf wrapper object
+        if pickled_tf_idf and tfidf_wrapper_filename is not None:
+            print('reading tfidf wrapper pickle')
+            with open(tfidf_wrapper_filename, "rb") as file:
+                self.__tfidf_obj = pickle.load(file)
         else:
             self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
+            with open(tfidf_wrapper_filename, "wb") as file:
+                pickle.dump(self.__tfidf_obj, file)
+
         # docs subset
         doc_ids = DocumentsFilter(df, filter_columns, filter_by, cpc).doc_indices
 
