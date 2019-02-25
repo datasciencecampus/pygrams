@@ -82,7 +82,7 @@ def get_args(command_line_arguments):
 
 def main(supplied_args):
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
-             os.path.join('outputs', 'table')]
+             os.path.join('outputs', 'table'), os.path.join('outputs', 'tfidf_wrapper')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
@@ -94,10 +94,13 @@ def main(supplied_args):
     doc_weights_dict = argscheck.get_mask_dict()
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
-    pipeline = Pipeline(doc_source_file_name, filter_columns=args.filter_columns,  pick_method=args.pick,
+    tfidf_wrapper_filename = os.path.join('outputs', 'tfidf_wrapper', 'tfidf_wrapper.pickle')
+    pickled_tf_idf = os.path.isfile(tfidf_wrapper_filename)
+    pipeline = Pipeline(doc_source_file_name, filter_columns=args.filter_columns, cpc=args.cpc_classification, pick_method=args.pick,
                         max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length, filter_by=args.filter_by,
                         nterms=args.num_ngrams_report, text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output), dates_header=args.date_header)
+                        term_counts=('termcounts' in args.output), dates_header=args.date_header, pickled_tf_idf=pickled_tf_idf,
+                        tfidf_wrapper_filename=tfidf_wrapper_filename)
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
