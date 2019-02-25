@@ -88,5 +88,7 @@ class TfidfReduce(object):
         term_counts_per_week, number_of_documents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
             self.__tfidf_matrix, document_week_dates)
 
-        return [term_counts_per_week, self.__feature_names, number_of_documents_per_week,
+        term_counts_data = [term_counts_per_week, self.__feature_names, number_of_documents_per_week,
                             week_iso_dates]
+
+        return term_counts_data

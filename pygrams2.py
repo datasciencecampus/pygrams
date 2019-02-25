@@ -1,8 +1,10 @@
 import argparse
 import os
 import sys
+
 from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
+
 
 # -fc="Communications,Leadership, IT systems"
 # -ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
@@ -89,10 +91,13 @@ def main(supplied_args):
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
 
+    doc_weights_dict = argscheck.get_mask_dict()
+
     doc_source_file_name = os.path.join(args.path, args.doc_source)
-    pipeline = Pipeline(doc_source_file_name, filter_columns=args.filter_columns, cpc=args.cpc_classification, pick_method=args.pick,
+    pipeline = Pipeline(doc_source_file_name, filter_columns=args.filter_columns,  pick_method=args.pick,
                         max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length, filter_by=args.filter_by,
-                        nterms=args.num_ngrams_report, text_header=args.text_header)
+                        nterms=args.num_ngrams_report, text_header=args.text_header, max_df=args.max_document_frequency,
+                        term_counts=('termcounts' in args.output), dates_header=args.date_header)
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 

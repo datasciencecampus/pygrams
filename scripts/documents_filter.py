@@ -1,8 +1,12 @@
 from tqdm import tqdm
-
+import pandas as pd
+from pandas import Timestamp
+import calendar
 
 class DocumentsFilter(object):
-    def __init__(self, df, filter_columns, filter_by, cpc):
+    def __init__(self, df, filter_columns, filter_by, cpc,
+                 year_from=None, year_to=pd.to_datetime('today').year, month_from=None,
+                 month_to=pd.to_datetime('today').month, dates_header=None):
         print('processing doc filters')
         self.__doc_indices = set([])
 
@@ -10,14 +14,47 @@ class DocumentsFilter(object):
             self.__doc_indices = self.__filter_column(df, filter_columns, filter_by)
         if cpc is not None:
             doc_set = self.__filter_cpc(df, cpc)
-            if filter_by == 'intersection':
+            self.__add_set(doc_set, filter_by)
+
+        if year_from is not None:
+            doc_set = self.__filter_dates(df, year_from, year_to, month_from, month_to, dates_header)
+            self.__add_set(doc_set, filter_by)
+
+    def __add_set(self, doc_set, filter_by):
+        if filter_by == 'intersection':
+            if len(self.__doc_indices)>0:
                 self.__doc_indices = self.__doc_indices.intersection(set(doc_set))
             else:
-                self.__doc_indices = self.__doc_indices.union(set(doc_set))
-
+                self.__doc_indices = set(doc_set)
+        else:
+            self.__doc_indices = self.__doc_indices.union(set(doc_set))
     @property
     def doc_indices(self):
         return self.__doc_indices
+
+    def __choose_last_day(self, year_in, month_in):
+        return str(calendar.monthrange(int(year_in), int(month_in))[1])
+
+    def __year2pandas_latest_date(self, year_in, month_in):
+        if year_in is None:
+            return Timestamp.now()
+
+        if month_in is None:
+            return Timestamp(str(year_in) + '-12-31')
+
+        year_string = str(year_in) + '-' + str(month_in) + '-' + self.__choose_last_day(year_in, month_in)
+        return Timestamp(year_string)
+
+    def __year2pandas_earliest_date(self, year_in, month_in):
+        if year_in is None:
+            return Timestamp('2000-01-01')
+
+        if month_in is None:
+            return Timestamp(str(year_in) + '-01-01')
+
+        year_string = str(year_in) + '-' + str(month_in) + '-01'
+
+        return Timestamp(year_string)
 
     def __filter_cpc(self, df, cpc):
         cpc_index_list = []
@@ -31,8 +68,6 @@ class DocumentsFilter(object):
                     cpc_index_list.append(index)
                     break
         return cpc_index_list
-
-
 
     def __filter_column(self, df, filter_columns, filter_by):
 
@@ -65,3 +100,18 @@ class DocumentsFilter(object):
                 else:
                     doc_set =  doc_set.union(set(indices))
         return doc_set
+
+    def __filter_dates(self, df, year_from, year_to, month_from, month_to, dates_header):
+        date_from = self.__year2pandas_earliest_date(year_from, month_from)
+        date_to = self.__year2pandas_latest_date(year_to, month_to)
+        doc_ids=set([])
+
+        date_from = pd.Timestamp(date_from)
+        date_to = pd.Timestamp(date_to)
+
+        for idx, date in enumerate(df[dates_header]):
+            if date_to > date > date_from:
+                doc_ids.add(idx)
+
+        return doc_ids
+
