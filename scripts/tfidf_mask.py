@@ -13,7 +13,7 @@ class TfidfMask(object):
         self.__tfidf_mask.data = np.array([1.0 for x in self.__tfidf_matrix.data if x>0.0])
         self.__vectorizer = tfidf_obj.vectorizer
         self.__tf_mat = tfidf_obj.ngram_counts
-        self.__uni_factor=uni_factor
+        self.__uni_factor = uni_factor
 
         # self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
 
@@ -101,6 +101,7 @@ class TfidfMask(object):
                 if len(big_ngram_terms) == max_ngram_length:
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
                     ngram_minus_back = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
+
                     idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
                     idx_ngram_minus_back = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 

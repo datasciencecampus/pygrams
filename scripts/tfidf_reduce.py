@@ -17,7 +17,7 @@ class TfidfReduce(object):
     def tfidf_masked(self):
         return self.__tfidf_masked
 
-    def extract_row_from_mask(self, row_num):
+    def extract_ngrams_from_row(self, row_num):
         if self.__tfidf_masked.getformat() == 'csc':
             self.__tfidf_masked = self.__tfidf_masked.tocsr()
 
@@ -29,14 +29,15 @@ class TfidfReduce(object):
         # iterate through columns(ngrams) with non-zero entries
         for j in range(start_idx_ptr, end_idx_ptr):
             col_idx = self.__tfidf_masked.indices[j]
-            ngram=self.feature_names[col_idx]
+            ngram = self.feature_names[col_idx]
+
             pick_value = self.__tfidf_masked.data[j]
             if np.isnan(pick_value):
-                pick_value = 0
+                pick_value = 0.0
             ngrams_scores_tuple.append((pick_value, ngram))
         return ngrams_scores_tuple
 
-    def extract_nbest_from_mask(self, pick_method, verbose=True):
+    def extract_ngrams_from_docset(self, pick_method, verbose=True):
         if self.__tfidf_masked.getformat() == 'csr':
             self.__tfidf_masked = self.__tfidf_masked.tocsc()
 

@@ -1,15 +1,13 @@
-import numpy as np
-from scipy.sparse import csr_matrix
 from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
 
-#add pickle option
+# add pickle option
 class TFIDF:
 
     def __init__(self, docs_df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(),
-                 id_header='patent_id', text_header='abstract'):
+                 text_header='abstract'):
 
         self.__dataframe = docs_df
 
@@ -25,11 +23,9 @@ class TFIDF:
             analyzer=WordAnalyzer.analyzer
         )
 
-        self.__id_header = id_header
         self.__text_header = text_header
 
         num_docs_before_sift = self.__dataframe.shape[0]
-        print(self.__text_header)
         self.__dataframe.dropna(subset=[self.__text_header], inplace=True)
         num_docs_after_sift = self.__dataframe.shape[0]
         num_docs_sifted = num_docs_before_sift - num_docs_after_sift
@@ -40,7 +36,6 @@ class TFIDF:
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
-
 
     @property
     def tfidf_matrix(self):

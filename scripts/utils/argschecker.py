@@ -146,7 +146,7 @@ class ArgsChecker:
         docs_mask_dict['filter_by'] = self.args.filter_by
         docs_mask_dict['cpc'] = [self.args.cpc_classification]
         docs_mask_dict['time'] = self.args.time
-        docs_mask_dict['cite'] = []
+        docs_mask_dict['cite'] = None
         docs_mask_dict['columns'] = self.args.filter_columns
         docs_mask_dict['dates'] = [self.args.year_from, year_to, self.args.month_from, month_to, self.args.date_header]
         return docs_mask_dict

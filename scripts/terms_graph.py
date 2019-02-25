@@ -27,7 +27,7 @@ class TermsGraph(object):
             node_links_dict[term] = {}
 
         for idx in tqdm(range(self.__tfidf_reduce_obj.tfidf_masked.shape[0]), leave=False, desc='Searching TFIDF', unit='ngram'):
-            list_term_tfidf = self.__tfidf_reduce_obj.extract_row_from_mask(idx)
+            list_term_tfidf = self.__tfidf_reduce_obj.extract_ngrams_from_row(idx)
             list_term_tfidf = list_term_tfidf[:10]
             for idx_t1, term_tfidf_tup in enumerate(list_term_tfidf):
                 if term_tfidf_tup[1] not in node_links_dict:

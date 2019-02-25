@@ -97,8 +97,8 @@ def main(supplied_args):
     doc_source_file_name = os.path.join(args.path, args.doc_source)
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict,  pick_method=args.pick,
                         max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length,
-                        nterms=args.num_ngrams_report, text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output), dates_header=args.date_header)
+                        text_header=args.text_header, max_df=args.max_document_frequency,
+                        term_counts=('termcounts' in args.output))
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 

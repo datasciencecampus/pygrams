@@ -12,8 +12,8 @@ from scripts.utils import utils
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', max_n=3, min_n=1,
-                 normalize_rows=False, text_header='abstract', term_counts=False, dates_header=None,
-                 pickled_tf_idf=False,  time=False, citation_dict=None, nterms=25, max_df=0.1):
+                 normalize_rows=False, text_header='abstract', term_counts=False,
+                 pickled_tf_idf=False, max_df=0.1):
         # load data
         df = datafactory.get(data_filename)
 
@@ -27,7 +27,7 @@ class Pipeline(object):
 
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights
-        doc_weights = DocumentsWeights(df, time, citation_dict).weights
+        doc_weights = DocumentsWeights(df, docs_mask_dict['time'], docs_mask_dict['cite'], docs_mask_dict['dates'][-1:]).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
@@ -49,13 +49,16 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_mat = None
         if term_counts:
-            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
+            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1:])
         # if other outputs
-        self.__term_score_tuples = self.__tfidf_reduce_obj.extract_nbest_from_mask( pick_method)
-
+        self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_mat=self.__term_counts_mat)
+
+    @property
+    def term_score_tuples(self):
+        return self.__term_score_tuples
