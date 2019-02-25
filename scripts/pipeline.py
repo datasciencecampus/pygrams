@@ -11,7 +11,7 @@ from scripts.tfidf_wrapper import TFIDF
 
 
 class Pipeline(object):
-    def __init__(self, data_filename, filter_columns, cpc=None, pick_method='sum', max_n=3, min_n=1,
+    def __init__(self, data_filename, filter_columns, pick_method='sum', max_n=3, min_n=1,
                  normalize_rows=False, text_header='abstract', term_counts=False, dates_header=None,
                  pickled_tf_idf=False, filter_by='union', time=False, citation_dict=None, nterms=25, max_df=0.1,
                  tfidf_wrapper_filename=None):
