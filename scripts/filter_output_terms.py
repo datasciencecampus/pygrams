@@ -1,9 +1,10 @@
+import numpy as np
 class FilterTerms(object):
     def __init__(self, tfidf_ngrams, user_ngrams, binary=False, threshold = None):
         print("filter terms")
         self.__user_ngrams = user_ngrams
         self.__tfidf_ngrams = tfidf_ngrams
-        self.__ngrams_weights_vect = None
+        self.__ngrams_weights_vect = list(np.ones(len(tfidf_ngrams)))
 
     #embeddings best to be blended in the mask! ie. data[i] *= cosine_distance between domain words and ngram_average
     @property

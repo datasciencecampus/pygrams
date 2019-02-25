@@ -3,22 +3,25 @@ import pandas as pd
 from pandas import Timestamp
 import calendar
 
+
 class DocumentsFilter(object):
-    def __init__(self, df, filter_columns, filter_by, cpc,
-                 year_from=None, year_to=pd.to_datetime('today').year, month_from=None,
-                 month_to=pd.to_datetime('today').month, dates_header=None):
+    def __init__(self, df, docs_mask_dict):
         print('processing doc filters')
         self.__doc_indices = set([])
 
-        if filter_columns is not None:
-            self.__doc_indices = self.__filter_column(df, filter_columns, filter_by)
-        if cpc is not None:
-            doc_set = self.__filter_cpc(df, cpc)
-            self.__add_set(doc_set, filter_by)
+        if docs_mask_dict['columns'] is not None:
+            self.__doc_indices = self.__filter_column(df, docs_mask_dict['columns'], docs_mask_dict['filter_by'])
+        if docs_mask_dict['cpc'][0] is not None:
+            doc_set = self.__filter_cpc(df, docs_mask_dict['cpc'][0])
+            self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
-        if year_from is not None:
-            doc_set = self.__filter_dates(df, year_from, year_to, month_from, month_to, dates_header)
-            self.__add_set(doc_set, filter_by)
+        if docs_mask_dict['dates'][0] is not None:
+            doc_set = self.__filter_dates(df, docs_mask_dict['dates'])
+            self.__add_set(doc_set, docs_mask_dict['filter_by'])
+
+        self.__doc_weights = [0.0]*len(df) if len(self.__doc_indices) > 0 else [1.0]*len(df)
+        for i in self.__doc_indices:
+            self.__doc_weights[i]=1.0
 
     def __add_set(self, doc_set, filter_by):
         if filter_by == 'intersection':
@@ -28,9 +31,10 @@ class DocumentsFilter(object):
                 self.__doc_indices = set(doc_set)
         else:
             self.__doc_indices = self.__doc_indices.union(set(doc_set))
+
     @property
-    def doc_indices(self):
-        return self.__doc_indices
+    def doc_weights(self):
+        return self.__doc_weights
 
     def __choose_last_day(self, year_in, month_in):
         return str(calendar.monthrange(int(year_in), int(month_in))[1])
@@ -101,7 +105,13 @@ class DocumentsFilter(object):
                     doc_set =  doc_set.union(set(indices))
         return doc_set
 
-    def __filter_dates(self, df, year_from, year_to, month_from, month_to, dates_header):
+    def __filter_dates(self, df, dates_list):
+
+        year_from=dates_list[0]
+        year_to = dates_list[1]
+        month_from = dates_list[2]
+        month_to = dates_list[3]
+        dates_header = dates_list[4]
         date_from = self.__year2pandas_earliest_date(year_from, month_from)
         date_to = self.__year2pandas_latest_date(year_to, month_to)
         doc_ids=set([])

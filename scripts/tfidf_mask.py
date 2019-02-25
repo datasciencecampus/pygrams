@@ -9,7 +9,8 @@ class TfidfMask(object):
         self.__feature_names = tfidf_obj.feature_names
         self.__doc_weights = doc_weights
         self.__text_abstracts = tfidf_obj.text
-        self.__tfidf_mask = np.ones(len(self.__tfidf_matrix.data))
+        self.__tfidf_mask = self.__tfidf_matrix.copy()
+        self.__tfidf_mask.data = np.array([1.0 for x in self.__tfidf_matrix.data if x>0.0])
         self.__vectorizer = tfidf_obj.vectorizer
         self.__tf_mat = tfidf_obj.ngram_counts
         self.__uni_factor=uni_factor
@@ -22,8 +23,6 @@ class TfidfMask(object):
 
         # normalize rows to text length
         if norm_rows:
-            if doc_weights is None:
-                self.__doc_weights=np.ones(len(self.__text_abstracts))
             self.__normalize_rows()
 
         self.__unbias_ngrams(max_ngram_length)
@@ -31,6 +30,20 @@ class TfidfMask(object):
     @property
     def tfidf_mask(self):
         return self.__tfidf_mask
+
+    def update_mask(self, row_weights, column_weights):
+        # iterate through rows ( docs)
+        for i in range(len(self.__text_abstracts)):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
+            row_weight = row_weights[i]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+                col_idx = self.__tfidf_matrix.indices[j]
+                col_weight = column_weights[col_idx]
+
+                self.__tfidf_mask.data[j] *= (col_weight * row_weight)
 
     def __clean_unigrams(self, max_bi_freq):
         # iterate through rows ( docs)
@@ -104,5 +117,5 @@ class TfidfMask(object):
             ratio = 0.0
             if small_term_counts > big_ngram_counts:
                 ratio = (small_term_counts - big_ngram_counts) / small_term_counts
-            self.__tfidf_mask[start_idx_ptr + idx] *= ratio
+            self.__tfidf_mask.data[start_idx_ptr + idx] *= ratio
 
