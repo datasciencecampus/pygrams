@@ -39,11 +39,12 @@ class Pipeline(object):
             self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
         # if other outputs
         term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
-        self.__term_score_tuples = filter_output_obj.term_score_tuples
         tfidf_ngrams = self.__tfidf_obj.feature_names
         filter_output_obj = FilterTerms(tfidf_ngrams, user_ngrams=input("Please specify interested words: "),
-                                        file_path='models/wiki-news-300d-1M.vec.zip', file_name = 'models/wiki-news-300d-1M.vec',
+                                         file_name = 'models/wiki-news-300d-1M.vec',
                                         threshold=0.3, binary=True)
+        self.__term_score_tuples = filter_output_obj.term_score_tuples
+
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,

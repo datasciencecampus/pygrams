@@ -1,13 +1,12 @@
 from gensim.models import KeyedVectors
 
 class FilterTerms(object):
-    def __init__(self, tfidf_ngrams, user_ngrams, file_path, file_name, model=None, binary_vect = list(),
+    def __init__(self, tfidf_ngrams, user_ngrams, file_name, model=None, binary_vect = list(),
                  distance_vect = list(), binary=False, threshold = None):
         print("filter terms")
         self.__user_ngrams = user_ngrams
         print('user ngrams = ', self.__user_ngrams)
         self.__tfidf_ngrams = tfidf_ngrams
-        self.__file_path = file_path
         self.__file_name = file_name
         self.binary_vect = binary_vect
         self.distance_vect = distance_vect
