@@ -39,7 +39,6 @@ class Pipeline(object):
             self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, dates_header)
         # if other outputs
         term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docs_set(doc_ids, pick_method)
-        filter_output_obj = FilterTerms(term_score_tuples, nterms=nterms)
         self.__term_score_tuples = filter_output_obj.term_score_tuples
         tfidf_ngrams = self.__tfidf_obj.feature_names
         filter_output_obj = FilterTerms(tfidf_ngrams, user_ngrams=input("Please specify interested words: "),
