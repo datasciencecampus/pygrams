@@ -98,7 +98,7 @@ def main(supplied_args):
                         max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length, filter_by=args.filter_by,
                         nterms=args.num_ngrams_report, text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output), dates_header=args.date_header)
-
+    
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
 
