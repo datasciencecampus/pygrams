@@ -7,7 +7,7 @@ from scripts.documents_weights import DocumentsWeights
 from scripts.text_processing import LemmaTokenizer, StemTokenizer
 from scripts.tfidf_wrapper import TFIDF
 from scripts import FilePaths
-from scripts.filter_output_terms import FilterTerms
+from scripts.filter_terms import FilterTerms
 from scripts.terms_graph import TermsGraph
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce

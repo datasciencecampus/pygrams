@@ -2,7 +2,7 @@ import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
-from scripts.filter_output_terms import FilterTerms
+from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
@@ -52,7 +52,6 @@ class Pipeline(object):
             self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1:])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:
