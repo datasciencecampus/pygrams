@@ -144,7 +144,7 @@ class ArgsChecker:
         docs_mask_dict = {}
         # doc_weights
         docs_mask_dict['filter_by'] = self.args.filter_by
-        docs_mask_dict['cpc'] = [self.args.cpc_classification]
+        docs_mask_dict['cpc'] = self.args.cpc_classification
         docs_mask_dict['time'] = self.args.time
         docs_mask_dict['cite'] = None
         docs_mask_dict['columns'] = self.args.filter_columns

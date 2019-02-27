@@ -11,8 +11,8 @@ class DocumentsFilter(object):
 
         if docs_mask_dict['columns'] is not None:
             self.__doc_indices = self.__filter_column(df, docs_mask_dict['columns'], docs_mask_dict['filter_by'])
-        if docs_mask_dict['cpc'][0] is not None:
-            doc_set = self.__filter_cpc(df, docs_mask_dict['cpc'][0])
+        if docs_mask_dict['cpc'] is not None:
+            doc_set = self.__filter_cpc(df, docs_mask_dict['cpc'])
             self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
         if docs_mask_dict['dates'][0] is not None:
@@ -35,6 +35,10 @@ class DocumentsFilter(object):
     @property
     def doc_weights(self):
         return self.__doc_weights
+
+    @property
+    def doc_indices(self):
+        return self.__doc_indices
 
     def __choose_last_day(self, year_in, month_in):
         return str(calendar.monthrange(int(year_in), int(month_in))[1])
