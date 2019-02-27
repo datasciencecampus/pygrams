@@ -1,5 +1,6 @@
 from gensim.models import KeyedVectors
 
+
 class FilterTerms(object):
     def __init__(self, tfidf_ngrams, user_ngrams, file_name, model=None, binary_vect = list(),
                  distance_vect = list(), binary=False, threshold = None):
@@ -53,6 +54,7 @@ class FilterTerms(object):
                         self.binary_vect.append(0)
                 else:
                     self.binary_vect.append(0)
+
 
     def load_fasttext_model(self):
         self.model = KeyedVectors.load_word2vec_format(self.__file_name)

@@ -4,14 +4,17 @@ from tqdm import tqdm
 
 
 class DocumentsWeights(object):
-    def __init__(self, time, citation_count_dict):
-        print('doc weights')
-        self.__weights = None
+    def __init__(self, df, time, citation_count_dict, date_header):
+        self.__dataframe = df
+        self.__date_header = date_header
+        self.__weights = [1.0]*len(df)
         if time:
-            self.__weights = self.__time_weights()
+            time_weights = self.__time_weights()
+            self.__weights = [a * b for a, b in zip(self.__weights, time_weights)]
 
         if citation_count_dict:
-            self.__weights *= self.__citation_weights(citation_count_dict)
+            cite_weights = self.__citation_weights()
+            self.__weights = [a * b for a, b in zip(self.__weights, cite_weights)]
 
     @property
     def weights(self):
