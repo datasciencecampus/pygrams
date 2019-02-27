@@ -53,6 +53,7 @@ class Pipeline(object):
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
+
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
