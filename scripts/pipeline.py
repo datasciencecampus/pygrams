@@ -31,8 +31,9 @@ class Pipeline(object):
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, None)
-        term_weights = filter_output_obj.ngrams_weights_vect
+        filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams='pharmacy, health, chemist',
+                                        file_name='models/wiki-news-300d-1M.vec')
+        term_weights = filter_output_obj.get_embeddings_vec()
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, doc_weights, norm_rows=normalize_rows, max_ngram_length=max_n)

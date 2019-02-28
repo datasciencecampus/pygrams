@@ -10,7 +10,7 @@ class FilterTerms(object):
         self.model = KeyedVectors.load_word2vec_format(self.__file_name)
 
     # no need for both threshold and binary as threshold only needed in binary :)
-    def get_embeddings_vec(self, threshold=1.5):
+    def get_embeddings_vec(self, threshold=0.35):
         embeddings_vect = []
         for term in self.__tfidf_ngrams:
             compare = []
@@ -28,5 +28,6 @@ class FilterTerms(object):
                 x = max(float(s) for s in compare)
                 append_val = x if threshold is None else int(x > threshold)
             embeddings_vect.append(append_val)
+        print(embeddings_vect[0:19])
         return embeddings_vect
 
