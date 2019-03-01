@@ -68,10 +68,10 @@ class TestGraph(unittest.TestCase):
         idx_3 = texts.index("provid seed")
         idx_4 = texts.index("gate line")
 
-        self.assertAlmostEqual(0.04789344988324536,  self.__nodes[idx_1]['freq'])
-        self.assertAlmostEqual(0.0297340319434382,   self.__nodes[idx_2]['freq'])
-        self.assertAlmostEqual(0.018931255387502864, self.__nodes[idx_3]['freq'])
-        self.assertAlmostEqual(0.07313170875401664,  self.__nodes[idx_4]['freq'])
+        self.assertAlmostEqual(0.05478826302293826,  self.__nodes[idx_1]['freq'])
+        self.assertAlmostEqual(0.022815124444693337,   self.__nodes[idx_2]['freq'])
+        self.assertAlmostEqual(0.01193531394736373, self.__nodes[idx_3]['freq'])
+        self.assertAlmostEqual(0.07963623423011947,  self.__nodes[idx_4]['freq'])
 
     def test_terms_in_links(self):
 
@@ -92,10 +92,10 @@ class TestGraph(unittest.TestCase):
         idx_4 = texts.index(link_3)
         idx_3 = texts.index(link_4)
 
-        self.assertAlmostEqual(0.10691489601359874, self.__links[idx_1]['size'])
-        self.assertAlmostEqual(0.04812269536077638, self.__links [idx_2]['size'])
-        self.assertAlmostEqual(0.15789374804194328, self.__links [idx_3]['size'])
-        self.assertAlmostEqual(0.03486527718367498, self.__links[idx_4]['size'])
+        self.assertAlmostEqual(0.1973562778129399, self.__links[idx_1]['size'])
+        self.assertAlmostEqual(0.1327523967624187, self.__links [idx_2]['size'])
+        self.assertAlmostEqual(0.2533744512434524, self.__links [idx_3]['size'])
+        self.assertAlmostEqual(0.11818446670638738, self.__links[idx_4]['size'])
 
 
 

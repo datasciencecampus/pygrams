@@ -35,7 +35,7 @@ class TermsGraph(object):
                 for idx_t2, term_freq2 in enumerate(list_term_tfidf):
                     if idx_t1 == idx_t2:
                         continue
-                    weight = term_freq2[0] if term_freq2[1] not in self.__terms_list else 5 * term_freq2[0]
+                    weight = term_freq2[0]
                     if term_freq2[1] not in node_links_dict[term_tfidf_tup[1]]:
                         node_links_dict[term_tfidf_tup[1]][term_freq2[1]] = weight
                     else:
@@ -54,8 +54,8 @@ class TermsGraph(object):
             node_min = node_min if term_tup[0] > node_min else term_tup[0]
             node_max = node_max if term_tup[0] < node_max else term_tup[0]
             for tup in self.__node_links_dict[term_tup[1]].items():
-                link_min = node_min if tup[1] > link_min else tup[1]
-                link_max = node_max if tup[1] < link_max else tup[1]
+                link_min = link_min if tup[1] > link_min else tup[1]
+                link_max = link_max if tup[1] < link_max else tup[1]
 
         for term_tup in self.__tfidf_term_list:
             term = term_tup[1]
