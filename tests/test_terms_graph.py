@@ -28,10 +28,10 @@ class TestGraph(unittest.TestCase):
         doc_weights = list(np.ones(len(df)))
 
         # term weights - embeddings
-        filter_output_obj = FilterTerms(tfidf_obj.feature_names, None)
-        term_weights = filter_output_obj.ngrams_weights_vect
+        filter_output_obj = FilterTerms(tfidf_obj.feature_names, None, None)
+        term_weights = filter_output_obj.ngram_weights_vec
 
-        tfidf_mask_obj = TfidfMask(tfidf_obj, doc_weights, norm_rows=False, max_ngram_length=max_n)
+        tfidf_mask_obj = TfidfMask(tfidf_obj, doc_weights, max_ngram_length=max_n)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
@@ -53,7 +53,7 @@ class TestGraph(unittest.TestCase):
         self.assertEquals(50, len(self.__nodes))
 
     def test_num_links(self):
-        self.assertEquals(437, len(self.__links))
+        self.assertEquals(447, len(self.__links))
 
     def test_terms_in_nodes(self):
         texts = [x['text'] for x in self.__nodes]

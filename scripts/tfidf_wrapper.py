@@ -38,6 +38,10 @@ class TFIDF:
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
 
     @property
+    def idf(self):
+        return self.__tfidf_transformer.idf_
+
+    @property
     def tfidf_matrix(self):
         return self.__tfidf_matrix
 

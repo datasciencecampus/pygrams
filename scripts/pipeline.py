@@ -27,15 +27,17 @@ class Pipeline(object):
 
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights
-        doc_weights = DocumentsWeights(df, docs_mask_dict['time'], docs_mask_dict['cite'], docs_mask_dict['dates'][-1:]).weights
+        doc_weights = DocumentsWeights(df, docs_mask_dict['time'], docs_mask_dict['cite'],
+                                       docs_mask_dict['dates'][-1:], text_header=text_header,
+                                       norm_rows=normalize_rows).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, None)
-        term_weights = filter_output_obj.ngrams_weights_vect
+        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, None, None)
+        term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
-        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, doc_weights, norm_rows=normalize_rows, max_ngram_length=max_n)
+        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, doc_weights, max_ngram_length=max_n)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 

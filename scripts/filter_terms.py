@@ -1,5 +1,5 @@
 from gensim.models import KeyedVectors
-
+import numpy as np
 
 class FilterTerms(object):
     def __init__(self, tfidf_ngrams, user_ngrams, file_name):
@@ -7,7 +7,13 @@ class FilterTerms(object):
         self.__user_ngrams = user_ngrams
         self.__tfidf_ngrams = tfidf_ngrams
         self.__file_name = file_name
-        self.model = KeyedVectors.load_word2vec_format(self.__file_name)
+        if file_name is not None:
+            self.model = KeyedVectors.load_word2vec_format(self.__file_name)
+        self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
+
+    @property
+    def ngram_weights_vec(self):
+        return self.__ngram_weights_vec
 
     # no need for both threshold and binary as threshold only needed in binary :)
     def get_embeddings_vec(self, threshold=1.5):
