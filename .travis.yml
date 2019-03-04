@@ -38,6 +38,8 @@ before_install: |
     # A manual check that the correct version of Python is running.
     python --version
   fi
+
+  export BOTO_CONFIG=/dev/null
   
 install:
   - python --version
