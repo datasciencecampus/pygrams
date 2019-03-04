@@ -11,6 +11,7 @@ from scripts.tfidf_wrapper import TFIDF
 # feel free to write some more tests
 
 
+@unittest.skip("works with custom small embeddings file, big enough to not be able to upload")
 class TestDocumentsFilter(unittest.TestCase):
 
     def setUp(self):
