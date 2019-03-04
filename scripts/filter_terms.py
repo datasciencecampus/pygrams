@@ -11,13 +11,12 @@ class FilterTerms(object):
         self.__user_ngrams = user_ngrams
         self.__tfidf_ngrams = tfidf_ngrams
         self.__file_name = file_name
+        self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
         if file_name is not None and user_ngrams is not None:
             print('Loading model: '+ file_name)
-            self.model = KeyedVectors.load_word2vec_format(self.__file_name)
+            self.__model = KeyedVectors.load_word2vec_format(self.__file_name)
             self.__ngram_weights_vec = self.__get_embeddings_vec(threshold)
 
-        else:
-            self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
 
     @property
     def ngram_weights_vec(self):
@@ -28,14 +27,14 @@ class FilterTerms(object):
         embeddings_vect = []
         user_terms = self.__user_ngrams.split(',')
         for term in tqdm(self.__tfidf_ngrams, desc='Evaluating terms distance with: ' + self.__user_ngrams, unit='term',
-             total=len(self.__tfidf_ngrams)):
+                         total=len(self.__tfidf_ngrams)):
             compare = []
             for ind_term in term.split():
                 # what if the user put an ngram there?
                 # Maybe address in the future, keep it simple for now
                 for user_term in user_terms:
                     try:
-                        similarity_score = self.model.similarity(ind_term, user_term)
+                        similarity_score = self.__model.similarity(ind_term, user_term)
                         compare.append(similarity_score)
                     except:
                         compare.append(0.0)

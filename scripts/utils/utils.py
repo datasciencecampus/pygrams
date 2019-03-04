@@ -1,4 +1,7 @@
 import numpy as np
+from gensim.test.utils import datapath, get_tmpfile
+from gensim.models import KeyedVectors
+from gensim.scripts.glove2word2vec import glove2word2vec
 
 
 def bisearch_csr(array, target, start, end):
@@ -19,7 +22,15 @@ def remove_all_null_rows(sparse_mat):
     unique_nonzero_indices = np.unique(nonzero_row_indices)
     return sparse_mat[unique_nonzero_indices]
 
+
 def normalize_array(X, return_list = False):
     min_x, max_x = min(X), max(X)
     diff_x = (max_x - min_x)
     return (np.array(X) - min_x) / diff_x if not return_list else list((np.array(X) - min_x) / diff_x)
+
+
+def w2vify(filein, fileout):
+    glove_file = datapath(filein)
+    tmp_file = get_tmpfile(fileout)
+    _ = glove2word2vec(glove_file, tmp_file)
+    return KeyedVectors.load_word2vec_format(tmp_file)
