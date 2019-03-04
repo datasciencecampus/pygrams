@@ -17,7 +17,8 @@ class TfidfMask(object):
         if ngram_range[0]==1:
             self.__clean_unigrams(self.__max_bigram())
 
-        self.__unbias_ngrams(ngram_range[1])
+        for i in range(ngram_range[0], ngram_range[1]):
+            self.__unbias_ngrams(i + 1)
 
     @property
     def tfidf_mask(self):
@@ -96,8 +97,8 @@ class TfidfMask(object):
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
                     ngram_counts = self.__tfidf_matrix.data[j]/self.__idf[col_idx]
-                    if i==95:
-                        print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_back])
+                    # if i==95:
+                    #     print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_back])
 
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)

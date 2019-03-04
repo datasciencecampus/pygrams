@@ -6,7 +6,6 @@ import calendar
 
 class DocumentsFilter(object):
     def __init__(self, df, docs_mask_dict):
-        print('processing doc filters')
         self.__doc_indices = set([])
 
         if docs_mask_dict['columns'] is not None:
@@ -123,7 +122,9 @@ class DocumentsFilter(object):
         date_from = pd.Timestamp(date_from)
         date_to = pd.Timestamp(date_to)
 
-        for idx, date in enumerate(df[dates_header]):
+        for idx, date in tqdm(enumerate(df[dates_header]), desc='Sifting documents for date-range: ' +
+                              str(dates_list[0]) + ' - ' + str(dates_list[1]), unit='document',
+                              total=df.shape[0]):
             if date_to > date > date_from:
                 doc_ids.add(idx)
 

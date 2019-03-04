@@ -9,14 +9,17 @@ from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
 
+import os
+
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', ngram_range=(1,3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf=False, max_df=0.1):
-        ngram_range
+
         # load data
         df = datafactory.get(data_filename)
+        user_ngrams = None#'agriculture' # 'green, energy, wind, solar, engine'
 
         # calculate or fetch tf-idf mat
         if pickled_tf_idf:
@@ -34,7 +37,7 @@ class Pipeline(object):
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, None, None)
+        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, file_name=os.path.join('data','embeddings', 'fasttext', 'wiki-news-300d-1M-subword.vec'))
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)

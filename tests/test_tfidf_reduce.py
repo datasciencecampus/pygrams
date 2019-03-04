@@ -19,9 +19,9 @@ class TestTfidfReduce(unittest.TestCase):
         min_n = 2
         max_n = 3
         max_df = 0.3
-
+        ngram_range = (min_n, max_n)
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
+        tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
                           tokenizer=StemTokenizer(), text_header='abstract')
 
         doc_weights = list(np.ones(len(df)))
@@ -30,7 +30,7 @@ class TestTfidfReduce(unittest.TestCase):
         filter_output_obj = FilterTerms(tfidf_obj.feature_names, None, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
-        tfidf_mask_obj = TfidfMask(tfidf_obj, doc_weights,  max_ngram_length=max_n)
+        tfidf_mask_obj = TfidfMask(tfidf_obj,  ngram_range=ngram_range)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
