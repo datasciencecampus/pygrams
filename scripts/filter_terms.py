@@ -1,6 +1,7 @@
 from gensim.models import KeyedVectors
 import numpy as np
 
+
 class FilterTerms(object):
     def __init__(self, tfidf_ngrams, user_ngrams, file_name):
 
@@ -34,6 +35,5 @@ class FilterTerms(object):
                 x = max(float(s) for s in compare)
                 append_val = x if threshold is None else int(x > threshold)
             embeddings_vect.append(append_val)
-        print(embeddings_vect[0:19])
         return embeddings_vect
 

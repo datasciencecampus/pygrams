@@ -96,7 +96,7 @@ def main(supplied_args):
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict,  pick_method=args.pick,
-                        max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length,
+                        ngram_range=(args.min_n, args.max_n), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output))
 

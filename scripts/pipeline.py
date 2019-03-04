@@ -11,9 +11,10 @@ from scripts.utils import utils
 
 
 class Pipeline(object):
-    def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', max_n=3, min_n=1,
+    def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', ngram_range=(1,3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf=False, max_df=0.1):
+        ngram_range
         # load data
         df = datafactory.get(data_filename)
 
@@ -22,7 +23,7 @@ class Pipeline(object):
             print('read from pickle')
             self.__tfidf_obj = None
         else:
-            self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=(min_n, max_n), max_document_frequency=max_df,
+            self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
 
         # docs weights( column, dates subset + time, citations etc.)
@@ -37,7 +38,7 @@ class Pipeline(object):
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
-        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, doc_weights, max_ngram_length=max_n)
+        tfidf_mask_obj = TfidfMask(self.__tfidf_obj,  ngram_range=ngram_range, uni_factor=0.8)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
