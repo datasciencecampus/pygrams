@@ -13,6 +13,7 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.utils import utils
 
+
 # text for record 95, the only Y02 in set
 # An engine control system with a variable turbocharger may include an engine
 # including a cylinder generating power by combustion of a fuel, a variable
@@ -35,7 +36,6 @@ class TestTfidfMask(unittest.TestCase):
 
         cls.__df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
 
-
     def init_mask(self, cpc, min_n, uni_factor=0.8):
         docs_mask_dict = {}
         docs_mask_dict['filter_by'] = 'union'
@@ -45,8 +45,9 @@ class TestTfidfMask(unittest.TestCase):
         docs_mask_dict['columns'] = None
         docs_mask_dict['dates'] = [None]
 
-        self.__tfidf_obj = TFIDF(docs_df=self.__df, ngram_range=(min_n, self.__max_n), max_document_frequency=self.__max_df,
-                                tokenizer=StemTokenizer(), text_header='abstract')
+        self.__tfidf_obj = TFIDF(docs_df=self.__df, ngram_range=(min_n, self.__max_n),
+                                 max_document_frequency=self.__max_df,
+                                 tokenizer=StemTokenizer(), text_header='abstract')
 
         doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_weights
         doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],
@@ -54,7 +55,7 @@ class TestTfidfMask(unittest.TestCase):
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, None, None)
+        filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=(min_n, self.__max_n), uni_factor=uni_factor)
@@ -67,14 +68,12 @@ class TestTfidfMask(unittest.TestCase):
 
     def test_terms(self):
         self.init_mask('Y02', 2)
-        expected_terms = ['exhaust ga',
-                          'variabl turbocharg',
+        expected_terms = ['variabl turbocharg',
                           'turbin rotat',
                           'compressor rotat',
                           'compress air',
                           'control divid',
                           'oper region',
-                          'drive region',
                           'inject time',
                           'fuel inject',
                           'engin control system',
@@ -86,13 +85,17 @@ class TestTfidfMask(unittest.TestCase):
                           'steady-spe drive region',
                           'acceler drive region',
                           'deceler drive region',
-                          'fuel amount suppli']
+                          'fuel amount suppli',
+                          'drive region',
+                          'exhaust ga']
+
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
         tfidf_masked = self.__tfidf_mask.multiply(tfidf_matrix)
         tfidf_masked = utils.remove_all_null_rows(tfidf_masked)
 
         tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_row(0)
+        term_score_tuples.sort(key=lambda tup: -tup[0])
         actual_terms = [x for _, x in term_score_tuples]
 
         self.assertEqual(expected_terms, actual_terms)
@@ -116,28 +119,19 @@ class TestTfidfMask(unittest.TestCase):
     def test_non_zeros_clean_rows(self):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
+        vectorizer = self.__tfidf_obj.vectorizer
+        expected_term1_val = 0.25
+        expected_term2_val = 0.2962962962962961
 
-        expected_values = [1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           0.2962962962962961,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           1.0,
-                           0.25]
+        term1 = 'exhaust ga'  # 0.25
+        term2 = 'drive region'  # 0.2962962962962961
+        idx_term1 = vectorizer.vocabulary_.get(term1)
+        idx_term2 = vectorizer.vocabulary_.get(term2)
+
+        indexof_idx_term1 = tfidf_mask_nozero_rows.indices.tolist().index(idx_term1)
+        indexof_idx_term2 = tfidf_mask_nozero_rows.indices.tolist().index(idx_term2)
 
         actual_values = list(tfidf_mask_nozero_rows.data)
 
-        self.assertListEqual(expected_values, actual_values)
+        self.assertEqual(expected_term1_val, actual_values[indexof_idx_term1])
+        self.assertAlmostEqual(expected_term2_val, actual_values[indexof_idx_term2])
