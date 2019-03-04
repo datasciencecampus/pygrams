@@ -1,16 +1,15 @@
-import pandas as pd
 import unittest
-import numpy as np
 
+import pandas as pd
+
+from scripts import FilePaths
 from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
-from scripts.text_processing import LemmaTokenizer, StemTokenizer
-from scripts.tfidf_wrapper import TFIDF
-from scripts import FilePaths
 from scripts.filter_terms import FilterTerms
-from scripts.terms_graph import TermsGraph
+from scripts.text_processing import StemTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
+from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
 
 
@@ -69,23 +68,23 @@ class TestTfidfMask(unittest.TestCase):
     def test_terms(self):
         self.init_mask('Y02', 2)
         expected_terms = ['variabl turbocharg',
-                          'turbin rotat',
-                          'compressor rotat',
-                          'compress air',
-                          'control divid',
-                          'oper region',
-                          'inject time',
-                          'fuel inject',
-                          'engin control system',
-                          'cylind gener power',
-                          'exhaust ga exhaust',
-                          'compress extern air',
-                          'vane adjust flow',
-                          'exhaust ga suppli',
-                          'steady-spe drive region',
                           'acceler drive region',
+                          'compress air',
+                          'compress extern air',
+                          'compressor rotat',
+                          'control divid',
+                          'cylind gener power',
                           'deceler drive region',
+                          'engin control system',
+                          'exhaust ga exhaust',
+                          'exhaust ga suppli',
                           'fuel amount suppli',
+                          'fuel inject',
+                          'inject time',
+                          'oper region',
+                          'steady-spe drive region',
+                          'turbin rotat',
+                          'vane adjust flow',
                           'drive region',
                           'exhaust ga']
 
@@ -95,7 +94,7 @@ class TestTfidfMask(unittest.TestCase):
 
         tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_row(0)
-        term_score_tuples.sort(key=lambda tup: -tup[0])
+        term_score_tuples.sort(key=lambda tup: (-tup[0], tup[1]))
         actual_terms = [x for _, x in term_score_tuples]
 
         self.assertEqual(expected_terms, actual_terms)
