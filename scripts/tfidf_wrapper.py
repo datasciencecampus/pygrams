@@ -56,7 +56,3 @@ class TFIDF:
     @property
     def feature_names(self):
         return self.__feature_names
-
-    @property
-    def ngram_counts(self):
-        return self.__ngram_counts
