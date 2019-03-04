@@ -19,7 +19,7 @@ class Pipeline(object):
 
         # load data
         df = datafactory.get(data_filename)
-        user_ngrams = None#'agriculture' # 'green, energy, wind, solar, engine'
+        user_ngrams = 'agriculture' # 'green, energy, wind, solar, engine'
 
         # calculate or fetch tf-idf mat
         if pickled_tf_idf:
@@ -37,7 +37,8 @@ class Pipeline(object):
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, file_name=os.path.join('data','embeddings', 'fasttext', 'wiki-news-300d-1M-subword.vec'))
+        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams,
+                                       file_name=os.path.join('data','embeddings', 'glove', 'w2v_glove.6B.50d.txt'))
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
