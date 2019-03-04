@@ -1,3 +1,4 @@
+import pickle
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
@@ -13,18 +14,21 @@ from scripts.utils import utils
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', ngram_range=(1,3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf=False, max_df=0.1):
-        ngram_range
+                 pickled_tf_idf=False, max_df=0.1, tfidf_obj_filename=None):
+
         # load data
         df = datafactory.get(data_filename)
 
-        # calculate or fetch tf-idf mat
-        if pickled_tf_idf:
-            print('read from pickle')
-            self.__tfidf_obj = None
+        # read or create & save tfidf wrapper object
+        if pickled_tf_idf and tfidf_obj_filename is not None:
+            print('reading tfidf_obj pickle')
+            with open(tfidf_obj_filename, "rb") as file:
+                self.__tfidf_obj = pickle.load(file)
         else:
             self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
+            with open(tfidf_obj_filename, "wb") as file:
+                pickle.dump(self.__tfidf_obj, file)
 
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights

@@ -82,7 +82,7 @@ def get_args(command_line_arguments):
 
 def main(supplied_args):
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
-             os.path.join('outputs', 'table')]
+             os.path.join('outputs', 'table'), os.path.join('outputs', 'tfidf_obj')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
@@ -95,10 +95,13 @@ def main(supplied_args):
     terms_mask_dict = argscheck.get_terms_mask_dict()
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
+    tfidf_obj_filename = os.path.join('outputs', 'tfidf_obj', 'tfidf_obj.pickle')
+    pickled_tf_idf = os.path.isfile(tfidf_obj_filename)
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict,  pick_method=args.pick,
                         ngram_range=(args.min_n, args.max_n), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output))
+                        term_counts=('termcounts' in args.output),
+                        pickled_tf_idf=pickled_tf_idf, tfidf_obj_filename=tfidf_obj_filename)
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
