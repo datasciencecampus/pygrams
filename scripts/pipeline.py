@@ -1,3 +1,5 @@
+import os
+
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
@@ -8,8 +10,6 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
-
-import os
 
 
 class Pipeline(object):
@@ -56,7 +56,7 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_mat = None
         if term_counts:
-            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1:])
+            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
