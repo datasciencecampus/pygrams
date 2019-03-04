@@ -1,41 +1,50 @@
 import datetime
+import numpy as np
 
+from sklearn import preprocessing
 from tqdm import tqdm
 
 
 class DocumentsWeights(object):
-    def __init__(self, time, citation_count_dict):
-        print('doc weights')
-        self.__weights = None
+    def __init__(self, df, time, citation_count_dict, date_header, text_header='abstract', norm_rows=False):
+        self.__dataframe = df
+        self.__date_header = date_header
+        self.__weights = [1.0]*len(df)
+        processed = False
         if time:
-            self.__weights = self.__time_weights()
+            time_weights = self.__time_weights()
+            self.__weights = [a * b for a, b in zip(self.__weights, time_weights)]
+            processed=True
 
         if citation_count_dict:
-            self.__weights *= self.__citation_weights(citation_count_dict)
+            cite_weights = self.__citation_weights()
+            self.__weights = [a * b for a, b in zip(self.__weights, cite_weights)]
+            processed = True
+
+        # normalize rows to text length
+        if norm_rows:
+            self.__normalize_rows(text_header)
+            processed = True
+
+        if processed:
+            min_x, max_x = min(self.__weights), max(self.__weights)
+            self.__weights = (np.array(self.__weights) - min_x) / (max_x - min_x)
 
     @property
     def weights(self):
         return self.__weights
 
+    def __normalize_rows(self, text_header):
+        for idx, text in enumerate(self.__dataframe[text_header]):
+            text_len = len(text)
+            self.__weights[idx] /= text_len
+
     def __time_weights(self):
         self.__dataframe = self.__dataframe.sort_values(by=[self.__date_header])
         epoch = datetime.datetime.utcfromtimestamp(0)
-        num_docs = len(self.__dataframe[self.__date_header])
-        time_weights = [0.0] * num_docs
-        for id_index, date in enumerate(self.__dataframe[self.__date_header]):
-            time_weights[id_index] = (date - epoch).total_seconds()
-
-        mx = max(time_weights)
-        mn = min(time_weights)
-
-        for id_index, date in enumerate(self.__dataframe[self.__date_header]):
-            X = time_weights[id_index]
-            X_std = (X - mn) / (mx - mn)
-            time_weights[id_index] = X_std
-
-        # for i, v in enumerate(time_weights):
-        #     self.__tfidf_matrix.data[self.__tfidf_matrix.indptr[i]:self.__tfidf_matrix.indptr[i + 1]] *= v
-        return time_weights
+        X = [(date - epoch).total_seconds() for date in self.__dataframe[self.__date_header]]
+        min_x, max_x = min(X), max(X)
+        return (np.array(X) - min_x) / (max_x-min_x)
 
     def __citation_weights(self, citation_count_dict):
         # TODO check if we need -2 below. If not, we only need one dict for both citations and docs_set

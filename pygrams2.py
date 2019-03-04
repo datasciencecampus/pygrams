@@ -91,17 +91,17 @@ def main(supplied_args):
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
 
-    doc_weights_dict = argscheck.get_mask_dict()
+    docs_mask_dict = argscheck.get_docs_mask_dict()
+    terms_mask_dict = argscheck.get_terms_mask_dict()
 
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
     tfidf_wrapper_filename = os.path.join('outputs', 'tfidf_wrapper', 'tfidf_wrapper.pickle')
-    pickled_tf_idf = os.path.isfile(tfidf_wrapper_filename)
-    pipeline = Pipeline(doc_source_file_name, filter_columns=args.filter_columns, pick_method=args.pick,
-                        max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length, filter_by=args.filter_by,
-                        nterms=args.num_ngrams_report, text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output), dates_header=args.date_header, pickled_tf_idf=pickled_tf_idf,
-                        tfidf_wrapper_filename=tfidf_wrapper_filename)
+
+    pipeline = Pipeline(doc_source_file_name, docs_mask_dict,  pick_method=args.pick,
+                        max_n=args.max_n, min_n=args.min_n, normalize_rows=args.normalize_doc_length,
+                        text_header=args.text_header, max_df=args.max_document_frequency,
+                        term_counts=('termcounts' in args.output))
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
