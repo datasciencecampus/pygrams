@@ -100,8 +100,6 @@ class TfidfReduce(object):
         if verbose:
             feature_iterator = tqdm(feature_iterator, leave=False, desc='Searching TFIDF', unit='ngram')
 
-
-
         for ngram_index, ngram in enumerate(feature_iterator):
 
             start_idx_inptr = tfidf_csc_matrix.indptr[ngram_index]
@@ -136,16 +134,12 @@ class TfidfReduce(object):
         return ngrams_scores_tuple
 
     def create_terms_count(self, df, dates_header):
-        try:
-            dates = df[dates_header]
-            document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                                   [d.isocalendar() for d in dates]]
-        except ValueError:
-            # do we need this?
-            dates = [None] * len(df)
+        dates = list(df[dates_header])
+        document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+                               [d.isocalendar() for d in dates]]
 
         term_counts_per_week, number_of_documents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
-            self.__tfidf_matrix, document_week_dates)
+            self.__tfidf_masked, document_week_dates)
 
         term_counts_data = [term_counts_per_week, self.__feature_names, number_of_documents_per_week,
                             week_iso_dates]
