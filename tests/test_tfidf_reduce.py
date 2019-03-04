@@ -1,15 +1,16 @@
-import pandas as pd
 import unittest
-import numpy as np
 
-from scripts.text_processing import LemmaTokenizer, StemTokenizer
-from scripts.tfidf_wrapper import TFIDF
+import numpy as np
+import pandas as pd
+
 from scripts import FilePaths
 from scripts.filter_terms import FilterTerms
-from scripts.terms_graph import TermsGraph
+from scripts.text_processing import StemTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
+from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
+from tests import support
 
 
 class TestTfidfReduce(unittest.TestCase):
@@ -30,7 +31,7 @@ class TestTfidfReduce(unittest.TestCase):
         filter_output_obj = FilterTerms(tfidf_obj.feature_names, None, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
-        tfidf_mask_obj = TfidfMask(tfidf_obj,  ngram_range=ngram_range)
+        tfidf_mask_obj = TfidfMask(tfidf_obj, ngram_range=ngram_range)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
@@ -95,4 +96,4 @@ class TestTfidfReduce(unittest.TestCase):
                            0.547722557505166,
                            0.5265695940793358]
 
-        self.assertListEqual(actual_scores[:20], expected_scores)
+        support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)
