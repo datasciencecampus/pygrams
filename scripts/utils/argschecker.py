@@ -10,7 +10,7 @@ class ArgsChecker:
         app_exit = False
 
         if os.path.isfile(os.path.join(self.args.path, self.args.doc_source)) is False:
-            print(f"File {self.args.doc_source} in path /{self.args.path} not found")
+            print(f"File {self.args.doc_source} in path {self.args.path} not found")
             app_exit = True
 
         if isinstance(self.args.year_to, str) & isinstance(self.args.year_from, str):
