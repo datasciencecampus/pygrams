@@ -229,7 +229,7 @@ class TestPipeline(unittest.TestCase):
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("sscripts.tfidf_wrapper.open", create=True)
+    @mock.patch("scripts.tfidf_wrapper.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
