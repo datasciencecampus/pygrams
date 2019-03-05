@@ -2,29 +2,29 @@ import os
 import unittest
 from unittest import mock
 
-import pygrams
+import pygrams2
 
 
 class TestPyGrams(unittest.TestCase):
 
     def test_args_json_not_requested(self):
-        args = pygrams.get_args([])
+        args = pygrams2.get_args([])
         self.assertFalse(args.json)
 
     def test_args_json_requested_short(self):
-        args = pygrams.get_args(['-j'])
+        args = pygrams2.get_args(['-j'])
         self.assertTrue(args.json)
 
     def test_args_json_requested_long(self):
-        args = pygrams.get_args(['--json'])
+        args = pygrams2.get_args(['--json'])
         self.assertTrue(args.json)
 
     def test_args_report_name_requested_long(self):
-        args = pygrams.get_args(['--report_name=my/test/name.txt'])
+        args = pygrams2.get_args(['--report_name=my/test/name.txt'])
         self.assertEqual('my/test/name.txt', args.report_name)
 
     def test_args_document_source_requested_long(self):
-        args = pygrams.get_args(['--doc_source=my-test'])
+        args = pygrams2.get_args(['--doc_source=my-test'])
         self.assertEqual('my-test', args.doc_source)
 
     @mock.patch("pygrams.json.dump", create=True)
@@ -34,9 +34,9 @@ class TestPyGrams(unittest.TestCase):
         patent_pickle_absolute_file_name = os.path.abspath('test.pkl')
         report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
         json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
-        args = pygrams.get_args(['-j', f'--report_name={report_file_name}'])
+        args = pygrams2.get_args(['-j', f'--report_name={report_file_name}'])
 
-        pygrams.write_config_to_json(args, patent_pickle_file_name)
+        pygrams2.write_config_to_json(args, patent_pickle_file_name)
 
         self.assertTrue(args.json)
         mock_open.assert_called_with(json_file_name, 'w')
@@ -66,10 +66,10 @@ class TestPyGrams(unittest.TestCase):
         patent_pickle_absolute_file_name = os.path.abspath(patent_pickle_file_name)
         report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
         json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
-        args = pygrams.get_args(['-j', f'--report_name={report_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
+        args = pygrams2.get_args(['-j', f'--report_name={report_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
                                  '-yf=1998', '-yt=2001'])
 
-        pygrams.write_config_to_json(args, patent_pickle_file_name)
+        pygrams2.write_config_to_json(args, patent_pickle_file_name)
 
         self.assertTrue(args.json)
         mock_open.assert_called_with(json_file_name, 'w')
@@ -102,7 +102,7 @@ class TestPyGrams(unittest.TestCase):
         graph_report_name = report_name[:len(report_name) - 4] + "_graph.txt"
 
         test_args = ['--doc_source', 'USPTO-random-100.pkl.bz2', '-o', 'fdg', '--report_name', report_name]
-        pygrams.main(test_args)
+        pygrams2.main(test_args)
 
         mock_open.assert_any_call(json_file_name, 'w')
         mock_open.assert_any_call(js_file_name, 'w')
@@ -115,7 +115,7 @@ class TestPyGrams(unittest.TestCase):
     @mock.patch("pygrams.print", create=True)
     def test_reports_unsupported_df_format(self, mock_print):
         test_args = ['--doc_source', 'unknown.format']
-        return_code = pygrams.main(test_args)
+        return_code = pygrams2.main(test_args)
 
         self.assertEqual(1, return_code)
         mock_print.assert_any_call("Unrecognised file extension '.format' for document format")

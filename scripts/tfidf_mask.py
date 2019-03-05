@@ -2,7 +2,7 @@ import numpy as np
 
 
 class TfidfMask(object):
-    def __init__(self, tfidf_obj, ngram_range=(2,3), uni_factor=0.8):
+    def __init__(self, tfidf_obj, ngram_range=(2, 3), uni_factor=0.8):
         self.__tfidf_matrix = tfidf_obj.tfidf_matrix
         self.__feature_names = tfidf_obj.feature_names
         self.__tfidf_mask = self.__tfidf_matrix.copy()
@@ -11,10 +11,8 @@ class TfidfMask(object):
         self.__uni_factor = uni_factor
         self.__idf = tfidf_obj.idf
 
-        # self.__ngram_counts = csr_matrix(self.__ngram_counts, dtype=np.float64, copy=True)
-
         # do unigrams
-        if ngram_range[0]==1:
+        if ngram_range[0] == 1:
             self.__clean_unigrams(self.__max_bigram())
 
         for i in range(ngram_range[0], ngram_range[1]):
@@ -86,7 +84,6 @@ class TfidfMask(object):
                 big_ngram = self.__feature_names[col_idx]
                 big_ngram_terms = big_ngram.split()
 
-
                 if len(big_ngram_terms) == max_ngram_length:
 
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
@@ -97,8 +94,6 @@ class TfidfMask(object):
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
                     ngram_counts = self.__tfidf_matrix.data[j]/self.__idf[col_idx]
-                    # if i==95:
-                    #     print(big_ngram + ": " + self.__feature_names[idx_ngram_minus_back])
 
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
@@ -111,6 +106,3 @@ class TfidfMask(object):
             if abs(small_term_counts - big_ngram_counts) > 0.000001:
                 ratio = (small_term_counts - big_ngram_counts) / small_term_counts
             self.__tfidf_mask.data[start_idx_ptr + idx] *= ratio
-
-
-

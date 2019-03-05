@@ -6,7 +6,7 @@ from unittest.mock import Mock, MagicMock
 import numpy as np
 import pandas as pd
 
-import pygrams
+import pygrams2
 from scripts import FilePaths
 
 
@@ -146,7 +146,7 @@ class TestPipeline(unittest.TestCase):
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("scripts.algorithms.tfidf.open", create=True)
+    @mock.patch("scripts.tfidf_wrapper.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     def test_simple_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
@@ -160,7 +160,7 @@ class TestPipeline(unittest.TestCase):
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
-        return_value = pygrams.main(args)
+        return_value = pygrams2.main(args)
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
@@ -172,7 +172,7 @@ class TestPipeline(unittest.TestCase):
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("scripts.algorithms.tfidf.open", create=True)
+    @mock.patch("scripts.tfidf_wrapper.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     def test_simple_two_patents_unigrams_only_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open,
@@ -188,7 +188,7 @@ class TestPipeline(unittest.TestCase):
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0', '--max_n', '1']
 
-        return_value = pygrams.main(args)
+        return_value = pygrams2.main(args)
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 
@@ -219,7 +219,7 @@ class TestPipeline(unittest.TestCase):
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("scripts.algorithms.tfidf.open", create=True)
+    @mock.patch("sscripts.tfidf_wrapper.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     def test_stopwords_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
@@ -233,7 +233,7 @@ class TestPipeline(unittest.TestCase):
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
-        return_value = pygrams.main(args)
+        return_value = pygrams2.main(args)
 
         self.assertEqual(0, return_value, 'Return value indicates failure')
 

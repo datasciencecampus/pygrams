@@ -15,11 +15,10 @@ from scripts.utils import utils
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', ngram_range=(1,3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf=False, max_df=0.1):
+                 pickled_tf_idf=False, max_df=0.1, user_ngrams=None):
 
         # load data
         df = datafactory.get(data_filename)
-        user_ngrams = 'agriculture' # 'green, energy, wind, solar, engine'
 
         # calculate or fetch tf-idf mat
         if pickled_tf_idf:

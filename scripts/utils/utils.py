@@ -33,6 +33,6 @@ def normalize_array(X, min_val = 0.2,  return_list = False):
 
 def w2vify(filein, fileout):
     glove_file = datapath(filein)
-    tmp_file = get_tmpfile(fileout)
-    _ = glove2word2vec(glove_file, tmp_file)
-    return KeyedVectors.load_word2vec_format(tmp_file)
+    tmp_file_name = get_tmpfile(fileout)
+    _ = glove2word2vec(glove_file, tmp_file_name)
+    return KeyedVectors.load_word2vec_format(tmp_file_name)

@@ -17,10 +17,8 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
                     file.write(f' {term:30} {score:f}\n')
                     print(f'{counter}. {term:30} {score:f}')
                     counter += 1
-        print(output_type)
 
     elif output_type == 'graph':
-        print(output_type)
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
         graph = TermsGraph(dict_freqs_list, tfidf_reduce_obj)

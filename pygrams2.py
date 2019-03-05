@@ -6,10 +6,6 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 
 
-# -fc="Communications,Leadership, IT systems"
-# -ah=Comment -ds=comments_2017.xls -mn=2 -fc="Communications"
-
-
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
 
@@ -32,11 +28,12 @@ def get_args(command_line_arguments):
     parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
     parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
-                        help="options are <all> <any> defaults to any. Returns filter where all are 'Yes' "
-                             "or any are 'Yes")
+                        help="options are <union> <intersection> defaults to union. Returns filter where all are 'Yes' "
+                             "or any are 'Yes' in the defined --filter_columns")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
-                        help="options are <median> <max> <sum> <avg>  defaults to sum. Average is over non zero values")
+                        help="options are <median> <max> <sum> <avg>  defaults to sum. Everything is computed over "
+                             "non zero values")
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
                         choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
                         help="options are: <graph> <wordcloud> <report> <table> <tfidf> <termcounts>;"
@@ -58,9 +55,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=50,
                         help="number of ngrams to return for fdg graph")
 
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the doc source to process")
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
-                        help="the doc source for the focus function")
+                        help="the document source for the focus function")
 
     parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
@@ -69,7 +66,7 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-on", "--outputs_name", default='out', help="outputs filename")
 
-    parser.add_argument("-wt", "--wordcloud_title", default='tech terms', help="wordcloud title")
+    parser.add_argument("-wt", "--wordcloud_title", default='Popular Terms', help="wordcloud title")
 
     parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
                         help="table filename")
