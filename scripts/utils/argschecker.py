@@ -1,5 +1,6 @@
-import pandas as pd
 import os
+
+import pandas as pd
 
 
 class ArgsChecker:
@@ -146,16 +147,13 @@ class ArgsChecker:
     def get_docs_mask_dict(self):
 
         year_to = pd.to_datetime('today').year if self.args.year_to is None else self.args.year_to
-        month_to = pd.to_datetime('today').month if self.args.month_to is None else self.args.month_to
+        month_to = pd.to_datetime(
+            'today').month if self.args.month_to is None and self.args.year_to is None else self.args.month_to
 
-        docs_mask_dict = {}
-        # doc_weights
-        docs_mask_dict['filter_by'] = self.args.filter_by
-        docs_mask_dict['cpc'] = self.args.cpc_classification
-        docs_mask_dict['time'] = self.args.time
-        docs_mask_dict['cite'] = None
-        docs_mask_dict['columns'] = self.args.filter_columns
-        docs_mask_dict['dates'] = [self.args.year_from, year_to, self.args.month_from, month_to, self.args.date_header]
+        docs_mask_dict = {'filter_by': self.args.filter_by, 'cpc': self.args.cpc_classification, 'time': self.args.time,
+                          'cite': None, 'columns': self.args.filter_columns,
+                          'dates': [self.args.year_from, year_to, self.args.month_from, month_to,
+                                    self.args.date_header]}
         return docs_mask_dict
 
     def get_terms_mask_dict(self):

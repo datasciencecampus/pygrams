@@ -28,16 +28,17 @@ class TestPyGrams(unittest.TestCase):
         args = pygrams2.get_args(['--doc_source=my-test'])
         self.assertEqual('my-test', args.doc_source)
 
-    @mock.patch("pygrams2.json.dump", create=True)
-    @mock.patch("pygrams2.open", create=True)
-    def test_json_configuration_encoding_minimal(self, mock_open, mock_json_dump):
-        patent_pickle_file_name = 'test.pkl'
-        patent_pickle_absolute_file_name = os.path.abspath(patent_pickle_file_name)
-        report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
-        json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
-        args = pygrams2.get_args(['-j', f'--outputs_name={report_file_name}'])
+    @mock.patch("scripts.output_factory.json.dump", create=True)
+    @mock.patch("scripts.output_factory.open", create=True)
+    def test_json_configuration_encoding_sum_no_time_weighting(self, mock_open, mock_json_dump):
+        patent_pickle_file_name = 'USPTO-random-100.pkl.bz2'
+        patent_pickle_absolute_file_name = os.path.abspath(os.path.join('data', patent_pickle_file_name))
+        output_file_name = 'test'
+        report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
+        json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
+        pygrams2.main(['-j', f'--outputs_name={output_file_name}', '-c', '-f=set', '-p=sum', '-cpc=Y12',
+                       '-yf=1999', '-yt=2000', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
 
-        self.assertTrue(args.json)
         mock_open.assert_called_with(json_file_name, 'w')
 
         actual_json = mock_json_dump.call_args[0][0]
@@ -47,27 +48,26 @@ class TestPyGrams(unittest.TestCase):
                 'tech_report': report_file_name
             },
             'month_year': {
-                'from': '01_2000',
-                'to': '12_2019'
+                'from': '1999-01-01',
+                'to': '2000-12-31'
             },
             'parameters': {
                 'pick': 'sum',
-                'time': False,
-                'focus': None
+                'time': False
             }
         }
         self.assertEqual(expected_json, actual_json)
 
     @mock.patch("scripts.output_factory.json.dump", create=True)
     @mock.patch("scripts.output_factory.open", create=True)
-    def test_json_configuration_encoding_maximal(self, mock_open, mock_json_dump):
+    def test_json_configuration_encoding_maximal_and_time_weighting(self, mock_open, mock_json_dump):
         patent_pickle_file_name = 'USPTO-random-100.pkl.bz2'
         patent_pickle_absolute_file_name = os.path.abspath(os.path.join('data', patent_pickle_file_name))
         output_file_name = 'test'
-        report_file_name = os.path.join('outputs', 'reports', output_file_name+'.txt')
-        json_file_name = os.path.join('outputs', 'reports', output_file_name+'.json')
+        report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
+        json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
         pygrams2.main(['-j', f'--outputs_name={output_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
-                                 '-yf=1998', '-yt=2001', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+                       '-yf=1998', '-yt=2001', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
 
         mock_open.assert_called_with(json_file_name, 'w')
 
@@ -79,7 +79,7 @@ class TestPyGrams(unittest.TestCase):
             },
             'month_year': {
                 'from': '1998-01-01',
-                'to': '2001-03-31'
+                'to': '2001-12-31'
             },
             'parameters': {
                 'pick': 'max',
