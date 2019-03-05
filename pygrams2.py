@@ -4,6 +4,7 @@ import sys
 
 from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
+from scripts.utils.pygrams_exception import PygramsException
 
 
 def get_args(command_line_arguments):
@@ -102,4 +103,7 @@ def main(supplied_args):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    try:
+        main(sys.argv[1:])
+    except PygramsException as err:
+        print(f"pyGrams error: {err.message}")

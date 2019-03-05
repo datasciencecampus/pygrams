@@ -39,7 +39,7 @@ class DocumentsWeights(object):
             self.__weights[idx] /= text_len
 
     def __time_weights(self):
-        self.__dataframe = self.__dataframe.sort_values(by=[self.__date_header])
+        self.__dataframe = self.__dataframe.sort_values(by=self.__date_header)
         epoch = datetime.datetime.utcfromtimestamp(0)
         X = [(date - epoch).total_seconds() for date in self.__dataframe[self.__date_header]]
         min_x, max_x = min(X), max(X)

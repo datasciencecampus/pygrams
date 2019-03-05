@@ -8,7 +8,7 @@ from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           term_counts_data=None, tfidf_obj=None, date_range=None, pick=None, doc_pickle_file_name=None):
+           term_counts_data=None, tfidf_obj=None, date_range=None, pick=None, doc_pickle_file_name=None, time=None):
     if output_type == 'report':
         filename_and_path = os.path.join('outputs', 'reports', name + '.txt')
         with open(filename_and_path, 'w') as file:
@@ -60,7 +60,8 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
                 'to': date_range[1].strftime('%Y-%m-%d')
             },
             'parameters': {
-                'pick': pick
+                'pick': pick,
+                'time': time
             }
         }
 

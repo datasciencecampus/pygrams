@@ -30,6 +30,7 @@ class Pipeline(object):
         date_from = year2pandas_earliest_date(year_from, month_from)
         date_to = year2pandas_latest_date(year_to, month_to)
         self.__date_range = [date_from, date_to]
+        self.__time = docs_mask_dict['time']
 
         df = datafactory.get(data_filename)
         self.__pick_method = pick_method
@@ -44,7 +45,7 @@ class Pipeline(object):
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights
         doc_weights = DocumentsWeights(df, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['dates'][-1:], text_header=text_header,
+                                       docs_mask_dict['dates'][-1], text_header=text_header,
                                        norm_rows=normalize_rows).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
@@ -79,7 +80,7 @@ class Pipeline(object):
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   tfidf_obj=self.__tfidf_obj, date_range=self.__date_range, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename)
+                                  doc_pickle_file_name=self.__data_filename, time=self.__time)
 
     @property
     def term_score_tuples(self):
