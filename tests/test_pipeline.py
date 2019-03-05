@@ -26,7 +26,7 @@ class TestPipeline(unittest.TestCase):
         for a, b in zip(list_a, list_b):
             self.assertAlmostEqual(a, b, places=places)
 
-    def preparePyGrams(self, fake_df_data, mock_read_pickle, mock_open, mock_bz2file):
+    def preparePyGrams(self, fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile):
 
         self.number_of_rows = len(fake_df_data['abstract'])
         self.patent_id_auto_tested = 'patent_id' not in fake_df_data
@@ -116,6 +116,14 @@ class TestPipeline(unittest.TestCase):
 
         mock_bz2file.side_effect = bz2file_fake
 
+        def isfile_fake(file_name):
+            if file_name == os.path.join('data', self.data_source_name):
+                return True
+            else:
+                return False
+
+        mock_path_isfile.side_effect = isfile_fake
+
     def assertOutputsExceptTfidfFeatureNames(self, assert_func, mock_pickle_dump, mock_makedirs):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
@@ -149,14 +157,15 @@ class TestPipeline(unittest.TestCase):
     @mock.patch("scripts.algorithms.tfidf.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
-    def test_simple_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
+    @mock.patch("os.path.isfile", create=True)
+    def test_simple_export_tfidf(self, mock_path_isfile, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
         fake_df_data = {
             'abstract': [
                 'abstract'
             ]
         }
 
-        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
@@ -175,8 +184,9 @@ class TestPipeline(unittest.TestCase):
     @mock.patch("scripts.algorithms.tfidf.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
-    def test_simple_two_patents_unigrams_only_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open,
-                                                           mock_pickle_dump, mock_read_pickle):
+    @mock.patch("os.path.isfile", create=True)
+    def test_simple_two_patents_unigrams_only_export_tfidf(self, mock_path_isfile, mock_makedirs, mock_bz2file,
+                                                           mock_open, mock_pickle_dump, mock_read_pickle):
         fake_df_data = {
             'abstract': [
                 'abstract one',
@@ -184,7 +194,7 @@ class TestPipeline(unittest.TestCase):
             ]
         }
 
-        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0', '--max_n', '1']
 
@@ -222,14 +232,15 @@ class TestPipeline(unittest.TestCase):
     @mock.patch("scripts.algorithms.tfidf.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
-    def test_stopwords_export_tfidf(self, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
+    @mock.patch("os.path.isfile", create=True)
+    def test_stopwords_export_tfidf(self, mock_path_isfile, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
         fake_df_data = {
             'abstract': [
                 'abstract 1, of the patent with extra stuff'
             ]
         }
 
-        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file)
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
