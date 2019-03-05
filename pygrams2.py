@@ -87,7 +87,8 @@ def main(supplied_args):
     args_default = get_args([])
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
-
+    outputs = args.output
+    outputs.append('json_config')
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
 

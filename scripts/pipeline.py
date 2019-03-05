@@ -18,8 +18,19 @@ class Pipeline(object):
                  pickled_tf_idf=False, max_df=0.1, user_ngrams=None):
 
         # load data
-        df = datafactory.get(data_filename)
+        self.__data_filename = data_filename
 
+        year_from = docs_mask_dict[0]
+        year_to = docs_mask_dict[1]
+        month_from = docs_mask_dict[2]
+        month_to = docs_mask_dict[3]
+
+        date_from = self.__year2pandas_earliest_date(year_from, month_from)
+        date_to = self.__year2pandas_latest_date(year_to, month_to)
+        self.__date_range = [date_from, date_to]
+
+        df = datafactory.get(data_filename)
+        self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
         if pickled_tf_idf:
             print('read from pickle')
@@ -60,10 +71,13 @@ class Pipeline(object):
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
+
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, term_counts_mat=self.__term_counts_mat)
+                                  nterms=nterms, term_counts_mat=self.__term_counts_mat,
+                                  tfidf_obj=self.__tfidf_obj, date_range=self.__date_range, pick=self.__pick_method,
+                                  doc_pickle_file_name=self.__data_filename)
 
     @property
     def term_score_tuples(self):

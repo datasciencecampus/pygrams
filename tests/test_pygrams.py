@@ -59,14 +59,14 @@ class TestPyGrams(unittest.TestCase):
         }
         self.assertEqual(expected_json, actual_json)
 
-    @mock.patch("pygrams.json.dump", create=True)
-    @mock.patch("pygrams.open", create=True)
+    @mock.patch("pygrams2.json.dump", create=True)
+    @mock.patch("pygrams2.open", create=True)
     def test_json_configuration_encoding_maximal(self, mock_open, mock_json_dump):
         patent_pickle_file_name = os.path.join('dummy', 'test.pkl')
         patent_pickle_absolute_file_name = os.path.abspath(patent_pickle_file_name)
         report_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.txt')
         json_file_name = os.path.join(os.path.abspath(os.sep), 'dummy', 'test.json')
-        args = pygrams2.get_args(['-j', f'--report_name={report_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
+        args = pygrams2.get_args(['-j', f'--output_name={report_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
                                  '-yf=1998', '-yt=2001'])
 
         pygrams2.write_config_to_json(args, patent_pickle_file_name)
@@ -101,7 +101,7 @@ class TestPyGrams(unittest.TestCase):
         report_name = os.path.join('outputs', 'reports', 'report_tech.txt')
         graph_report_name = report_name[:len(report_name) - 4] + "_graph.txt"
 
-        test_args = ['--doc_source', 'USPTO-random-100.pkl.bz2', '-o', 'fdg', '--report_name', report_name]
+        test_args = ['--doc_source', 'USPTO-random-100.pkl.bz2', '-o', 'graph', '--outputs_name', report_name]
         pygrams2.main(test_args)
 
         mock_open.assert_any_call(json_file_name, 'w')
@@ -112,7 +112,7 @@ class TestPyGrams(unittest.TestCase):
         self.assertIn('nodes', actual_json)
         self.assertIn('links', actual_json)
 
-    @mock.patch("pygrams.print", create=True)
+    @mock.patch("pygrams2.print", create=True)
     @mock.patch("os.path.isfile", create=True)
     def test_reports_unsupported_df_format(self, mock_path_isfile, mock_print):
 
