@@ -1,8 +1,7 @@
-import calendar
-
 import pandas as pd
-from pandas import Timestamp
 from tqdm import tqdm
+
+from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
 
 
 class DocumentsFilter(object):
@@ -40,31 +39,6 @@ class DocumentsFilter(object):
     @property
     def doc_indices(self):
         return self.__doc_indices
-
-    @staticmethod
-    def __choose_last_day(year_in, month_in):
-        return str(calendar.monthrange(int(year_in), int(month_in))[1])
-
-    def __year2pandas_latest_date(self, year_in, month_in):
-        if year_in is None:
-            return Timestamp.now()
-
-        if month_in is None:
-            return Timestamp(str(year_in) + '-12-31')
-
-        year_string = str(year_in) + '-' + str(month_in) + '-' + self.__choose_last_day(year_in, month_in)
-        return Timestamp(year_string)
-
-    @staticmethod
-    def __year2pandas_earliest_date(year_in, month_in):
-        if year_in is None:
-            return Timestamp('2000-01-01')
-
-        if month_in is None:
-            return Timestamp(str(year_in) + '-01-01')
-
-        year_string = str(year_in) + '-' + str(month_in) + '-01'
-        return Timestamp(year_string)
 
     @staticmethod
     def __filter_cpc(df, cpc):
@@ -113,15 +87,16 @@ class DocumentsFilter(object):
                     doc_set = doc_set.union(set(indices))
         return doc_set
 
-    def __filter_dates(self, df, dates_list):
+    @staticmethod
+    def __filter_dates(df, dates_list):
 
         year_from = dates_list[0]
         year_to = dates_list[1]
         month_from = dates_list[2]
         month_to = dates_list[3]
         dates_header = dates_list[4]
-        date_from = self.__year2pandas_earliest_date(year_from, month_from)
-        date_to = self.__year2pandas_latest_date(year_to, month_to)
+        date_from = year2pandas_earliest_date(year_from, month_from)
+        date_to = year2pandas_latest_date(year_to, month_to)
         doc_ids = set([])
 
         date_from = pd.Timestamp(date_from)

@@ -1,4 +1,5 @@
 import bz2
+import json
 import os
 import pickle
 
@@ -7,7 +8,7 @@ from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           term_counts_data=None, tfidf_obj=None):
+           term_counts_data=None, tfidf_obj=None, date_range=None, pick=None, doc_pickle_file_name=None):
     if output_type == 'report':
         filename_and_path = os.path.join('outputs', 'reports', name + '.txt')
         with open(filename_and_path, 'w') as file:
@@ -43,6 +44,28 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
         os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
         with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
             pickle.dump(tfidf_obj, pickle_file, protocol=4)
+
+    elif output_type == 'json_config':
+        doc_pickle_file_name = os.path.abspath(doc_pickle_file_name)
+        report_name_and_path = os.path.join('outputs', 'reports', name + '.txt')
+        json_file_name = os.path.splitext(report_name_and_path)[0] + '.json'
+
+        json_data = {
+            'paths': {
+                'data': doc_pickle_file_name,
+                'tech_report': report_name_and_path
+            },
+            'month_year': {
+                'from': date_range[0].strftime('%Y-%m-%d'),
+                'to': date_range[1].strftime('%Y-%m-%d')
+            },
+            'parameters': {
+                'pick': pick
+            }
+        }
+
+        with open(json_file_name, 'w') as json_file:
+            json.dump(json_data, json_file)
 
     else:
         assert 0, "Bad output type: " + output_type
