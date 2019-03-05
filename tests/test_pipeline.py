@@ -12,6 +12,7 @@ from scripts import FilePaths
 
 class TestPipeline(unittest.TestCase):
     data_source_name = 'dummy.pkl.bz2'
+    out_name = 'out'
 
     def setUp(self):
         self.global_stopwords = '''the
@@ -124,37 +125,61 @@ class TestPipeline(unittest.TestCase):
 
         mock_path_isfile.side_effect = isfile_fake
 
-    def assertOutputsExceptTfidfFeatureNames(self, assert_func, mock_pickle_dump, mock_makedirs):
+    def assertTfidfOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
 
         mock_makedirs.assert_called_with(self.tfidfOutputFolder(), exist_ok=True)
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
-            if dump_args[0][1] == self.tfidfFileName(self.data_source_name):
-                [tfidf_matrix, feature_names, document_week_dates, doc_ids] = dump_args[0][0]
+            if dump_args[0][1] == self.tfidfFileName(self.out_name):
+                tfidf_obj = dump_args[0][0]
 
-                assert_func(tfidf_matrix=tfidf_matrix, feature_names=feature_names)
-                self.assertListEqual(doc_ids, [f'patent_id-{pid}' for pid in range(self.number_of_rows)])
-                self.assertListEqual(document_week_dates, [200052 - row for row in range(self.number_of_rows)])
+                assert_func(tfidf_matrix=tfidf_obj.tfidf_matrix, feature_names=tfidf_obj.feature_names)
 
                 results_checked = True
                 break
 
         if not results_checked:
-            self.fail('Results were not matched - were filenames correct?')
+            self.fail('TFIDF results were not matched - were filenames correct?')
 
-    @staticmethod
-    def tfidfFileName(data_source_name):
-        return os.path.join('outputs', 'tfidf', data_source_name + '-tfidf.pkl.bz2')
+    def assertTermCountOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
+        self.assertTrue(self.publication_date_auto_tested)
+        self.assertTrue(self.patent_id_auto_tested)
+
+        mock_makedirs.assert_called_with(self.termCountsOutputFolder(), exist_ok=True)
+        results_checked = False
+        for dump_args in mock_pickle_dump.call_args_list:
+            if dump_args[0][1] == self.termCountsFileName(self.out_name):
+                [term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates] = dump_args[0][0]
+
+                assert_func(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates)
+
+                results_checked = True
+                break
+
+        if not results_checked:
+            self.fail('Term counts results were not matched - were filenames correct?')
 
     @staticmethod
     def tfidfOutputFolder():
         return os.path.join('outputs', 'tfidf')
 
+    @staticmethod
+    def tfidfFileName(data_source_name):
+        return os.path.join(TestPipeline.tfidfOutputFolder(), data_source_name + '-tfidf.pkl.bz2')
+
+    @staticmethod
+    def termCountsOutputFolder():
+        return os.path.join('outputs', 'termcounts')
+
+    @staticmethod
+    def termCountsFileName(data_source_name):
+        return os.path.join(TestPipeline.termCountsOutputFolder(), data_source_name + '-term_counts.pkl.bz2')
+
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("scripts.tfidf_wrapper.open", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
@@ -169,19 +194,17 @@ class TestPipeline(unittest.TestCase):
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
-        return_value = pygrams2.main(args)
-
-        self.assertEqual(0, return_value, 'Return value indicates failure')
+        pygrams2.main(args)
 
         def assert_tfidf_outputs(tfidf_matrix, feature_names):
             self.assertEqual(tfidf_matrix.todense(), np.ones(shape=(1, 1)), 'TFIDF should be 1x1 matrix of 1')
             self.assertListEqual(feature_names, ['abstract'])
 
-        self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("scripts.tfidf_wrapper.open", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
@@ -198,9 +221,7 @@ class TestPipeline(unittest.TestCase):
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0', '--max_n', '1']
 
-        return_value = pygrams2.main(args)
-
-        self.assertEqual(0, return_value, 'Return value indicates failure')
+        pygrams2.main(args)
 
         # tf(t) = num of occurrences / number of words in doc
         #
@@ -225,15 +246,16 @@ class TestPipeline(unittest.TestCase):
             self.assertListAlmostEqual(tfidf_as_lists[0], [l2norm_tfidf_abstract, l2norm_tfidf_one, 0], places=4)
             self.assertListAlmostEqual(tfidf_as_lists[1], [l2norm_tfidf_abstract, 0, l2norm_tfidf_one], places=4)
 
-        self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
     @mock.patch("pandas.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
-    @mock.patch("sscripts.tfidf_wrapper.open", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
     @mock.patch("os.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
-    def test_stopwords_export_tfidf(self, mock_path_isfile, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump, mock_read_pickle):
+    def test_unibitri_reduction_export_termcounts(self, mock_path_isfile, mock_makedirs, mock_bz2file, mock_open,
+                                                  mock_pickle_dump, mock_read_pickle):
         fake_df_data = {
             'abstract': [
                 'abstract 1, of the patent with extra stuff'
@@ -241,19 +263,19 @@ class TestPipeline(unittest.TestCase):
         }
 
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
-        return_value = pygrams2.main(args)
+        pygrams2.main(args)
 
-        self.assertEqual(0, return_value, 'Return value indicates failure')
-
-        def assert_tfidf_outputs(tfidf_matrix, feature_names):
-            tfidf_as_lists = tfidf_matrix.todense().tolist()
+        def assert_outputs(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates):
             self.assertListEqual(feature_names, ['abstract', 'extra', 'extra stuff', 'patent', 'stuff', 'with'])
-            self.assertListAlmostEqual(tfidf_as_lists[0], [0.4082, 0, 0.4082, 0.4082, 0, 0.4082], places=4)
+            term_counts_as_lists = term_counts_per_week.todense().tolist()
+            self.assertListEqual(term_counts_as_lists[0], [1, 0, 1, 1, 0, 1])
+            self.assertListEqual(number_of_documents_per_week, [1])
+            self.assertListEqual(week_iso_dates, [200052])
 
-        self.assertOutputsExceptTfidfFeatureNames(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTermCountOutputs(assert_outputs, mock_pickle_dump, mock_makedirs)
 
 
 if __name__ == '__main__':

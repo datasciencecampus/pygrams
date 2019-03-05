@@ -37,7 +37,7 @@ class Pipeline(object):
 
         # term weights - embeddings
         filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams,
-                                       file_name=os.path.join('data','embeddings', 'glove', 'w2v_glove.6B.50d.txt'))
+                                       file_name=os.path.join('data', 'embeddings', 'glove', 'w2v_glove.6B.50d.txt'))
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
@@ -53,9 +53,9 @@ class Pipeline(object):
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
-        self.__term_counts_mat = None
+        self.__term_counts_data = None
         if term_counts:
-            self.__term_counts_mat = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
+            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
@@ -63,7 +63,7 @@ class Pipeline(object):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, term_counts_mat=self.__term_counts_mat)
+                                  nterms=nterms, term_counts_data=self.__term_counts_data, tfidf_obj=self.__tfidf_obj)
 
     @property
     def term_score_tuples(self):
