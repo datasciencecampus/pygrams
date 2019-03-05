@@ -38,6 +38,8 @@ before_install: |
     # A manual check that the correct version of Python is running.
     python --version
   fi
+
+  export BOTO_CONFIG=/dev/null
   
 install:
   - python --version
@@ -52,7 +54,7 @@ script:
   # for codecov support
   - pip install pytest pytest-cov
   # command to run tests
-  - pytest --cov=./
+  - pytest --cov-config .coveragerc --cov=./ tests/
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

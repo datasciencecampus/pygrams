@@ -3,7 +3,8 @@ import unittest
 import pandas as pd
 from pandas.io.excel import register_writer
 
-from scripts.algorithms.tfidf import LemmaTokenizer, TFIDF
+from scripts.tfidf_wrapper import TFIDF
+from scripts.text_processing import LemmaTokenizer
 from scripts.utils.table_output import table_output
 from tests.utils import ReferenceData
 
@@ -11,7 +12,7 @@ from tests.utils import ReferenceData
 class FakeArgs(object):
     __slots__ = ['pick', 'time', 'focus']
 
-
+@unittest.skip("Temporarily shut down module")
 class TestTableOutput(unittest.TestCase):
 
     class FakeWriter(pd.ExcelWriter):

@@ -1,6 +1,35 @@
+import calendar
+
 import numpy as np
+from pandas import Timestamp
 from scipy.sparse import csr_matrix, vstack, isspmatrix_csr
 from tqdm import tqdm
+
+
+def choose_last_day(year_in, month_in):
+    return str(calendar.monthrange(int(year_in), int(month_in))[1])
+
+
+def year2pandas_latest_date(year_in, month_in):
+    if year_in is None:
+        return Timestamp.now()
+
+    if month_in is None:
+        return Timestamp(str(year_in) + '-12-31')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-' + choose_last_day(year_in, month_in)
+    return Timestamp(year_string)
+
+
+def year2pandas_earliest_date(year_in, month_in):
+    if year_in is None:
+        return Timestamp('2000-01-01')
+
+    if month_in is None:
+        return Timestamp(str(year_in) + '-01-01')
+
+    year_string = str(year_in) + '-' + str(month_in) + '-01'
+    return Timestamp(year_string)
 
 
 def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
