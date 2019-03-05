@@ -32,12 +32,13 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 """
 import string
-from sklearn.feature_extraction.text import strip_accents_ascii
 
-from scripts import FilePaths
 from nltk import word_tokenize, PorterStemmer, pos_tag
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import strip_accents_ascii
+
+from scripts import FilePaths
 
 
 class LemmaTokenizer(object):
@@ -82,6 +83,8 @@ class WordAnalyzer(object):
     tokenizer = None
     preprocess = None
     ngram_range = None
+    stemmed_stop_word_set_n = None
+    stemmed_stop_word_set_uni = None
 
     @staticmethod
     def init(tokenizer, preprocess, ngram_range):
