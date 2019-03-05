@@ -14,7 +14,7 @@ from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_late
 
 
 class Pipeline(object):
-    def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', ngram_range=(1,3),
+    def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf=False, max_df=0.1, user_ngrams=None):
 
@@ -55,7 +55,7 @@ class Pipeline(object):
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
-        tfidf_mask_obj = TfidfMask(self.__tfidf_obj,  ngram_range=ngram_range, uni_factor=0.8)
+        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
