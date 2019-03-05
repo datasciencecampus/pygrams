@@ -23,10 +23,12 @@ def remove_all_null_rows(sparse_mat):
     return sparse_mat[unique_nonzero_indices]
 
 
-def normalize_array(X, return_list = False):
+def normalize_array(X, min_val = 0.2,  return_list = False):
     min_x, max_x = min(X), max(X)
     diff_x = (max_x - min_x)
-    return (np.array(X) - min_x) / diff_x if not return_list else list((np.array(X) - min_x) / diff_x)
+    std_x = (np.array(X) - min_x) / diff_x
+    x_scaled = std_x*(1-min_val) + min_val
+    return x_scaled if not return_list else list(x_scaled)
 
 
 def w2vify(filein, fileout):

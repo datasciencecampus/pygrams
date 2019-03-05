@@ -1,5 +1,6 @@
 import datetime
 import numpy as np
+import scripts.utils.utils as ut
 
 from tqdm import tqdm
 
@@ -16,7 +17,7 @@ class DocumentsWeights(object):
             processed=True
 
         if citation_count_dict:
-            cite_weights = self.__citation_weights()
+            cite_weights = self.__citation_weights(citation_count_dict)
             self.__weights = [a * b for a, b in zip(self.__weights, cite_weights)]
             processed = True
 
@@ -26,8 +27,7 @@ class DocumentsWeights(object):
             processed = True
 
         if processed:
-            min_x, max_x = min(self.__weights), max(self.__weights)
-            self.__weights = (np.array(self.__weights) - min_x) / (max_x - min_x)
+            self.__weights = ut.normalize_array(self.__weights, return_list=True)
 
     @property
     def weights(self):
@@ -62,7 +62,7 @@ class DocumentsWeights(object):
             for doc_id in citation_count_for_doc_id_dict:
                 citation_count_for_doc_id_dict_std = min_citation_count_val + (
                         (float(citation_count_for_doc_id_dict[doc_id]) - min_citation_count_val) / (
-                        max_citation_count_val - min_citation_count_val))
+                         max_citation_count_val - min_citation_count_val))
                 citation_count_for_doc_id_dict[doc_id] = citation_count_for_doc_id_dict_std
 
         return list(citation_count_for_doc_id_dict.values())
