@@ -1,4 +1,6 @@
 import pickle
+import os
+
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
@@ -14,7 +16,7 @@ from scripts.utils import utils
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict,  pick_method='sum', ngram_range=(1,3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf=False, max_df=0.1, tfidf_obj_filename=None):
+                 pickled_tf_idf=False, max_df=0.1, user_ngrams=None, tfidf_obj_filename=None):
 
         # load data
         df = datafactory.get(data_filename)
