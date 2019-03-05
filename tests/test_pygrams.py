@@ -113,8 +113,21 @@ class TestPyGrams(unittest.TestCase):
         self.assertIn('links', actual_json)
 
     @mock.patch("pygrams.print", create=True)
-    def test_reports_unsupported_df_format(self, mock_print):
-        test_args = ['--doc_source', 'unknown.format']
+    @mock.patch("os.path.isfile", create=True)
+    def test_reports_unsupported_df_format(self, mock_path_isfile, mock_print):
+
+        unknown_filename = 'unknown.format'
+
+        def isfile_fake(file_name):
+            if file_name == os.path.join('data', unknown_filename):
+                return True
+            else:
+                return False
+
+        mock_path_isfile.side_effect = isfile_fake
+
+        test_args = ['--doc_source', unknown_filename]
+
         return_code = pygrams2.main(test_args)
 
         self.assertEqual(1, return_code)

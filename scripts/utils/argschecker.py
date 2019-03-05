@@ -1,4 +1,7 @@
 import pandas as pd
+import os
+
+
 class ArgsChecker:
 
     def __init__(self, args, args_default):
@@ -7,6 +10,10 @@ class ArgsChecker:
 
     def checkargs(self):
         app_exit = False
+
+        if os.path.isfile(os.path.join(self.args.path, self.args.doc_source)) is False:
+            print(f"File {self.args.doc_source} in path {self.args.path} not found")
+            app_exit = True
 
         if isinstance(self.args.year_to, str) & isinstance(self.args.year_from, str):
             if isinstance(self.args.month_to, str) & isinstance(self.args.month_from, str):
