@@ -54,7 +54,7 @@ class TestTfidfMask(unittest.TestCase):
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, None)
+        filter_output_obj = FilterTerms(self.__tfidf_obj, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=(min_n, self.__max_n), uni_factor=uni_factor)

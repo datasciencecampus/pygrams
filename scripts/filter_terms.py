@@ -6,16 +6,21 @@ import scripts.utils.utils as ut
 
 
 class FilterTerms(object):
-    def __init__(self, tfidf_ngrams, user_ngrams, file_name=None, threshold=None):
+    def __init__(self, tfidf_obj, user_ngrams, file_name=None, threshold=None):
 
         self.__user_ngrams = user_ngrams
-        self.__tfidf_ngrams = tfidf_ngrams
+        self.__tfidf_ngrams = tfidf_obj.feature_names
         self.__file_name = file_name
-        self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
+        self.__ngram_weights_vec = list(np.ones(len(self.__tfidf_ngrams)))
+        self.__tf_normalized = tfidf_obj.tf_matrix
+        if self.__tf_normalized is not None:
+            print('do stuff')
+
         if file_name is not None and user_ngrams is not None:
             print('Loading model: '+ file_name)
             self.__model = KeyedVectors.load_word2vec_format(self.__file_name)
             self.__ngram_weights_vec = self.__get_embeddings_vec(threshold)
+
 
     @property
     def ngram_weights_vec(self):

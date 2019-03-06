@@ -9,8 +9,7 @@ class TfidfMask(object):
         self.__tfidf_mask.data = np.ones(len(self.__tfidf_matrix.data))
         self.__vectorizer = tfidf_obj.vectorizer
         self.__uni_factor = uni_factor
-        self.__idf = tfidf_obj.idf
-
+        self.__tf_matrix = tfidf_obj.tf_matrix
         # do unigrams
         if ngram_range[0] == 1:
             self.__clean_unigrams(self.__max_bigram())
@@ -92,7 +91,7 @@ class TfidfMask(object):
                     idx_ngram_minus_back = self.__vectorizer.vocabulary_.get(ngram_minus_back)
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
-                    ngram_counts = self.__tfidf_matrix.data[j] / self.__idf[col_idx]
+                    ngram_counts = self.__tf_matrix.data[j]
 
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_front, ngram_counts, start_idx_ptr)
                     self.__unbias_ngrams_slice(indices_slice, idx_ngram_minus_back, ngram_counts, start_idx_ptr)
@@ -100,7 +99,7 @@ class TfidfMask(object):
     def __unbias_ngrams_slice(self, indices_slice, idx_small_ngram, big_ngram_counts, start_idx_ptr):
         if idx_small_ngram in indices_slice:
             idx = indices_slice.tolist().index(idx_small_ngram)
-            small_term_counts = self.__tfidf_matrix.data[start_idx_ptr + idx] / self.__idf[idx_small_ngram]
+            small_term_counts = self.__tf_matrix.data[start_idx_ptr + idx]
             ratio = 0.0
             if abs(small_term_counts - big_ngram_counts) > 0.000001:
                 ratio = (small_term_counts - big_ngram_counts) / small_term_counts

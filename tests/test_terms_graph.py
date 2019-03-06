@@ -29,7 +29,7 @@ class TestGraph(unittest.TestCase):
         doc_weights = list(np.ones(len(df)))
 
         # term weights - embeddings
-        filter_output_obj = FilterTerms(tfidf_obj.feature_names, None, None)
+        filter_output_obj = FilterTerms(tfidf_obj, None, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
         tfidf_mask_obj = TfidfMask(tfidf_obj, ngram_range=ngram_range)

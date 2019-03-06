@@ -50,8 +50,7 @@ class Pipeline(object):
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings
-        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams,
-                                       file_name=os.path.join('data', 'embeddings', 'glove', 'w2v_glove.6B.50d.txt'))
+        filter_terms_obj = FilterTerms(self.__tfidf_obj, user_ngrams, file_name=None)
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
