@@ -1,3 +1,8 @@
+import os
+
+import pandas as pd
+
+
 class ArgsChecker:
 
     def __init__(self, args, args_default):
@@ -6,6 +11,10 @@ class ArgsChecker:
 
     def checkargs(self):
         app_exit = False
+
+        if os.path.isfile(os.path.join(self.args.path, self.args.doc_source)) is False:
+            print(f"File {self.args.doc_source} in path {self.args.path} not found")
+            app_exit = True
 
         if isinstance(self.args.year_to, str) & isinstance(self.args.year_from, str):
             if isinstance(self.args.month_to, str) & isinstance(self.args.month_from, str):
@@ -75,18 +84,16 @@ class ArgsChecker:
                 app_exit = True
 
         if self.args.wordcloud_title != self.args_default.wordcloud_title or \
-                self.args.wordcloud_name != self.args_default.wordcloud_name or \
                 self.args.num_ngrams_wordcloud != self.args_default.num_ngrams_wordcloud:
             if 'wordcloud' not in self.args.output:
                 print(self.args.wordcloud_title)
-                print('arguments [-wn] [-wt] [-nd] can only be used when output includes wordcloud '
+                print('arguments [-wt] [-nd] can only be used when output includes wordcloud '
                       '[-o] "wordcloud"')
                 app_exit = True
 
-        if self.args.report_name != self.args_default.report_name or \
-                self.args.num_ngrams_report != self.args_default.num_ngrams_report:
+        if self.args.num_ngrams_report != self.args_default.num_ngrams_report:
             if 'report' not in self.args.output:
-                print('arguments [-rn] [-np] can only be used when output includes report [-o] "report"')
+                print('arguments [-np] can only be used when output includes report [-o] "report"')
                 app_exit = True
 
         if self.args.num_ngrams_fdg != self.args_default.num_ngrams_fdg:
@@ -136,3 +143,19 @@ class ArgsChecker:
 
         if app_exit:
             exit(0)
+
+    def get_docs_mask_dict(self):
+
+        year_to = pd.to_datetime('today').year if self.args.year_to is None else self.args.year_to
+        month_to = pd.to_datetime(
+            'today').month if self.args.month_to is None and self.args.year_to is None else self.args.month_to
+
+        docs_mask_dict = {'filter_by': self.args.filter_by, 'cpc': self.args.cpc_classification, 'time': self.args.time,
+                          'cite': None, 'columns': self.args.filter_columns,
+                          'dates': [self.args.year_from, year_to, self.args.month_from, month_to,
+                                    self.args.date_header]}
+        return docs_mask_dict
+
+    def get_terms_mask_dict(self):
+        terms_mask_dict = {}
+        print()

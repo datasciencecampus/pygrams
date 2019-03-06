@@ -5,7 +5,8 @@ import pandas as pd
 import Levenshtein as Lev
 
 from scripts import FilePaths
-from scripts.algorithms.tfidf import StemTokenizer, TFIDF
+from scripts.text_processing import StemTokenizer
+from scripts.tfidf_wrapper import TFIDF
 from tests.utils.DiceScore import Dice
 from tests.vvcode.abstracts2pickle import us_vv_patents_pickle_name
 
@@ -13,7 +14,7 @@ from tests.vvcode.abstracts2pickle import us_vv_patents_pickle_name
 # Sample abstracts taken from the USPTO Bulk Download Service: https://bulkdata.uspto.gov
 # Data used was downloaded from "Patent Grant Full Text Data"
 
-
+@unittest.skip("these are not unit tests, but a means to optimize tf-idf parameters")
 class TestsSetup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
