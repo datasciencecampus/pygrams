@@ -17,7 +17,6 @@ class FilterTerms(object):
             self.__model = KeyedVectors.load_word2vec_format(self.__file_name)
             self.__ngram_weights_vec = self.__get_embeddings_vec(threshold)
 
-
     @property
     def ngram_weights_vec(self):
         return self.__ngram_weights_vec
