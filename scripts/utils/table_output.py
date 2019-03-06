@@ -1,4 +1,5 @@
 import pandas as pd
+
 from scripts.algorithms.term_focus import TermFocus
 
 
@@ -17,10 +18,11 @@ def table_output(tfidf, tfidf_random, num_ngrams, args, ngram_multiplier, writer
 
     pick = args.pick
     time = args.time
-    focus= args.focus
+    focus = args.focus
 
     tfocus = TermFocus(tfidf, tfidf_random)
-    dict_freqs, focus_set_terms, scores_terms = tfocus.detect_and_focus_popular_ngrams(args, None, ngram_multiplier, num_ngrams)
+    dict_freqs, focus_set_terms, scores_terms = tfocus.detect_and_focus_popular_ngrams(pick, time, focus, None,
+                                                                                       ngram_multiplier, num_ngrams)
 
     base_df = pd.DataFrame(list(scores_terms)[:num_ngrams])
     base_df.columns = ['Score', 'Term']

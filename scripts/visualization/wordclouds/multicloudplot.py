@@ -7,14 +7,14 @@ from wordcloud import WordCloud
 
 class MultiCloudPlot(object):
 
-    def __init__(self, textsin, freqsin=None, max_words=200):
+    def __init__(self, textsin=None, freqsin=None, max_words=200):
         string_to_float = {y: x for (x, y) in freqsin.items()}
         self.__wordcloud = None
         self.__texts = textsin
         self.__freqs = string_to_float
         self.__max_words = max_words
 
-    def __generate_cloud(self, textin):
+    def __generate_cloud(self):
         if self.__freqs is None:
             self.__wordcloud = WordCloud(width=1600, height=800, background_color="black", regexp=None,
                                          max_words=self.__max_words).generate(textin)
@@ -26,7 +26,7 @@ class MultiCloudPlot(object):
     def plot_cloud(self, titlein, output_file_name, interpolation='bilinear'):
 
         fig1 = plt.figure(1)
-        self.__generate_cloud(self.__texts)
+        self.__generate_cloud()
 
         plt.imshow(self.__wordcloud, interpolation=interpolation)
         plt.grid(True)

@@ -1,10 +1,10 @@
 {
-  "name": "app_detect",
+  "name": "pyGrams",
   "license": "The Open Government Licence (OGL) Version 3",
   "author": "Data Science Campus",
-  "url": "https://github.com/datasciencecampus/patent_app_detect",
-  "version": "1.0.0",
+  "url": "https://github.com/datasciencecampus/pyGrams",
+  "version": "1.2.1",
   "email": "datasciencecampus@ons.gov.uk",
-  "description": "A project able to read patent data and extract popular terminology",
-  "keywords": "patents technology terminology tfidf nlp"
+  "description": "A project able to read free text data and extract popular n-grams",
+  "keywords": "ngrams technology terminology tfidf nlp"
 }
