@@ -2,18 +2,22 @@ from gensim.models import KeyedVectors
 import numpy as np
 from tqdm import tqdm
 
+import os
 import scripts.utils.utils as ut
+import zipfile
 
 
 class FilterTerms(object):
-    def __init__(self, tfidf_ngrams, user_ngrams, file_name=None, threshold=None):
+    def __init__(self, tfidf_ngrams, user_ngrams, file_name='models/glove/glove2vec.6B.50d.txt', threshold=None):
 
         self.__user_ngrams = user_ngrams
         self.__tfidf_ngrams = tfidf_ngrams
         self.__file_name = file_name
         self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
-        if file_name is not None and user_ngrams is not None:
-            print('Loading model: '+ file_name)
+        if user_ngrams is not None:
+            if not os.path.isfile(file_name):
+                with zipfile.ZipFile(file_name+".zip","r") as zip_ref:
+                    zip_ref.extractall("models/glove/")
             self.__model = KeyedVectors.load_word2vec_format(self.__file_name)
             self.__ngram_weights_vec = self.__get_embeddings_vec(threshold)
 
