@@ -6,9 +6,36 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
+'''
+Link pygrams help (get_args) to main sequence, to pipeline sequence, and to manual (sequence).
+
+Keep: cpc, ndl, time, th, dh, fc = 1 or yes, fb, filter rows by, p, tfidf, term counts - explain
+Report always, default None, Dates = defaults data start, today, YYYY/MM/DD, two options
+Num_grams, ds, Min_n -> min_grams, Output files names, timestamp? Windows/Mac, nltk
+
+Suppress: cite, focus, pt path (put data in data folder), ih, table, Son - always save, fs, Table_name
+
+Reorder arguments according to pipeline (/manual)
+
+'''
 
 def get_args(command_line_arguments):
-    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
+    options_suppressed_in_help = [
+        ("-c", "--cite"),
+        ("-f", "--focus"),
+        ("-pt", "--path"),
+        ("-ih", "--id_header"),
+        ("-yf", "--year_from"),
+        ("-mf", "--month_from"),
+        ("-yt", "--year_to"),
+        ("-mt", "--month_to"),
+        ("-fs", "--focus_source"),
+        ("-tn", "--table_name")
+    ]
+
+    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     conflict_handler='resolve')
 
     parser.add_argument("-cpc", "--cpc_classification", default=None,
                         help="the desired cpc classification (for patents only)")
@@ -27,20 +54,29 @@ def get_args(command_line_arguments):
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
     parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
-    parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
+    parser.add_argument("-fc", "--filter_columns", default=None,
+                        help="list of columns with binary entries by which to filter the rows")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
-                        help="options are <union> <intersection> defaults to union. Returns filter where all are 'Yes' "
-                             "or any are 'Yes' in the defined --filter_columns")
+                        help="Returns filter where all are 'Yes' or '1'"
+                             "or any are 'Yes' or '1' in the defined --filter_columns")
 
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
-                        help="options are <median> <max> <sum> <avg>  defaults to sum. Everything is computed over "
+                        help="Everything is computed over "
                              "non zero values")
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
-                        choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
-                        help="options are: <graph> <wordcloud> <report> <table> <tfidf> <termcounts>;"
-                             " note that this can be defined multiple times to get more than one output")
+                        # choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
+                        choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
+                        help="Note that this can be defined multiple times to get more than one output. "
+                             "termcounts represents the term frequency component of tfidf")
+    # parser.add_argument("-o", "--output",  # suppress table output option
+    #                     choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'])
     parser.add_argument("-j", "--json", default=False, action="store_true",
                         help="Output configuration as JSON file alongside output report")
+
+    parser.add_argument("-df", "--date_from", default=None,
+                        help="The first date for the document cohort in YYYY/MM format")
+    parser.add_argument("-dt", "--date_to", default=None,
+                        help="The last date for the document cohort in YYYY/MM format")
 
     parser.add_argument("-yf", "--year_from", default=None,
                         help="The first year for the document cohort in YYYY format")
@@ -60,8 +96,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
                         help="the document source for the focus function")
 
-    parser.add_argument("-mn", "--min_n", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
-    parser.add_argument("-mx", "--max_n", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
+    parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
+    parser.add_argument("-mx", "--max_ngrams", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
     parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
                         help="the maximum document frequency to contribute to TF/IDF")
 
@@ -74,7 +110,15 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
 
+    # for options in options_suppressed_in_help:
+    #     for option in options:
+    #         parser.add_argument(option, help=argparse.SUPPRESS)
+
     args = parser.parse_args(command_line_arguments)
+    # for now, just convert date_from and date_to from YYYY/MM format to separate YYYY and MM arguments as previously
+    if args.date_from is not None:
+        args.year_from = args.date_from[:4]
+        args.month_from = args.date_from[5:]
     return args
 
 
@@ -95,7 +139,7 @@ def main(supplied_args):
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict,  pick_method=args.pick,
-                        ngram_range=(args.min_n, args.max_n), normalize_rows=args.normalize_doc_length,
+                        ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output))
 

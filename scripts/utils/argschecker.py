@@ -56,9 +56,9 @@ class ArgsChecker:
                 print(f"month_to {self.args.month_to} must be in MM format")
                 app_exit = True
 
-        if self.args.min_n > self.args.max_n:
-            print(f"minimum ngram count {self.args.min_n} should be less or equal to maximum ngram "
-                  f"count {self.args.max_n}")
+        if self.args.min_ngrams > self.args.max_ngrams:
+            print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
+                  f"count {self.args.max_ngrams}")
             app_exit = True
 
         if self.args.num_ngrams_wordcloud < 20:

@@ -4,34 +4,49 @@
 [![LICENSE.](https://img.shields.io/badge/license-OGL--3-blue.svg?style=flat)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
 # pyGrams 
- 
+
 <p align="center"><img align="center" src="meta/images/pygrams-logo.png" width="400px"></p>
- 
+
 ## Description of tool
 
-This python-based app (`pygrams.py`) is designed to extract popular n-grams from free text within a large (>1000) corpus of documents.
+This python-based app (`pygrams.py`) is designed to extract popular n-grams (words or short phrases) from free text within a large (>1000) corpus of documents. Example corpora of patent document abstracts are included for testing.
+
+The app operates according to the following steps:
+
+- A file containing a corpora of documents is selected (defaulting to a 1000 abstract patent file), where each row or list element in a file corresponds to a document, and the column for the text to be analysed is specified. In addition, the rows can be filtered by 
+- The core of the app is to perform TFIDF.
+- Prior to TFIDF: dates, other? filter
+- Some feed into TFIDF, e.g. pick, time, ndl.
+- Weighting mask due to ... as terms and documents arrays. 
+- Remove stop words?
+- Outputs are ....
+-  (these can also be filtered by patent classification (cpc) code)
+
+Put data file in /data folder.
+
+Explain the folder structure, where the main files are: pygrams, then pipeline is main sequence.
 
 ## Installation guide
 
 pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
-1. Please make sure Python 3.6 is installed and set at your path.  
+1. Please make sure Python 3.6 is installed and set in your path.  
 
    To check the Python version default for your system, run the following in command line/terminal:
 
    ```
    python --version
    ```
-   
+
    **_Note_**: If Python 2.x is the default Python version, but you have installed Python 3.x, your path may be setup to use `python3` instead of `python`.
-   
+
 2. To install pyGrams packages and dependencies, from the root directory (./pyGrams) run:
 
    ``` 
-   pip install -e .
+   pip install -e
    ```
-   
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure and we will get back to you. Or open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
+
+   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
 ### System requirements
 
@@ -183,30 +198,6 @@ This option applies a linear weight that starts from 0.01 and ends at 1 between 
 
 ```
 python pygrams.py -t
-```
-
-#### Term focus (-f)
-
-This option utilises a second random document dataset, by default `USPTO-random-1000.pkl.bz2`
-(termed the focus source), whose terms are discounted from the filtered dataset to try and 'focus' the identified terms away from terms found more generally in a document corpus. An
-example focus (using `set` difference) is as follows:
-
-```
-python pygrams.py -f=set
-```
-
-The available focus options are:
-
-- `set`: discounts terms that are also found in the focus source
-- `chi2`: discounts terms that are not found in the focus source using chi2
-- `mutual`: discounts terms that are not found in the focus source using mutual information
-
-#### Choose focus source (-fs)
-
-This selects the set of documents for use during the term focus option, for example for a larger dataset.
-
-```
-python pygrams.py -fs=USPTO-random-100000.pkl.bz2
 ```
 
 ### Outputs Parameters (-o)
