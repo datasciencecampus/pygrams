@@ -11,20 +11,12 @@
 
 This python-based app (`pygrams.py`) is designed to extract popular n-grams (words or short phrases) from free text within a large (>1000) corpus of documents. Example corpora of patent document abstracts are included for testing.
 
-The app operates according to the following steps:
+The app operates in the following steps:
 
-- A file containing a corpora of documents is selected (defaulting to a 1000 abstract patent file), where each row or list element in a file corresponds to a document, and the column for the text to be analysed is specified. In addition, the rows can be filtered by 
-- The core of the app is to perform TFIDF.
-- Prior to TFIDF: dates, other? filter
-- Some feed into TFIDF, e.g. pick, time, ndl.
-- Weighting mask due to ... as terms and documents arrays. 
-- Remove stop words?
-- Outputs are ....
--  (these can also be filtered by patent classification (cpc) code)
-
-Put data file in /data folder.
-
-Explain the folder structure, where the main files are: pygrams, then pipeline is main sequence.
+- A file containing a corpora of documents (placed in the /data folder) is selected (defaulting to a 1000 abstract patent file), where each row or list element in a file corresponds to a document. The column for the text to be analysed is specified, and optionally the rows can be filtered by date and by binary entries in specified columns.
+- The core function of the app is to perform TFIDF on the document corpus, optionally specifying minimum and maximum ngrams, and maximum document frequency. The resulting TDIDF matrix is stored on file.
+- The TFIDF matrix may subsequently be post processed using a mask comprising document weight vectors and term weight vectors. Document weightings include document length normalisation and time weighting (more recent documents weighted more highly). Term weightings include stop words, and word embeddings.
+- The default 'report' output is a ranked and scored list of 'popular' ngrams. Optional outputs are a graph, word cloud, tfidf matrix, and terms counts.
 
 ## Installation guide
 
@@ -175,7 +167,7 @@ For example, to set the maximum document frequency to 5%, use:
 python pygrams.py -mdf 0.05
 ```
 
-By using a small ($\leq$ 5%) maximum document frequency for unigrams, this may help remove generic words, or stop words.
+By using a small (5% or less) maximum document frequency for unigrams, this may help remove generic words, or stop words.
 
 #### TF-IDF score mechanics (-p)
 
@@ -190,6 +182,14 @@ To choose an average scoring for example, use:
 
 ```
 python pygrams.py -p='avg'
+```
+
+#### Normalise by document length (-ndl)
+
+This option normalises the TYF-IDF cores by document length.
+
+```
+python pygrams.py -ndl
 ```
 
 #### Time-weighting (-t)
@@ -302,6 +302,19 @@ There are three configuration files available inside the config directory:
 
 The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams.
 The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams) and the last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+
+### Folder structure
+
+Explain the folder structure
+
+- pygrams.py is the main python program file in the root folder (Pygrams).
+- README.md is this markdown readme file in the root folder
+- pipeline.py in the scripts folder provides the main program sequence along with pygrams.py.
+- The data folder is where to place the source text data files.
+- The outputs folder contains all the program outputs.
+- The config folder contains the stop word configuration files.
+- The setup file in the root folder, along with the meta folder, contain installation related files.
+- The test folder contains unit tests.
 
 ## Help
 

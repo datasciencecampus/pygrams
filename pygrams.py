@@ -20,59 +20,38 @@ Reorder arguments according to pipeline (/manual)
 '''
 
 def get_args(command_line_arguments):
-    options_suppressed_in_help = [
-        ("-c", "--cite"),
-        ("-f", "--focus"),
-        ("-pt", "--path"),
-        ("-ih", "--id_header"),
-        ("-yf", "--year_from"),
-        ("-mf", "--month_from"),
-        ("-yt", "--year_to"),
-        ("-mt", "--month_to"),
-        ("-fs", "--focus_source"),
-        ("-tn", "--table_name")
-    ]
+    parser = argparse.ArgumentParser(description="extract popular n-grams (words or short phrases)"
+                                                 " from a corpus of documents",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # include defaults in help
+                                     conflict_handler='resolve')  # allows overridng of arguments
 
-    parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     conflict_handler='resolve')
+    # DOCUMENT PARAMETERS
 
-    parser.add_argument("-cpc", "--cpc_classification", default=None,
-                        help="the desired cpc classification (for patents only)")
-    parser.add_argument("-c", "--cite", default=False, action="store_true",
-                        help="weight terms by citations (for patents only)")
+    # Document source
+    parser.add_argument("-pt", "--path", default='data', help="the data path")
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
 
+    # Document column header names
+    parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
+    parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
+    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
+
+    # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help="clean output from terms that appear in general; 'set': set difference, "
                              "'chi2': chi2 for feature importance, "
                              "'mutual': mutual information for feature importance")
-    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
-                        help="normalize tf-idf scores by document length")
-    parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
+    parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
+                        help="the document source for the focus function")
 
-    parser.add_argument("-pt", "--path", default='data', help="the data path")
-    parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
-    parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
-    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
+    # Word filters
     parser.add_argument("-fc", "--filter_columns", default=None,
                         help="list of columns with binary entries by which to filter the rows")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="Returns filter where all are 'Yes' or '1'"
                              "or any are 'Yes' or '1' in the defined --filter_columns")
 
-    parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
-                        help="Everything is computed over "
-                             "non zero values")
-    parser.add_argument("-o", "--output", default=['report'], nargs='*',
-                        # choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
-                        choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
-                        help="Note that this can be defined multiple times to get more than one output. "
-                             "termcounts represents the term frequency component of tfidf")
-    # parser.add_argument("-o", "--output",  # suppress table output option
-    #                     choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'])
-    parser.add_argument("-j", "--json", default=False, action="store_true",
-                        help="Output configuration as JSON file alongside output report")
-
+    # Time filters
     parser.add_argument("-df", "--date_from", default=None,
                         help="The first date for the document cohort in YYYY/MM format")
     parser.add_argument("-dt", "--date_to", default=None,
@@ -85,41 +64,95 @@ def get_args(command_line_arguments):
     parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
     parser.add_argument("-mt", "--month_to", default=None, help="The last month for the document cohort in MM format")
 
+    # TF-IDF PARAMETERS
+
+    # ngrams selection
+    parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
+    parser.add_argument("-mx", "--max_ngrams", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
+
+    # maximum document frequency
+    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
+                        help="the maximum document frequency to contribute to TF/IDF")
+
+    # tf-idf score mechanics
+    parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
+                        help="Everything is computed over "
+                             "non zero values")
+
+    # Normalize tf-idf scores by document length
+    parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
+                        help="normalize tf-idf scores by document length")
+
+    # Time weighting
+    parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
+
+    # OUTPUT PARAMETERS
+
+    # select outputs
+    parser.add_argument("-o", "--output", default=['report'], nargs='*',
+                        choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
+                        # choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
+                        help="Note that this can be defined multiple times to get more than one output. "
+                             "termcounts represents the term frequency component of tfidf")
+
+    # file names etc.
+    parser.add_argument("-on", "--outputs_name", default='out', help="outputs filename")
+    parser.add_argument("-wt", "--wordcloud_title", default='Popular Terms', help="wordcloud title")
+    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
+                        help="table filename")
+    parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
+    parser.add_argument("-j", "--json", default=False, action="store_true",
+                        help="Output configuration as JSON file alongside output report")
+
+    # number of ngrams reported
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
                         help="number of ngrams to return for report")
     parser.add_argument("-nd", "--num_ngrams_wordcloud", type=int, default=250,
                         help="number of ngrams to return for wordcloud")
-    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=50,
+    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=250,
                         help="number of ngrams to return for fdg graph")
 
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
-    parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
-                        help="the document source for the focus function")
+    # PATENT SPECIFIC SUPPORT
 
-    parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
-    parser.add_argument("-mx", "--max_ngrams", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
-    parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
-                        help="the maximum document frequency to contribute to TF/IDF")
+    parser.add_argument("-cpc", "--cpc_classification", default=None,
+                        help="the desired cpc classification (for patents only)")
+    parser.add_argument("-c", "--cite", default=False, action="store_true",
+                        help="weight terms by citations (for patents only)")
 
-    parser.add_argument("-on", "--outputs_name", default='out', help="outputs filename")
 
-    parser.add_argument("-wt", "--wordcloud_title", default='Popular Terms', help="wordcloud title")
+    options_suppressed_in_help = [
+        "-c", "--cite",
+        "-f", "--focus",
+        "-pt", "--path",
+        "-ih", "--id_header",
+        "-yf", "--year_from",
+        "-mf", "--month_from",
+        "-yt", "--year_to",
+        "-mt", "--month_to",
+        "-fs", "--focus_source",
+        "-tn", "--table_name",
+        "-cpc", "--cpc_classification",
+        "-z", "--zzz"
+        ]
 
-    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
-                        help="table filename")
-
-    parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
-
-    # for options in options_suppressed_in_help:
-    #     for option in options:
-    #         parser.add_argument(option, help=argparse.SUPPRESS)
+    for options in options_suppressed_in_help:
+        parser.add_argument(options, help=argparse.SUPPRESS)
 
     args = parser.parse_args(command_line_arguments)
+    # need to add non None defaults back in if they are required
+    args.path = 'data'
+    args.focus_source = 'USPTO-random-1000.pkl.bz2'
+
     # for now, just convert date_from and date_to from YYYY/MM format to separate YYYY and MM arguments as previously
+    # (however the original YYYY and MM already produce an error)
     if args.date_from is not None:
-        args.year_from = args.date_from[:4]
-        args.month_from = args.date_from[5:]
+        args.year_from = int(args.date_from[:4])
+        args.month_from = int(args.date_from[5:])
+    if args.date_to is not None:
+        args.year_to = int(args.date_to[:4])
+        args.month_to = int(args.date_to[5:])
     return args
+
 
 
 def main(supplied_args):
