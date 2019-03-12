@@ -4,6 +4,7 @@ from scripts import FilePaths
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer
 from scripts.tfidf_wrapper import TFIDF
+from tests.support import assert_list_almost_equal
 
 
 class TestDocumentsFilter(unittest.TestCase):
@@ -47,8 +48,7 @@ class TestDocumentsFilter(unittest.TestCase):
                                 0.006259676100908145,
                                 0.1255539484346405]
 
-        self.assertListEqual(weights_vec_expected, weights_vec_actual)
-
+        assert_list_almost_equal(self, weights_vec_expected, weights_vec_actual)
 
 if __name__ == '__main__':
     unittest.main()
