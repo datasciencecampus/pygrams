@@ -41,7 +41,7 @@ class Pipeline(object):
             self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
         else:
-            print('read from pickle')
+            print(f'Reading document and TFIDF from pickle {pickled_tf_idf}')
             self.__tfidf_obj = read_pickle(pickled_tf_idf)
             df = self.__tfidf_obj.dataframe
 
