@@ -178,7 +178,7 @@ class TestPyGrams(unittest.TestCase):
     def termCountsFileName(data_source_name):
         return os.path.join(TestPyGrams.termCountsOutputFolder(), data_source_name + '-term_counts.pkl.bz2')
 
-    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
@@ -257,7 +257,7 @@ class TestPyGrams(unittest.TestCase):
 
         self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
-    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
@@ -303,7 +303,7 @@ class TestPyGrams(unittest.TestCase):
 
         self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
-    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
