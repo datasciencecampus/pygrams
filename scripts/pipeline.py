@@ -1,5 +1,7 @@
 import os
 
+from pandas import read_pickle
+
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 from scripts.documents_filter import DocumentsFilter
@@ -16,7 +18,7 @@ from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_late
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf=False, max_df=0.1, user_ngrams=None):
+                 pickled_tf_idf=None, max_df=0.1, user_ngrams=None):
 
         # load data
         self.__data_filename = data_filename
@@ -32,15 +34,16 @@ class Pipeline(object):
         self.__date_range = [date_from, date_to]
         self.__time = docs_mask_dict['time']
 
-        df = datafactory.get(data_filename)
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
-        if pickled_tf_idf:
-            print('read from pickle')
-            self.__tfidf_obj = None
-        else:
+        if pickled_tf_idf is None:
+            df = datafactory.get(data_filename)
             self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
                                      tokenizer=LemmaTokenizer(), text_header=text_header)
+        else:
+            print(f'Reading document and TFIDF from pickle {pickled_tf_idf}')
+            self.__tfidf_obj = read_pickle(pickled_tf_idf)
+            df = self.__tfidf_obj.dataframe
 
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights
