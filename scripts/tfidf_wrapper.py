@@ -1,6 +1,7 @@
-from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+
+from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
 
 
 class TFIDF:
@@ -35,6 +36,10 @@ class TFIDF:
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+
+    @property
+    def dataframe(self):
+        return self.__dataframe
 
     @property
     def idf(self):
