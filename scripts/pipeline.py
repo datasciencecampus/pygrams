@@ -15,6 +15,14 @@ from scripts.utils import utils
 from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
 
 
+def remove_empty_documents(data_frame, text_header):
+    num_docs_before_sift = data_frame.shape[0]
+    data_frame.dropna(subset=[text_header], inplace=True)
+    num_docs_after_sift = data_frame.shape[0]
+    num_docs_sifted = num_docs_before_sift - num_docs_after_sift
+    print(f'Dropped {num_docs_sifted:,} from {num_docs_before_sift:,} docs due to empty text field')
+
+
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
@@ -37,17 +45,23 @@ class Pipeline(object):
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
         if pickled_tf_idf is None:
-            df = datafactory.get(data_filename)
-            self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
-                                     tokenizer=LemmaTokenizer(), text_header=text_header)
+
+            self.__dataframe = datafactory.get(data_filename)
+
+            remove_empty_documents(self.__dataframe, text_header)
+
+            self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
+                                     max_document_frequency=max_df, tokenizer=LemmaTokenizer())
+
+            self.__dataframe.drop(columns=[text_header], inplace=True)
+
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf}')
-            self.__tfidf_obj = read_pickle(pickled_tf_idf)
-            df = self.__tfidf_obj.dataframe
+            self.__tfidf_obj, self.__dataframe = read_pickle(pickled_tf_idf)
 
         # docs weights( column, dates subset + time, citations etc.)
-        doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights
-        doc_weights = DocumentsWeights(df, docs_mask_dict['time'], docs_mask_dict['cite'],
+        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_weights
+        doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
                                        docs_mask_dict['dates'][-1], text_header=text_header,
                                        norm_rows=normalize_rows).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
@@ -72,7 +86,8 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
         if term_counts:
-            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
+            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dataframe,
+                                                                                 docs_mask_dict['dates'][-1])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
@@ -83,7 +98,8 @@ class Pipeline(object):
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   tfidf_obj=self.__tfidf_obj, date_range=self.__date_range, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time)
+                                  doc_pickle_file_name=self.__data_filename, time=self.__time,
+                                  dataframe=self.__dataframe)
 
     @property
     def term_score_tuples(self):
