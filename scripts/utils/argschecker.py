@@ -18,10 +18,23 @@ class ArgsChecker:
             print(f"File {self.args.doc_source} in path {self.args.path} not found")
             app_exit = True
 
-        try:
-            datetime.datetime.strptime(self.args.date_to, '%Y/%m/%d')
-        except ValueError:
-            raise PygramsException(f"date_to defined as '{self.args.date_to}' which is not in YYYY/MM/DD format")
+        date_from = None
+        if isinstance(self.args.date_from, str):
+            try:
+                date_from = datetime.datetime.strptime(self.args.date_from, '%Y/%m/%d')
+            except ValueError:
+                raise PygramsException(f"date_from defined as '{self.args.date_from}' which is not in YYYY/MM/DD format")
+
+        date_to = None
+        if isinstance(self.args.date_to, str):
+            try:
+                date_to = datetime.datetime.strptime(self.args.date_to, '%Y/%m/%d')
+            except ValueError:
+                raise PygramsException(f"date_to defined as '{self.args.date_to}' which is not in YYYY/MM/DD format")
+
+        if date_from is not None and date_to is not None:
+            if date_from > date_to:
+                raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
 
         if self.args.min_ngrams > self.args.max_ngrams:
             print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
@@ -112,15 +125,17 @@ class ArgsChecker:
             exit(0)
 
     def get_docs_mask_dict(self):
+        date_to = pd.to_datetime('today').date() if self.args.date_to is None else pd.to_datetime(self.args.date_to)
+        date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(self.args.date_from)
 
-        year_to = pd.to_datetime('today').year if self.args.year_to is None else self.args.year_to
-        month_to = pd.to_datetime(
-            'today').month if self.args.month_to is None and self.args.year_to is None else self.args.month_to
-
-        docs_mask_dict = {'filter_by': self.args.filter_by, 'cpc': self.args.cpc_classification, 'time': self.args.time,
+        docs_mask_dict = {'filter_by': self.args.filter_by,
+                          'cpc': self.args.cpc_classification,
+                          'time': self.args.time,
                           'cite': None, 'columns': self.args.filter_columns,
-                          'dates': [self.args.year_from, year_to, self.args.month_from, month_to,
-                                    self.args.date_header]}
+                          'date_to': date_to,
+                          'date_from': date_from,
+                          'date_header': self.args.date_header
+                          }
         return docs_mask_dict
 
     def get_terms_mask_dict(self):

@@ -21,15 +21,7 @@ class Pipeline(object):
         # load data
         self.__data_filename = data_filename
 
-        doc_dates = docs_mask_dict['dates']
-        year_from = doc_dates[0]
-        year_to = doc_dates[1]
-        month_from = doc_dates[2]
-        month_to = doc_dates[3]
-
-        date_from = year2pandas_earliest_date(year_from, month_from)
-        date_to = year2pandas_latest_date(year_to, month_to)
-        self.__date_range = [date_from, date_to]
+        self.__date_range = [docs_mask_dict['date_from'], docs_mask_dict['date_to']]
         self.__time = docs_mask_dict['time']
 
         df = datafactory.get(data_filename)
