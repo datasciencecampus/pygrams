@@ -125,17 +125,22 @@ class ArgsChecker:
             exit(0)
 
     def get_docs_mask_dict(self):
-        date_to = pd.to_datetime('today').date() if self.args.date_to is None else pd.to_datetime(self.args.date_to)
-        date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(self.args.date_from)
-
         docs_mask_dict = {'filter_by': self.args.filter_by,
                           'cpc': self.args.cpc_classification,
                           'time': self.args.time,
                           'cite': None, 'columns': self.args.filter_columns,
-                          'date_to': date_to,
-                          'date_from': date_from,
+                          'date': None,
                           'date_header': self.args.date_header
                           }
+
+        if self.args.date_to is not None and self.args.date_from is not None:
+            date_to = pd.to_datetime('today').date() if self.args.date_to is None else pd.to_datetime(self.args.date_to)
+            date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(
+                self.args.date_from)
+            docs_mask_dict['date'] = {
+                'to': date_to,
+                'from': date_from
+            }
         return docs_mask_dict
 
     def get_terms_mask_dict(self):

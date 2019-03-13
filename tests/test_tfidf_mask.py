@@ -42,7 +42,8 @@ class TestTfidfMask(unittest.TestCase):
         docs_mask_dict['time'] = None
         docs_mask_dict['cite'] = []
         docs_mask_dict['columns'] = None
-        docs_mask_dict['dates'] = [None]
+        docs_mask_dict['date'] = None
+        docs_mask_dict['date_header'] = ''
 
         self.__tfidf_obj = TFIDF(docs_df=self.__df, ngram_range=(min_n, self.__max_n),
                                  max_document_frequency=self.__max_df,
@@ -50,7 +51,7 @@ class TestTfidfMask(unittest.TestCase):
 
         doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_weights
         doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['dates'][-1:]).weights
+                                       docs_mask_dict['date_header']).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # term weights - embeddings

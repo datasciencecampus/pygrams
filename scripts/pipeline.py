@@ -21,7 +21,7 @@ class Pipeline(object):
         # load data
         self.__data_filename = data_filename
 
-        self.__date_range = [docs_mask_dict['date_from'], docs_mask_dict['date_to']]
+        self.__date_dict = docs_mask_dict['date']
         self.__time = docs_mask_dict['time']
 
         df = datafactory.get(data_filename)
@@ -37,7 +37,8 @@ class Pipeline(object):
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(df, docs_mask_dict).doc_weights
         doc_weights = DocumentsWeights(df, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['dates'][-1], text_header=text_header,
+                                       docs_mask_dict['date_header'],
+                                       text_header=text_header,
                                        norm_rows=normalize_rows).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
@@ -62,7 +63,7 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
         if term_counts:
-            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
+            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['date_header'])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
@@ -72,7 +73,7 @@ class Pipeline(object):
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
-                                  tfidf_obj=self.__tfidf_obj, date_range=self.__date_range, pick=self.__pick_method,
+                                  tfidf_obj=self.__tfidf_obj, date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time)
 
     @property

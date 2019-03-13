@@ -15,8 +15,8 @@ class DocumentsFilter(object):
             doc_set = self.__filter_cpc(df, docs_mask_dict['cpc'])
             self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
-        if docs_mask_dict['dates'][0] is not None:
-            doc_set = self.__filter_dates(df, docs_mask_dict['dates'])
+        if docs_mask_dict['date'] is not None:
+            doc_set = self.__filter_dates(df, docs_mask_dict['date'], docs_mask_dict['date_header'])
             self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
         self.__doc_weights = [0.0] * len(df) if len(self.__doc_indices) > 0 else [1.0] * len(df)
@@ -88,22 +88,16 @@ class DocumentsFilter(object):
         return doc_set
 
     @staticmethod
-    def __filter_dates(df, dates_list):
-
-        year_from = dates_list[0]
-        year_to = dates_list[1]
-        month_from = dates_list[2]
-        month_to = dates_list[3]
-        dates_header = dates_list[4]
-        date_from = year2pandas_earliest_date(year_from, month_from)
-        date_to = year2pandas_latest_date(year_to, month_to)
+    def __filter_dates(df, date_dict, date_header):
+        date_from = date_dict['from']
+        date_to = date_dict['to']
         doc_ids = set([])
 
         date_from = pd.Timestamp(date_from)
         date_to = pd.Timestamp(date_to)
 
-        for idx, date in tqdm(enumerate(df[dates_header]), desc='Sifting documents for date-range: ' +
-                                                                str(dates_list[0]) + ' - ' + str(dates_list[1]),
+        for idx, date in tqdm(enumerate(df[date_header]), desc='Sifting documents for date-range: ' +
+                                                               str(date_from) + ' - ' + str(date_to),
                               unit='document',
                               total=df.shape[0]):
             if date_to > date > date_from:
