@@ -17,7 +17,8 @@ class TestDocumentsFilter(unittest.TestCase):
         self.__docs_mask_dict['time'] = None
         self.__docs_mask_dict['cite'] = []
         self.__docs_mask_dict['columns'] = None
-        self.__docs_mask_dict['dates'] = [None]
+        self.__docs_mask_dict['date'] = None
+        self.__docs_mask_dict['date_header'] = None
         # [self.args.year_from, year_to, self.args.month_from, month_to, self.args.date_header]
 
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
@@ -28,7 +29,7 @@ class TestDocumentsFilter(unittest.TestCase):
         self.__docs_mask_dict['filter_by'] = 'union'
         self.__docs_mask_dict['cpc'] = 'Y02'
 
-        doc_ids = DocumentsFilter(self.__df, self.__docs_mask_dict ).doc_indices
+        doc_ids = DocumentsFilter(self.__df, self.__docs_mask_dict).doc_indices
         self.assertListEqual(list(doc_ids), [95])
 
     def test_filter_cpc_A61(self):
@@ -39,7 +40,11 @@ class TestDocumentsFilter(unittest.TestCase):
         self.assertListEqual(list(doc_ids), [67, 69, 72, 74, 11, 13, 17, 81, 85, 90, 94, 43, 50, 57, 60, 63])
 
     def test_filter_dates(self):
-        self.__docs_mask_dict['dates'] = ['2010', self.__year_to, '06', self.__month_to, 'publication_date']
+        self.__docs_mask_dict['date'] = {
+            'from': pd.Timestamp('2010/06/01'),
+            'to': pd.to_datetime('today')
+        }
+        self.__docs_mask_dict['date_header'] = 'publication_date'
         doc_ids = DocumentsFilter(self.__df, self.__docs_mask_dict).doc_indices
 
         self.assertListEqual(list(doc_ids), [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
@@ -47,7 +52,11 @@ class TestDocumentsFilter(unittest.TestCase):
                    76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99])
 
     def test_filter_cpc_A61_union_dates(self):
-        self.__docs_mask_dict['dates'] = ['2010', self.__year_to, '06', self.__month_to, 'publication_date']
+        self.__docs_mask_dict['date'] = {
+            'from': pd.Timestamp('2010/06/01'),
+            'to': pd.to_datetime('today')
+        }
+        self.__docs_mask_dict['date_header'] = 'publication_date'
         self.__docs_mask_dict['filter_by'] = 'union'
         self.__docs_mask_dict['cpc'] = 'A61'
 
@@ -61,7 +70,11 @@ class TestDocumentsFilter(unittest.TestCase):
                               98, 99])
 
     def test_filter_cpc_A61_intersection_dates(self):
-        self.__docs_mask_dict['dates'] = ['2010', self.__year_to, '06', self.__month_to, 'publication_date']
+        self.__docs_mask_dict['date'] = {
+            'from': pd.Timestamp('2010/06/01'),
+            'to': pd.to_datetime('today')
+        }
+        self.__docs_mask_dict['date_header'] = 'publication_date'
         self.__docs_mask_dict['filter_by'] = 'intersection'
         self.__docs_mask_dict['cpc'] = 'A61'
 

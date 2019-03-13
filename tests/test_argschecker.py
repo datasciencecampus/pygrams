@@ -115,13 +115,11 @@ class TestArgsChecker(unittest.TestCase):
 
         args_dict = args_checker.get_docs_mask_dict()
 
-        self.assertEqual(Timestamp(expected_date_from), args_dict['date_from'])
-        self.assertEqual(Timestamp(expected_date_to), args_dict['date_to'])
+        self.assertEqual(Timestamp(expected_date_from), args_dict['date']['from'])
+        self.assertEqual(Timestamp(expected_date_to), args_dict['date']['to'])
 
     @mock.patch("scripts.utils.argschecker.path", create=True)
     def test_get_docs_mask_dict_date_from_to_None(self, mock_path):
-        expected_date_from = '1900-01-01'
-        expected_date_to = pd.to_datetime('today').date()
         self.setUpTest(mock_path)
         self.args.date_from = None
         self.args.date_to = None
@@ -129,5 +127,4 @@ class TestArgsChecker(unittest.TestCase):
 
         args_dict = args_checker.get_docs_mask_dict()
 
-        self.assertEqual(Timestamp(expected_date_from), args_dict['date_from'])
-        self.assertEqual(expected_date_to, args_dict['date_to'])
+        self.assertIsNone(args_dict['date'])

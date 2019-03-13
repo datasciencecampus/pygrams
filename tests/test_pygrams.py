@@ -307,8 +307,8 @@ class TestPyGrams(unittest.TestCase):
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
-        pygrams.main(['-j', f'--outputs_name={output_file_name}', '-c', '-f=set', '-p=sum', '-cpc=Y12',
-                      '-yf=1999', '-yt=2000', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+        pygrams.main(['-j', f'--outputs_name={output_file_name}', '-f=set', '-p=sum', '-cpc=Y12',
+                      '--date_from=1999/03/12', '--date_to=2000/11/30', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
 
         mock_open.assert_called_with(json_file_name, 'w')
 
@@ -319,8 +319,8 @@ class TestPyGrams(unittest.TestCase):
                 'tech_report': report_file_name
             },
             'month_year': {
-                'from': '1999-01-01',
-                'to': '2000-12-31'
+                'from': '1999-03-12',
+                'to': '2000-11-30'
             },
             'parameters': {
                 'pick': 'sum',
@@ -337,8 +337,8 @@ class TestPyGrams(unittest.TestCase):
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
-        pygrams.main(['-j', f'--outputs_name={output_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
-                      '-yf=1998', '-yt=2001', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+        pygrams.main(['-j', f'--outputs_name={output_file_name}', '-t', '-f=set', '-p=max', '-cpc=Y12',
+                      '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
 
         mock_open.assert_called_with(json_file_name, 'w')
 
