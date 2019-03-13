@@ -1,6 +1,8 @@
-import os
-
+import datetime
+from os import path
 import pandas as pd
+
+from scripts.utils.pygrams_exception import PygramsException
 
 
 class ArgsChecker:
@@ -12,49 +14,14 @@ class ArgsChecker:
     def checkargs(self):
         app_exit = False
 
-        if os.path.isfile(os.path.join(self.args.path, self.args.doc_source)) is False:
+        if path.isfile(path.join(self.args.path, self.args.doc_source)) is False:
             print(f"File {self.args.doc_source} in path {self.args.path} not found")
             app_exit = True
 
-        if isinstance(self.args.year_to, str) & isinstance(self.args.year_from, str):
-            if isinstance(self.args.month_to, str) & isinstance(self.args.month_from, str):
-                if self.args.year_from + self.args.month_from > self.args.year_to + self.args.month_to:
-                    print(f"year_to {self.args.year_to} and month_to {self.args.month_to} cannot be in the future "
-                          f"of year_from {self.args.year_from} and month_from {self.args.month_from}")
-                    app_exit = True
-            else:
-                if self.args.year_from > self.args.year_to:
-                    print(f"year_to {self.args.year_to} cannot be in the future of year_from {self.args.year_from}")
-                    app_exit = True
-        else:
-            if isinstance(self.args.month_to, str):
-                if not isinstance(self.args.year_to, str):
-                    print("year_to also needs to be defined to use month_to")
-                    app_exit = True
-            if isinstance(self.args.month_from, str):
-                if not isinstance(self.args.year_from, str):
-                    print("year_from also needs to be defined to use month_from")
-                    app_exit = True
-
-        if isinstance(self.args.year_from, str):
-            if len(self.args.year_from) != 4:
-                print(f"year_from {self.args.year_from} must be in YYYY format")
-                app_exit = True
-
-        if isinstance(self.args.month_from, str):
-            if len(self.args.month_from) != 2:
-                print(f"month_from {self.args.month_from} must be in MM format")
-                app_exit = True
-
-        if isinstance(self.args.year_to, str):
-            if len(self.args.year_to) != 4:
-                print(f"year_to {self.args.year_to} must be in YYYY format")
-                app_exit = True
-
-        if isinstance(self.args.month_to, str):
-            if len(self.args.month_to) != 2:
-                print(f"month_to {self.args.month_to} must be in MM format")
-                app_exit = True
+        try:
+            datetime.datetime.strptime(self.args.date_to, '%Y/%m/%d')
+        except ValueError:
+            raise PygramsException(f"date_to defined as '{self.args.date_to}' which is not in YYYY/MM/DD format")
 
         if self.args.min_ngrams > self.args.max_ngrams:
             print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
