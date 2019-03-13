@@ -53,16 +53,9 @@ def get_args(command_line_arguments):
 
     # Time filters
     parser.add_argument("-df", "--date_from", default=None,
-                        help="The first date for the document cohort in YYYY/MM format")
+                        help="The first date for the document cohort in YYYY/MM/DD format")
     parser.add_argument("-dt", "--date_to", default=None,
-                        help="The last date for the document cohort in YYYY/MM format")
-
-    parser.add_argument("-yf", "--year_from", default=None,
-                        help="The first year for the document cohort in YYYY format")
-    parser.add_argument("-mf", "--month_from", default=None,
-                        help="The first month for the document cohort in MM format")
-    parser.add_argument("-yt", "--year_to", default=None, help="The last year for the document cohort in YYYY format")
-    parser.add_argument("-mt", "--month_to", default=None, help="The last month for the document cohort in MM format")
+                        help="The last date for the document cohort in YYYY/MM/DD format")
 
     # TF-IDF PARAMETERS
 
@@ -125,10 +118,6 @@ def get_args(command_line_arguments):
         "-f", "--focus",
         "-pt", "--path",
         "-ih", "--id_header",
-        "-yf", "--year_from",
-        "-mf", "--month_from",
-        "-yt", "--year_to",
-        "-mt", "--month_to",
         "-fs", "--focus_source",
         "-tn", "--table_name",
         "-cpc", "--cpc_classification",
@@ -143,14 +132,6 @@ def get_args(command_line_arguments):
     args.path = 'data'
     args.focus_source = 'USPTO-random-1000.pkl.bz2'
 
-    # for now, just convert date_from and date_to from YYYY/MM format to separate YYYY and MM arguments as previously
-    # (however the original YYYY and MM already produce an error)
-    if args.date_from is not None:
-        args.year_from = int(args.date_from[:4])
-        args.month_from = int(args.date_from[5:])
-    if args.date_to is not None:
-        args.year_to = int(args.date_to[:4])
-        args.month_to = int(args.date_to[5:])
     return args
 
 

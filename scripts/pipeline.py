@@ -62,6 +62,7 @@ class Pipeline(object):
         # mask the tfidf matrix
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
         tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
+
         tfidf_masked = utils.remove_all_null_rows(tfidf_masked)
 
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
