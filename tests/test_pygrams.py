@@ -222,11 +222,6 @@ class TestPyGrams(unittest.TestCase):
         }
 
         # Make a note of the dumped TFIDF object for later
-        def pickle_dump_fake(tfidf_obj, _pickle_file_name, _protocol):
-            self.dumped_tfidf_obj = tfidf_obj
-
-        self.dumped_tfidf_obj = None
-        mock_pickle_dump.side_effect = pickle_dump_fake
         self.preparePyGrams(fake_df_data, mock_factory_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
@@ -236,6 +231,7 @@ class TestPyGrams(unittest.TestCase):
         def factory_read_pickle_fake(pickle_file_name):
             self.fail(f'Should not be reading {pickle_file_name} via a factory if TFIDF was requested from pickle')
 
+        self.dumped_tfidf_obj = mock_pickle_dump.call_args_list[0][0][0]
         mock_factory_read_pickle.side_effect = factory_read_pickle_fake
         mock_pickle_dump.reset_mock(return_value=True, side_effect=True)
 
