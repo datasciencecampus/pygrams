@@ -222,7 +222,7 @@ class TestPyGrams(unittest.TestCase):
         }
 
         # Make a note of the dumped TFIDF object for later
-        def pickle_dump_fake(tfidf_obj, pickle_file_name, protocol):
+        def pickle_dump_fake(tfidf_obj, _pickle_file_name, _protocol):
             self.dumped_tfidf_obj = tfidf_obj
 
         self.dumped_tfidf_obj = None
