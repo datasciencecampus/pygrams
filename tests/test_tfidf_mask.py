@@ -36,17 +36,17 @@ class TestTfidfMask(unittest.TestCase):
         cls.__df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
 
     def init_mask(self, cpc, min_n, uni_factor=0.8):
-        docs_mask_dict = {}
-        docs_mask_dict['filter_by'] = 'union'
-        docs_mask_dict['cpc'] = cpc
-        docs_mask_dict['time'] = None
-        docs_mask_dict['cite'] = []
-        docs_mask_dict['columns'] = None
-        docs_mask_dict['dates'] = [None]
+        docs_mask_dict = {
+            'filter_by': 'union',
+            'cpc': cpc,
+            'time': None,
+            'cite': [],
+            'columns': None,
+            'dates': [None]
+        }
 
-        self.__tfidf_obj = TFIDF(docs_df=self.__df, ngram_range=(min_n, self.__max_n),
-                                 max_document_frequency=self.__max_df,
-                                 tokenizer=StemTokenizer(), text_header='abstract')
+        self.__tfidf_obj = TFIDF(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
+                                 max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
 
         doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_weights
         doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],

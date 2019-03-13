@@ -8,7 +8,8 @@ from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           term_counts_data=None, tfidf_obj=None, date_range=None, pick=None, doc_pickle_file_name=None, time=None):
+           term_counts_data=None, tfidf_obj=None, date_range=None, pick=None, doc_pickle_file_name=None, time=None,
+           dataframe=None):
     if output_type == 'report':
         filename_and_path = os.path.join('outputs', 'reports', name + '.txt')
         with open(filename_and_path, 'w') as file:
@@ -43,7 +44,7 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
         tfidf_filename = os.path.join('outputs', 'tfidf', name + '-tfidf.pkl.bz2')
         os.makedirs(os.path.dirname(tfidf_filename), exist_ok=True)
         with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
-            pickle.dump(tfidf_obj, pickle_file, protocol=4)
+            pickle.dump((tfidf_obj, dataframe), pickle_file, protocol=4)
 
     elif output_type == 'json_config':
         doc_pickle_file_name = os.path.abspath(doc_pickle_file_name)
