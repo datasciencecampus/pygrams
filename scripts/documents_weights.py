@@ -1,12 +1,13 @@
 import datetime
-import numpy as np
-import scripts.utils.utils as ut
 
+import numpy as np
 from tqdm import tqdm
+
+import scripts.utils.utils as ut
 
 
 class DocumentsWeights(object):
-    def __init__(self, df, time, citation_count_dict, date_header, text_header='abstract', norm_rows=False):
+    def __init__(self, df, time, citation_count_dict, date_header, text_lengths=None, norm_rows=False):
         self.__dataframe = df
         self.__date_header = date_header
         self.__weights = [1.0]*len(df)
@@ -23,7 +24,7 @@ class DocumentsWeights(object):
 
         # normalize rows to text length
         if norm_rows:
-            self.__normalize_rows(text_header)
+            self.__normalize_rows(text_lengths)
             processed = True
 
         if processed:
@@ -33,10 +34,8 @@ class DocumentsWeights(object):
     def weights(self):
         return self.__weights
 
-    def __normalize_rows(self, text_header):
-        for idx, text in enumerate(self.__dataframe[text_header]):
-            text_len = len(text)
-            self.__weights[idx] /= text_len
+    def __normalize_rows(self, text_lengths):
+        self.__weights = [a / b for a, b in zip(self.__weights, text_lengths)]
 
     def __time_weights(self):
         self.__dataframe = self.__dataframe.sort_values(by=self.__date_header)
