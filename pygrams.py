@@ -19,22 +19,18 @@ Reorder arguments according to pipeline (/manual)
 
 '''
 
+
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="extract popular n-grams (words or short phrases)"
                                                  " from a corpus of documents",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # include defaults in help
                                      conflict_handler='resolve')  # allows overridng of arguments
 
-    # DOCUMENT PARAMETERS
-
-    # Document source
-    parser.add_argument("-pt", "--path", default='data', help="the data path")
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
-
-    # Document column header names
+    # suppressed:________________________________________
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
-    parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
-    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
+    parser.add_argument("-c", "--cite", default=False, action="store_true",
+                        help="weight terms by citations (for patents only)")
+    parser.add_argument("-pt", "--path", default='data', help="the data path")
 
     # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
@@ -43,6 +39,19 @@ def get_args(command_line_arguments):
                              "'mutual': mutual information for feature importance")
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
                         help="the document source for the focus function")
+    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
+                        help="table filename")
+
+    parser.add_argument("-j", "--json", default=True, action="store_true",
+                        help="Output configuration as JSON file alongside output report")
+    # __________________________________________________
+
+    # Document source
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
+
+    # Document column header names
+    parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
+    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
 
     # Word filters
     parser.add_argument("-fc", "--filter_columns", default=None,
@@ -80,7 +89,6 @@ def get_args(command_line_arguments):
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
 
     # OUTPUT PARAMETERS
-
     # select outputs
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
                         choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
@@ -91,11 +99,8 @@ def get_args(command_line_arguments):
     # file names etc.
     parser.add_argument("-on", "--outputs_name", default='out', help="outputs filename")
     parser.add_argument("-wt", "--wordcloud_title", default='Popular Terms', help="wordcloud title")
-    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
-                        help="table filename")
+
     parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
-    parser.add_argument("-j", "--json", default=False, action="store_true",
-                        help="Output configuration as JSON file alongside output report")
 
     # number of ngrams reported
     parser.add_argument("-np", "--num_ngrams_report", type=int, default=250,
@@ -106,14 +111,11 @@ def get_args(command_line_arguments):
                         help="number of ngrams to return for fdg graph")
 
     # PATENT SPECIFIC SUPPORT
-
     parser.add_argument("-cpc", "--cpc_classification", default=None,
                         help="the desired cpc classification (for patents only)")
-    parser.add_argument("-c", "--cite", default=False, action="store_true",
-                        help="weight terms by citations (for patents only)")
-
 
     options_suppressed_in_help = [
+        "-ih", "--id_header"
         "-c", "--cite",
         "-f", "--focus",
         "-pt", "--path",
@@ -130,10 +132,8 @@ def get_args(command_line_arguments):
     args = parser.parse_args(command_line_arguments)
     # need to add non None defaults back in if they are required
     args.path = 'data'
-    args.focus_source = 'USPTO-random-1000.pkl.bz2'
-
+    #args.focus_source = 'USPTO-random-1000.pkl.bz2'
     return args
-
 
 
 def main(supplied_args):
