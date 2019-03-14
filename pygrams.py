@@ -132,7 +132,6 @@ def get_args(command_line_arguments):
     args = parser.parse_args(command_line_arguments)
     # need to add non None defaults back in if they are required
     args.path = 'data'
-    #args.focus_source = 'USPTO-random-1000.pkl.bz2'
     return args
 
 
