@@ -22,7 +22,6 @@ class Pipeline(object):
 
         # load data
         self.__data_filename = data_filename
-
         self.__date_dict = docs_mask_dict['date']
         self.__time = docs_mask_dict['time']
 
