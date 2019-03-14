@@ -134,7 +134,15 @@ class PipelineEmtech(object):
                 escore = em.calculate_escore() if not curves else em.escore2()
                 self.__emergence_list.append((term_ngram, escore))
 
+        if len(self.__emergence_list) == 0:
+            self.__emergent = []
+            self.__declining = []
+            self.__stationary = []
+            return
+
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
+
+
         # for tup in self.__emergence_list:
         #     print(tup[0] + ": " + str(tup[1]))
 
@@ -142,11 +150,8 @@ class PipelineEmtech(object):
         self.__declining = [x[0] for x in self.__emergence_list[-nterms:]]
 
         zero_pivot_emergence = None
-        try:
-            last_emergence = self.__emergence_list[0][1]
-        except:
-            print('\nEmergence forecast calculations failed, likely because -mpq is too large for dataset provide')
-            exit(0)
+        last_emergence = self.__emergence_list[0][1]
+
         for index, value in enumerate(self.__emergence_list[1:]):
             if value[1] <= 0.0 < last_emergence:
                 zero_pivot_emergence = index
@@ -184,6 +189,11 @@ class PipelineEmtech(object):
             terms = self.__declining
         else:
             raise ValueError(f'Unrecognised value for emergence_type: {emergence}')
+
+        if len(terms) == 0:
+            print(f'Analysis of {emergence} failed as no terms were detected,'
+                  f' likely because -mpq is too large for dataset provided')
+            return
 
         html_results = ''
 
