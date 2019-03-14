@@ -279,9 +279,10 @@ class TestPyGrams(unittest.TestCase):
 
         self.assertTermCountOutputs(assert_outputs, mock_pickle_dump, mock_makedirs)
 
-    def test_args_json_not_requested(self):
-        args = pygrams.get_args([])
-        self.assertFalse(args.json)
+# not sure of the purpose of this!
+    # def test_args_json_not_requested(self):
+    #     args = pygrams.get_args([])
+    #     self.assertFalse(args.json)
 
     def test_args_json_requested_short(self):
         args = pygrams.get_args(['-j'])
