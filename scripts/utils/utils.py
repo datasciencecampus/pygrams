@@ -1,7 +1,7 @@
 import numpy as np
-from gensim.test.utils import datapath, get_tmpfile
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
+from gensim.test.utils import datapath, get_tmpfile
 
 
 def bisearch_csr(array, target, start, end):
@@ -23,11 +23,11 @@ def remove_all_null_rows(sparse_mat):
     return sparse_mat[unique_nonzero_indices]
 
 
-def normalize_array(X, min_val = 0.2,  return_list = False):
+def normalize_array(X, min_val=0.2, return_list=False):
     min_x, max_x = min(X), max(X)
     diff_x = (max_x - min_x)
     std_x = (np.array(X) - min_x) / diff_x
-    x_scaled = std_x*(1-min_val) + min_val
+    x_scaled = std_x * (1 - min_val) + min_val
     return x_scaled if not return_list else list(x_scaled)
 
 

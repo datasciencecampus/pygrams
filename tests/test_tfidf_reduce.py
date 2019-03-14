@@ -22,8 +22,8 @@ class TestTfidfReduce(unittest.TestCase):
         max_df = 0.3
         ngram_range = (min_n, max_n)
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        tfidf_obj = TFIDF(docs_df=df, ngram_range=ngram_range, max_document_frequency=max_df,
-                          tokenizer=StemTokenizer(), text_header='abstract')
+        tfidf_obj = TFIDF(df['abstract'], ngram_range=ngram_range, max_document_frequency=max_df,
+                          tokenizer=StemTokenizer())
 
         doc_weights = list(np.ones(len(df)))
 
