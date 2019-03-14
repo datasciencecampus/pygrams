@@ -14,11 +14,11 @@ from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
 from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
 
-
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf=None, max_df=0.1, user_ngrams=None):
+
 
         # load data
         self.__data_filename = data_filename
@@ -75,6 +75,7 @@ class Pipeline(object):
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
 

@@ -1,0 +1,56 @@
+#This is the function that computes the likelihood for LLM with a constant drift
+
+#sigma.alpha is factored out of the model
+#need 
+#YY: time series
+#the first few observations of YY
+lik.llm.constd<-function(vec){
+sigma.eps = 1
+sigma.gnu = vec[1]
+theta = vec[2]
+#theta = vec[2]#this is for AR
+y = YY
+ll = length(y)
+TT = as.matrix(theta)
+lTT = nrow(TT)
+W0 = matrix(c(1,1), 1, 2)
+auxA = cbind(diag(-1,2), c(0,0))
+A = W0 %*% auxA
+ncA0 = ncol(A)
+QQ = matrix(0, ncA0, ncA0)
+DD = rep(0,ll)
+HHt = as.matrix(sigma.gnu^2)
+#P<-matrix(rep(0,lTT^2), lTT, lTT)
+P0 = matrix(0, lTT, lTT)
+P = P0
+Z = as.matrix(1)
+W = matrix(c(1, 0), 1, 2)
+#
+for (i in 1:ll){
+GGt = sigma.eps^2
+aux2 = matrix(c(rep(0,(ncA0-1)), y[i]), 1, ncA0)
+E = aux2-Z %*% A
+D = Z %*% P %*% t(Z) + GGt
+DD[i] = D
+Dinv = 1/D
+K = TT %*% P %*% t(Z) %*% Dinv
+A = W %*% auxA + TT %*% A + K %*% E
+L = TT - K %*% Z
+P = L %*% P %*% t(TT) + HHt
+QQ = QQ + t(E) %*% Dinv %*% E
+}
+#print(QQ)
+#
+SS = QQ[1:2, 1:2]
+aux = eigen(SS)$values
+ldSS = sum(log(aux))
+qqq = as.matrix(QQ[3, 3])
+ss = QQ[1:2, 3]
+Sinv = solve(SS)
+gamma.est = Sinv %*% ss
+sigma2.est = (qqq - t(ss) %*% Sinv %*% ss)/ll
+sigma2.est = as.numeric(sigma2.est)
+sigmatilde2 = (ll/(ll-ncA0+1))*sigma2.est
+#linfty<-(-0.5)*((ll-ncA0+1)*(1+log(sigmatilde2))+ldSS+sum(log(abs(DD))))
+loglik = (-0.5)*((ll-ncA0+1)*(1+log(sigmatilde2))+sum(log(abs(DD))))
+-loglik}

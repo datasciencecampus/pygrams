@@ -6,6 +6,10 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
+predictor_names = ['All', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters',
+                   'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
+                   'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
+                   'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
 
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="create report, wordcloud, and fdg graph for free text in documents")
@@ -76,6 +80,32 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-nltk", "--nltk_path", default=None, help="custom path for NLTK data")
 
+    parser.add_argument("-emt", "--emerging_technology", default=False, action="store_true",
+                        help="denote whether emerging technology should be forecast")
+
+    parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
+                        help="options for predictor algorithms, multiple inputs are allowed, default "
+                             "is to select Linear (2): \n"
+                             "\n".join([f"{index}. {value}\n" for index, value in enumerate(predictor_names)])
+                        )
+
+    parser.add_argument("-nts", "--nterms", type=int, default=25,
+                        help="number of terms to analyse")
+    parser.add_argument("-mpq", "--minimum-per-quarter", type=int, default=20,
+                        help="minimum number of patents per quarter referencing a term")
+    parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
+                        help="number of steps ahead to analyse for")
+
+    parser.add_argument("-cur", "--curves", default=False, action="store_true",
+                        help="analyse using curve or not")
+    parser.add_argument("-tst", "--test", default=False, action="store_true",
+                        help="analyse using test or not")
+    parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
+                        help="analyse using normalised patents counts or not")
+    parser.add_argument("-emr", "--emergence", default=['emergent'], choices=['emergent', 'stationary', 'declining'],
+                        nargs='+',
+                        help="analyse using emergence or not")
+
     args = parser.parse_args(command_line_arguments)
     return args
 
@@ -108,6 +138,69 @@ def main(supplied_args):
                         pickled_tf_idf=pickled_tf_idf_path)
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
+
+    # emtech integration
+
+    if args.emerging_technology:
+        from scripts.pipeline_emtech import Pipeline_emtech
+
+        if 0 in args.predictor_names:
+            algs_codes = list(range(1, len(predictor_names)))
+        else:
+            algs_codes = args.predictor_names
+
+        if isinstance(algs_codes, int):
+            predictors_to_run = [predictor_names[algs_codes]]
+        else:
+            predictors_to_run = [predictor_names[i] for i in algs_codes]
+
+        doc_source_file_name = os.path.join('outputs', 'termcounts', args.outputs_name + '-term_counts.pkl.bz2')
+
+        pipeline_emtech = Pipeline_emtech(doc_source_file_name, curves=args.curves, m_steps_ahead=args.steps_ahead,
+                            nterms=args.nterms,
+                            minimum_patents_per_quarter=args.minimum_per_quarter)
+
+        for emergence in args.emergence:
+            print(f'Running pipeline for "{emergence}"')
+
+            if args.normalised:
+                title = 'Forecasts Evaluation: Normalised Counts' if args.test else 'Forecasts: Normalised Counts'
+            else:
+                title = 'Forecasts Evaluation' if args.test else 'Forecasts'
+
+            title += f' ({emergence})'
+
+            html_results = pipeline_emtech.run(predictors_to_run, normalized=args.normalised, train_test=args.test,
+                                        emergence=emergence)
+
+            html_doc = f'''<!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>{title}</title>
+          </head>
+          <body>
+            <h1>{title}</h1>
+        {html_results}
+          </body>
+        </html>
+        '''
+
+            output_str = 'prediction_results_test' if args.test else 'prediction_results'
+
+            base_file_name = os.path.join('outputs', 'emtech', args.doc_source + '=' + output_str)
+
+            base_file_name += '=' + emergence
+
+            if args.normalised:
+                base_file_name += '_normalised'
+
+            html_filename = base_file_name + '.html'
+
+            with open(html_filename, 'w') as f:
+                f.write(html_doc)
+
+            print()
 
 
 if __name__ == '__main__':

@@ -36,3 +36,4 @@ def w2vify(filein, fileout):
     tmp_file_name = get_tmpfile(fileout)
     _ = glove2word2vec(glove_file, tmp_file_name)
     return KeyedVectors.load_word2vec_format(tmp_file_name)
+#
