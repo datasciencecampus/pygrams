@@ -135,7 +135,7 @@ def main(supplied_args):
                         ngram_range=(args.min_n, args.max_n), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output),
-                        pickled_tf_idf=pickled_tf_idf_path)
+                        pickled_tf_idf=pickled_tf_idf_path, emerging_technology=args.emerging_technology)
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
@@ -154,9 +154,9 @@ def main(supplied_args):
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
 
-        doc_source_file_name = os.path.join('outputs', 'termcounts', args.outputs_name + '-term_counts.pkl.bz2')
+        term_counts_data = pipeline.term_counts_data
 
-        pipeline_emtech = PipelineEmtech(doc_source_file_name, curves=args.curves, m_steps_ahead=args.steps_ahead,
+        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curves, m_steps_ahead=args.steps_ahead,
                             nterms=args.nterms,
                             minimum_patents_per_quarter=args.minimum_per_quarter)
 

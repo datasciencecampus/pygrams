@@ -24,7 +24,7 @@ from scripts.vandv.predictor import evaluate_prediction
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf=None, max_df=0.1, user_ngrams=None):
+                 pickled_tf_idf=None, max_df=0.1, user_ngrams=None, emerging_technology=False):
 
 
         # load data
@@ -78,11 +78,14 @@ class Pipeline(object):
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
-        if term_counts:
+        if term_counts or emerging_technology:
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(df, docs_mask_dict['dates'][-1])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
+    @property
+    def term_counts_data(self):
+        return self.__term_counts_data
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
 
@@ -97,16 +100,17 @@ class Pipeline(object):
     def term_score_tuples(self):
         return self.__term_score_tuples
 
+
+
 # 'USPTO-granted-full-random-500000-term_counts.pkl.bz2'
 class PipelineEmtech(object):
-    def __init__(self, term_counts_filename, m_steps_ahead=5, curves=True, nterms=50, minimum_patents_per_quarter=20):
+    def __init__(self, doc_source_file_name, term_counts_data, m_steps_ahead=5, curves=True, nterms=50, minimum_patents_per_quarter=20):
         self.__M = m_steps_ahead
 
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
-         self.__weekly_iso_dates] = read_pickle(
-            os.path.join(term_counts_filename))
+         self.__weekly_iso_dates] = term_counts_data
         self.__output_folder = os.path.join('outputs', 'emtech')
-        self.__base_file_name = os.path.basename(term_counts_filename)
+        self.__base_file_name = os.path.basename(doc_source_file_name + '-term_counts.pkl.bz2')
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
 
