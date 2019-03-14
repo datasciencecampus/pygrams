@@ -4,7 +4,7 @@ import pickle
 from tqdm import tqdm
 
 from scripts.algorithms.predictor_factory import PredictorFactory as factory
-from scripts.utils.Utils_emtech import timeseries_weekly_to_quarterly
+from scripts.utils.utils import timeseries_weekly_to_quarterly
 from scripts.vandv.graphs import trim_leading_zero_counts
 
 
