@@ -46,8 +46,10 @@ def get_args(command_line_arguments):
                         help="Output configuration as JSON file alongside output report")
     # __________________________________________________
 
-    # Document source
+    # Input files
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
+    parser.add_argument("-it", "--input_tfidf", default=None,
+                        help="pickled TFIDF output instead of processing a document source")
 
     # Document column header names
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
@@ -150,10 +152,13 @@ def main(supplied_args):
     terms_mask_dict = argscheck.get_terms_mask_dict()
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
-    pipeline = Pipeline(doc_source_file_name, docs_mask_dict,  pick_method=args.pick,
+    pickled_tf_idf_path = None if args.input_tfidf is None else os.path.join(args.path, args.input_tfidf)
+
+    pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output))
+                        term_counts=('termcounts' in args.output),
+                        pickled_tf_idf=pickled_tf_idf_path)
 
     pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
