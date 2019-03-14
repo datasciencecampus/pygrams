@@ -198,7 +198,11 @@ class PipelineEmtech(object):
         self.__declining = [x[0] for x in self.__emergence_list[-nterms:]]
 
         zero_pivot_emergence = None
-        last_emergence = self.__emergence_list[0][1]
+        try:
+            last_emergence = self.__emergence_list[0][1]
+        except:
+            print('\nEmergence forecast calculations failed, likely because -mpq is too large for dataset provide')
+            exit(0)
         for index, value in enumerate(self.__emergence_list[1:]):
             if value[1] <= 0.0 < last_emergence:
                 zero_pivot_emergence = index
