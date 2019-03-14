@@ -122,7 +122,6 @@ def get_args(command_line_arguments):
         "-ih", "--id_header",
         "-fs", "--focus_source",
         "-tn", "--table_name",
-        "-cpc", "--cpc_classification",
         "-z", "--zzz"
         ]
 
