@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This code runs a window with a certain percentage of data and forecats k steps ahead
+
+```{r}
+source("likelihoodLLMvarb")
+source("dkfLLMvarb")
+source("forecast")
+
+prop_train = 0.9
+
+
+time_series_data = image$image
+ll = length(time_series_data)
+size_train = trunc(ll * prop_train)
+
+k = 1 #nr of steps-ahead prediction
+
+predictions = matrix(0, k, (ll - size_train - k-1))
+mse = matrix(0, k, (ll - size_train - k))
+err_div_obs = matrix(0, k, (ll - size_train - k-1))
+```
+
+
+  
+```{r}
+for (i in 1 : (ll - size_train - k - 1)){
+print(i) 
+#training data
+#print(size_train+i-1)
+YY = time_series_data[i : (size_train+i-1)]
+#
+#parameter estimation
+#print(YY)
+min.out.tsd = nlminb(c(1,1,0.6), lik.llm.vard)
+
+#Diffuse Kalman Filter
+dkf.out.tsd = dkf.llm.vard(min.out.tsd$par,YY)
+
+#forecasting
+source("forecast")
+forecast.out.tsd = forecast(dkf.out.tsd, k)
+aux = forecast.out.tsd$yhat 
+predictions[,i] = aux
+mse[,i] = ( YY[(i+1) : (i+k)] - aux)^2
+err_div_obs[,i] = (YY[(i+1) : (i+k)] - aux)/YY[(i+1) : (i+k)]
+}
+```
+```{r}
+print(predictions)
+mse
+err_div_obs
+```
+
+```{r}
+MSE = sqrt(rowMeans(mse))
+MSE
+```
+```{r}
+rowMeans(abs(100*err_div_obs))
+```
+
+
+
+
+
+
+
+
