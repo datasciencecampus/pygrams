@@ -142,7 +142,7 @@ def main(supplied_args):
     # emtech integration
 
     if args.emerging_technology:
-        from scripts.pipeline_emtech import Pipeline_emtech
+        from scripts.pipeline import PipelineEmtech
 
         if 0 in args.predictor_names:
             algs_codes = list(range(1, len(predictor_names)))
@@ -156,7 +156,7 @@ def main(supplied_args):
 
         doc_source_file_name = os.path.join('outputs', 'termcounts', args.outputs_name + '-term_counts.pkl.bz2')
 
-        pipeline_emtech = Pipeline_emtech(doc_source_file_name, curves=args.curves, m_steps_ahead=args.steps_ahead,
+        pipeline_emtech = PipelineEmtech(doc_source_file_name, curves=args.curves, m_steps_ahead=args.steps_ahead,
                             nterms=args.nterms,
                             minimum_patents_per_quarter=args.minimum_per_quarter)
 
@@ -174,17 +174,17 @@ def main(supplied_args):
                                         emergence=emergence)
 
             html_doc = f'''<!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <title>{title}</title>
-          </head>
-          <body>
-            <h1>{title}</h1>
-        {html_results}
-          </body>
-        </html>
-        '''
+                <html lang="en">
+                  <head>
+                    <meta charset="utf-8">
+                    <title>{title}</title>
+                  </head>
+                  <body>
+                    <h1>{title}</h1>
+                {html_results}
+                  </body>
+                </html>
+                '''
 
             output_str = 'prediction_results_test' if args.test else 'prediction_results'
 
