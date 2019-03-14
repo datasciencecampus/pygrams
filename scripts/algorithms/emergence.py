@@ -8,7 +8,7 @@ from datetime import date
 from math import ceil, sqrt
 
 from scipy.optimize import curve_fit
-from scripts.utils.Utils_emtech import fsigmoid, fsigmoid_derivative, fit_score, normalize
+from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score, normalize
 
 
 class Emergence(object):
