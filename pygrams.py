@@ -146,7 +146,7 @@ def main(supplied_args):
     args_default = get_args([])
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
-    outputs = args.output
+    outputs = args.output[:]
     outputs.append('json_config')
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
@@ -158,9 +158,13 @@ def main(supplied_args):
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output),
-                        pickled_tf_idf=pickled_tf_idf_path)
+                        pickled_tf_idf_file_name=pickled_tf_idf_path, tfidf_output='tfidf' in args.output,
+                        output_name=args.outputs_name)
 
-    pipeline.output(args.output, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
+    if 'tfidf' in outputs:
+        outputs.remove('tfidf')
+
+    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
 
 if __name__ == '__main__':
