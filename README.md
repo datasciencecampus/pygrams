@@ -305,7 +305,6 @@ The second file contains stopwords that are applied to all n-grams for n > 1 (bi
 
 ### Folder structure
 
-
 - pygrams.py is the main python program file in the root folder (Pygrams).
 - README.md is this markdown readme file in the root folder
 - pipeline.py in the scripts folder provides the main program sequence along with pygrams.py.
