@@ -60,7 +60,7 @@ def get_args(command_line_arguments):
                         help="list of columns with binary entries by which to filter the rows")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="Returns filter: intersection where all are 'Yes' or '1'"
-                             "or any are 'Yes' or '1' in the defined --filter_columns")
+                             "or union where any are 'Yes' or '1' in the defined --filter_columns")
 
     # Time filters
     parser.add_argument("-df", "--date_from", default=None,
