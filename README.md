@@ -186,7 +186,7 @@ python pygrams.py -p='avg'
 
 #### Normalise by document length (-ndl)
 
-This option normalises the TYF-IDF cores by document length.
+This option normalises the TF-IDF scores by document length.
 
 ```
 python pygrams.py -ndl
