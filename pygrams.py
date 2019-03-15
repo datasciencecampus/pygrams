@@ -30,7 +30,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-pt", "--path", default='data', help="the data path")
     parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
-    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
+    parser.add_argument("-dh", "--date_header", default='publication_date', help="the column name for the date")
     parser.add_argument("-fc", "--filter_columns", default=None, help="list of columns to filter by")
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="options are <union> <intersection> defaults to union. Returns filter where all are 'Yes' "
@@ -193,9 +193,8 @@ def main(supplied_args):
 
             output_str = 'prediction_results_test' if args.test else 'prediction_results'
 
-            base_file_name = os.path.join('outputs', 'emtech', args.doc_source + '=' + output_str)
-
-            base_file_name += '=' + emergence
+            base_file_name = os.path.join('outputs', 'emergence', args.doc_source )
+            base_file_name = base_file_name[:base_file_name.find('.')] + '_' + output_str
 
             if args.normalised:
                 base_file_name += '_normalised'
