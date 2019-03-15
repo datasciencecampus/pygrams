@@ -123,7 +123,6 @@ def get_args(command_line_arguments):
         "-ih", "--id_header",
         "-fs", "--focus_source",
         "-tn", "--table_name",
-        "-z", "--zzz"
         ]
 
     for options in options_suppressed_in_help:
