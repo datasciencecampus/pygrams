@@ -72,13 +72,9 @@ class TfidfReduce(object):
         return ngrams_scores_tuple
 
     def create_terms_count(self, df, dates_header):
-        try:
-            dates = df[dates_header]
-            document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
-                                   [d.isocalendar() for d in dates]]
-        except ValueError:
-            # do we need this?
-            dates = [None] * len(df)
+        dates = df[dates_header]
+        document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
+                               [d.isocalendar() for d in dates]]
 
         term_counts_per_week, number_of_documents_per_week, week_iso_dates = tfidf_with_dates_to_weekly_term_counts(
             self.__tfidf_masked, document_week_dates)
