@@ -34,20 +34,11 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, tfidf_output=False,
-                 output_name=None, emerging_technology=False):
+                 output_name=None, emerging_technology=None):
 
         # load data
         self.__data_filename = data_filename
-
-        doc_dates = docs_mask_dict['dates']
-        year_from = doc_dates[0]
-        year_to = doc_dates[1]
-        month_from = doc_dates[2]
-        month_to = doc_dates[3]
-
-        date_from = year2pandas_earliest_date(year_from, month_from)
-        date_to = year2pandas_latest_date(year_to, month_to)
-        self.__date_range = [date_from, date_to]
+        self.__date_dict = docs_mask_dict['date']
         self.__time = docs_mask_dict['time']
 
         self.__pick_method = pick_method
@@ -99,7 +90,7 @@ class Pipeline(object):
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
 
         doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['dates'][-1], self.__text_lengths,
+                                       docs_mask_dict['date_header'], self.__text_lengths,
                                        norm_rows=normalize_rows).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
@@ -123,6 +114,7 @@ class Pipeline(object):
         # mask the tfidf matrix
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
         tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
+
         tfidf_masked = utils.remove_all_null_rows(tfidf_masked)
 
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
@@ -131,12 +123,16 @@ class Pipeline(object):
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
-
-        if term_counts or emerging_technology:
+        if term_counts:
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dataframe,
-                                                                                 docs_mask_dict['dates'][-1])
+                                                                                 docs_mask_dict['date_header'])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+
+        # todo: no output method; just if statements to call output functions...?
+        #  Only supply what they each directly require
+
+        # todo: hence Pipeline then becomes a single function
 
     @property
     def term_counts_data(self):
@@ -148,7 +144,7 @@ class Pipeline(object):
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
-                                  date_range=self.__date_range, pick=self.__pick_method,
+                                  date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time, )
 
     @property
