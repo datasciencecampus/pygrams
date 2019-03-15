@@ -31,7 +31,7 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-j", "--json", default=True, action="store_true",
                         help="Output configuration as JSON file alongside output report")
-    # __________________________________________________
+    # end __________________________________________________
 
     # Input files
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
