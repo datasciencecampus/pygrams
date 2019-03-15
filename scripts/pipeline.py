@@ -14,7 +14,6 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
-from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
 
 
 def remove_empty_documents(data_frame, text_header):
@@ -85,7 +84,7 @@ class Pipeline(object):
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
 
         doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['dates']['date_header'], self.__text_lengths,
+                                       docs_mask_dict['date_header'], self.__text_lengths,
                                        norm_rows=normalize_rows).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
@@ -120,7 +119,7 @@ class Pipeline(object):
         self.__term_counts_data = None
         if term_counts:
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dataframe,
-                                                                                 docs_mask_dict['dates']['date_header'])
+                                                                                 docs_mask_dict['date_header'])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
