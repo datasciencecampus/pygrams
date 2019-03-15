@@ -136,7 +136,8 @@ def main(supplied_args):
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output),
                         pickled_tf_idf_file_name=pickled_tf_idf_path, tfidf_output='tfidf' in args.output,
-                        output_name=args.outputs_name)
+                        output_name=args.outputs_name, emerging_technology=args.emerging_technology)
+
 
     if 'tfidf' in outputs:
         outputs.remove('tfidf')
@@ -158,9 +159,9 @@ def main(supplied_args):
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
 
-        doc_source_file_name = os.path.join('outputs', 'termcounts', args.outputs_name + '-term_counts.pkl.bz2')
+        term_counts_data = pipeline.term_counts_data
 
-        pipeline_emtech = PipelineEmtech(doc_source_file_name, curves=args.curves, m_steps_ahead=args.steps_ahead,
+        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curves, m_steps_ahead=args.steps_ahead,
                             nterms=args.nterms,
                             minimum_patents_per_quarter=args.minimum_per_quarter)
 

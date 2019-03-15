@@ -3,11 +3,11 @@ import pickle
 from os import makedirs, path
 
 from pandas import read_pickle
-
 from tqdm import tqdm
 
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
+from scripts.algorithms.emergence import Emergence
 from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
 from scripts.filter_terms import FilterTerms
@@ -17,11 +17,9 @@ from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
 from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
-from scripts.algorithms.emergence import Emergence
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
-
 
 
 def remove_empty_documents(data_frame, text_header):
@@ -36,7 +34,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, tfidf_output=False,
-                 output_name=None):
+                 output_name=None, emerging_technology=False):
 
         # load data
         self.__data_filename = data_filename
@@ -133,16 +131,16 @@ class Pipeline(object):
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
-        if term_counts:
+
+        if term_counts or emerging_technology:
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dataframe,
                                                                                  docs_mask_dict['dates'][-1])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
-        # todo: no output method; just if statements to call output functions...?
-        #  Only supply what they each directly require
-
-        # todo: hence Pipeline then becomes a single function
+    @property
+    def term_counts_data(self):
+        return self.__term_counts_data
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
 
@@ -157,16 +155,17 @@ class Pipeline(object):
     def term_score_tuples(self):
         return self.__term_score_tuples
 
+
 # 'USPTO-granted-full-random-500000-term_counts.pkl.bz2'
 class PipelineEmtech(object):
-    def __init__(self, term_counts_filename, m_steps_ahead=5, curves=True, nterms=50, minimum_patents_per_quarter=20):
+    def __init__(self, doc_source_file_name, term_counts_data, m_steps_ahead=5, curves=True, nterms=50,
+                 minimum_patents_per_quarter=20):
         self.__M = m_steps_ahead
 
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
-         self.__weekly_iso_dates] = read_pickle(
-            os.path.join(term_counts_filename))
-        self.__output_folder = os.path.join('outputs', 'emtech')
-        self.__base_file_name = os.path.basename(term_counts_filename)
+         self.__weekly_iso_dates] = term_counts_data
+        self.__output_folder = path.join('outputs', 'emtech')
+        self.__base_file_name = path.basename(doc_source_file_name + '-term_counts.pkl.bz2')
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
 
@@ -197,7 +196,6 @@ class PipelineEmtech(object):
             return
 
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
-
 
         # for tup in self.__emergence_list:
         #     print(tup[0] + ": " + str(tup[1]))
@@ -264,7 +262,8 @@ class PipelineEmtech(object):
                                                                     normalised=normalized,
                                                                     test_forecasts=train_test)
 
-        predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values, predictors_to_run, test_terms=terms)
+        predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
+                                                                predictors_to_run, test_terms=terms)
 
         html_results += report_predicted_emergence_labels_html(predicted_emergence)
 
