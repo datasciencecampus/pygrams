@@ -102,7 +102,7 @@ class TestArgsChecker(unittest.TestCase):
 
         except PygramsException as pe:
             self.assertEqual(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'",
-                             pe.message, 'Dates do not match')
+                             pe.message, 'Messages do not match')
 
     @mock.patch("scripts.utils.argschecker.path", create=True)
     def test_get_docs_mask_dict(self, mock_path):
