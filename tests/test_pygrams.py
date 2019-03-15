@@ -134,7 +134,8 @@ class TestPyGrams(unittest.TestCase):
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == self.tfidfFileName(self.out_name):
-                tfidf_obj = dump_args[0][0]
+                tfidf_pickle = dump_args[0][0]
+                tfidf_obj = tfidf_pickle[0]
 
                 assert_func(tfidf_matrix=tfidf_obj.tfidf_matrix, feature_names=tfidf_obj.feature_names)
 
@@ -178,11 +179,11 @@ class TestPyGrams(unittest.TestCase):
     def termCountsFileName(data_source_name):
         return os.path.join(TestPyGrams.termCountsOutputFolder(), data_source_name + '-term_counts.pkl.bz2')
 
-    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
-    @mock.patch("os.makedirs", create=True)
+    @mock.patch("scripts.pipeline.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
     def test_simple_output_tfidf(self, mock_path_isfile, mock_makedirs, mock_bz2file, mock_open, mock_pickle_dump,
                                  mock_read_pickle):
@@ -204,11 +205,65 @@ class TestPyGrams(unittest.TestCase):
 
         self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
-    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("scripts.pipeline.read_pickle", create=True)
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
-    @mock.patch("os.makedirs", create=True)
+    @mock.patch("scripts.pipeline.makedirs", create=True)
+    @mock.patch("scripts.output_factory.makedirs", create=True)
+    @mock.patch("os.path.isfile", create=True)
+    def test_simple_output_tfidf_pickle_and_unpickle(self, mock_path_isfile, mock_output_makedirs,
+                                                     mock_pipeline_makedirs, mock_bz2file, mock_open,
+                                                     mock_pickle_dump,
+                                                     mock_factory_read_pickle, mock_pipeline_read_pickle):
+        fake_df_data = {
+            'abstract': [
+                'abstract'
+            ]
+        }
+
+        # Make a note of the dumped TFIDF object for later
+        self.preparePyGrams(fake_df_data, mock_factory_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
+        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+                'publication_date', '--max_document_frequency', '1.0']
+        pygrams.main(args)
+
+        # Fail if original data frame is requested from disc
+        def factory_read_pickle_fake(pickle_file_name):
+            self.fail(f'Should not be reading {pickle_file_name} via a factory if TFIDF was requested from pickle')
+
+        self.dumped_tfidf_obj = mock_pickle_dump.call_args_list[0][0][0]
+        mock_factory_read_pickle.side_effect = factory_read_pickle_fake
+        mock_pickle_dump.reset_mock(return_value=True, side_effect=True)
+
+        # Instead support TFIDF pickle read - and return the TFIDF object previously saved to disc
+        def pipeline_read_pickle_fake(pickle_file_name):
+            if pickle_file_name == os.path.join('data', self.out_name + '-tfidf.pkl.bz2'):
+                return self.dumped_tfidf_obj
+            self.fail(f'Should not be reading {pickle_file_name} via a factory if TFIDF was requested from pickle')
+
+        mock_pipeline_read_pickle.side_effect = pipeline_read_pickle_fake
+        mock_pipeline_read_pickle.return_value = self.dumped_tfidf_obj
+        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+                'publication_date', '--max_document_frequency', '1.0',
+                '--input_tfidf', self.out_name + '-tfidf.pkl.bz2']
+        pygrams.main(args)
+
+        def assert_tfidf_outputs(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates):
+            self.assertEqual(term_counts_per_week.todense(), np.ones(shape=(1, 1)),
+                             'term counts should be 1x1 matrix of 1')
+            self.assertListEqual(feature_names, ['abstract'])
+            self.assertListEqual(number_of_documents_per_week, [1])
+            self.assertListEqual(week_iso_dates, [200052])
+
+        self.assertTermCountOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_output_makedirs)
+
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
+    @mock.patch("pickle.dump", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
+    @mock.patch("bz2.BZ2File", create=True)
+    @mock.patch("scripts.pipeline.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
     def test_simple_two_patents_unigrams_only_output_tfidf(self, mock_path_isfile, mock_makedirs, mock_bz2file,
                                                            mock_open, mock_pickle_dump, mock_read_pickle):
@@ -250,11 +305,11 @@ class TestPyGrams(unittest.TestCase):
 
         self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
 
-    @mock.patch("pandas.read_pickle", create=True)
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
     @mock.patch("bz2.BZ2File", create=True)
-    @mock.patch("os.makedirs", create=True)
+    @mock.patch("scripts.output_factory.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
     def test_unibitri_reduction_output_termcounts(self, mock_path_isfile, mock_makedirs, mock_bz2file, mock_open,
                                                   mock_pickle_dump, mock_read_pickle):
