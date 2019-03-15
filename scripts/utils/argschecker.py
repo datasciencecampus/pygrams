@@ -1,6 +1,8 @@
-import os
-
+import datetime
+from os import path
 import pandas as pd
+
+from scripts.utils.pygrams_exception import PygramsException
 
 
 class ArgsChecker:
@@ -12,53 +14,31 @@ class ArgsChecker:
     def checkargs(self):
         app_exit = False
 
-        if os.path.isfile(os.path.join(self.args.path, self.args.doc_source)) is False:
+        if path.isfile(path.join(self.args.path, self.args.doc_source)) is False:
             print(f"File {self.args.doc_source} in path {self.args.path} not found")
             app_exit = True
 
-        if isinstance(self.args.year_to, str) & isinstance(self.args.year_from, str):
-            if isinstance(self.args.month_to, str) & isinstance(self.args.month_from, str):
-                if self.args.year_from + self.args.month_from > self.args.year_to + self.args.month_to:
-                    print(f"year_to {self.args.year_to} and month_to {self.args.month_to} cannot be in the future "
-                          f"of year_from {self.args.year_from} and month_from {self.args.month_from}")
-                    app_exit = True
-            else:
-                if self.args.year_from > self.args.year_to:
-                    print(f"year_to {self.args.year_to} cannot be in the future of year_from {self.args.year_from}")
-                    app_exit = True
-        else:
-            if isinstance(self.args.month_to, str):
-                if not isinstance(self.args.year_to, str):
-                    print("year_to also needs to be defined to use month_to")
-                    app_exit = True
-            if isinstance(self.args.month_from, str):
-                if not isinstance(self.args.year_from, str):
-                    print("year_from also needs to be defined to use month_from")
-                    app_exit = True
+        date_from = None
+        if isinstance(self.args.date_from, str):
+            try:
+                date_from = datetime.datetime.strptime(self.args.date_from, '%Y/%m/%d')
+            except ValueError:
+                raise PygramsException(f"date_from defined as '{self.args.date_from}' which is not in YYYY/MM/DD format")
 
-        if isinstance(self.args.year_from, str):
-            if len(self.args.year_from) != 4:
-                print(f"year_from {self.args.year_from} must be in YYYY format")
-                app_exit = True
+        date_to = None
+        if isinstance(self.args.date_to, str):
+            try:
+                date_to = datetime.datetime.strptime(self.args.date_to, '%Y/%m/%d')
+            except ValueError:
+                raise PygramsException(f"date_to defined as '{self.args.date_to}' which is not in YYYY/MM/DD format")
 
-        if isinstance(self.args.month_from, str):
-            if len(self.args.month_from) != 2:
-                print(f"month_from {self.args.month_from} must be in MM format")
-                app_exit = True
+        if date_from is not None and date_to is not None:
+            if date_from > date_to:
+                raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
 
-        if isinstance(self.args.year_to, str):
-            if len(self.args.year_to) != 4:
-                print(f"year_to {self.args.year_to} must be in YYYY format")
-                app_exit = True
-
-        if isinstance(self.args.month_to, str):
-            if len(self.args.month_to) != 2:
-                print(f"month_to {self.args.month_to} must be in MM format")
-                app_exit = True
-
-        if self.args.min_n > self.args.max_n:
-            print(f"minimum ngram count {self.args.min_n} should be less or equal to maximum ngram "
-                  f"count {self.args.max_n}")
+        if self.args.min_ngrams > self.args.max_ngrams:
+            print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
+                  f"count {self.args.max_ngrams}")
             app_exit = True
 
         if self.args.num_ngrams_wordcloud < 20:
@@ -145,15 +125,22 @@ class ArgsChecker:
             exit(0)
 
     def get_docs_mask_dict(self):
-
-        year_to = pd.to_datetime('today').year if self.args.year_to is None else self.args.year_to
-        month_to = pd.to_datetime(
-            'today').month if self.args.month_to is None and self.args.year_to is None else self.args.month_to
-
-        docs_mask_dict = {'filter_by': self.args.filter_by, 'cpc': self.args.cpc_classification, 'time': self.args.time,
+        docs_mask_dict = {'filter_by': self.args.filter_by,
+                          'cpc': self.args.cpc_classification,
+                          'time': self.args.time,
                           'cite': None, 'columns': self.args.filter_columns,
-                          'dates': [self.args.year_from, year_to, self.args.month_from, month_to,
-                                    self.args.date_header]}
+                          'date': None,
+                          'date_header': self.args.date_header
+                          }
+
+        if self.args.date_to is not None and self.args.date_from is not None:
+            date_to = pd.to_datetime('today').date() if self.args.date_to is None else pd.to_datetime(self.args.date_to)
+            date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(
+                self.args.date_from)
+            docs_mask_dict['date'] = {
+                'to': date_to,
+                'from': date_from
+            }
         return docs_mask_dict
 
     def get_terms_mask_dict(self):
