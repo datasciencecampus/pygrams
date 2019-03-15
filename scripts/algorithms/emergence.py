@@ -1,5 +1,4 @@
 import array as arr
-import math
 
 import numpy as np
 import pylab as plt
