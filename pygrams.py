@@ -94,7 +94,6 @@ def get_args(command_line_arguments):
     # select outputs
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
                         choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
-                        # choices=['graph', 'wordcloud', 'report', 'table', 'tfidf', 'termcounts'],
                         help="Note that this can be defined multiple times to get more than one output. "
                              "termcounts represents the term frequency component of tfidf")
 
