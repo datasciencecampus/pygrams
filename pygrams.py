@@ -6,19 +6,6 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
-'''
-Link pygrams help (get_args) to main sequence, to pipeline sequence, and to manual (sequence).
-
-Keep: cpc, ndl, time, th, dh, fc = 1 or yes, fb, filter rows by, p, tfidf, term counts - explain
-Report always, default None, Dates = defaults data start, today, YYYY/MM/DD, two options
-Num_grams, ds, Min_n -> min_grams, Output files names, timestamp? Windows/Mac, nltk
-
-Suppress: cite, focus, pt path (put data in data folder), ih, table, Son - always save, fs, Table_name
-
-Reorder arguments according to pipeline (/manual)
-
-'''
-
 
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="extract popular n-grams (words or short phrases)"
@@ -123,6 +110,7 @@ def get_args(command_line_arguments):
         "-ih", "--id_header",
         "-fs", "--focus_source",
         "-tn", "--table_name",
+        "-j", "--json"
         ]
 
     for options in options_suppressed_in_help:
