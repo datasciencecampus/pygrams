@@ -338,12 +338,12 @@ class TestPyGrams(unittest.TestCase):
         args = pygrams.get_args([])
         self.assertFalse(args.json)
 
-    @unittest.skip("reason for skipping")
+    @unittest.skip("jason compulsory now, so not an option")
     def test_args_json_requested_short(self):
         args = pygrams.get_args(['-j'])
         self.assertTrue(args.json)
 
-    @unittest.skip("reason for skipping")
+    @unittest.skip("jason compulsory now, so not an option")
     def test_args_json_requested_long(self):
         args = pygrams.get_args(['--json'])
         self.assertTrue(args.json)
