@@ -49,7 +49,7 @@ def get_args(command_line_arguments):
     # Input files
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
     parser.add_argument("-it", "--input_tfidf", default=None,
-                        help="pickled TFIDF output instead of processing a document source")
+                        help="Load a pickled TFIDF output instead of creating TFIDF by processing a document source")
 
     # Document column header names
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
