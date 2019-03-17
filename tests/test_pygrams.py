@@ -194,8 +194,7 @@ class TestPyGrams(unittest.TestCase):
         }
 
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
-                'publication_date', '--max_document_frequency', '1.0']
+        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
 
         pygrams.main(args)
 
@@ -225,8 +224,7 @@ class TestPyGrams(unittest.TestCase):
 
         # Make a note of the dumped TFIDF object for later
         self.preparePyGrams(fake_df_data, mock_factory_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
-                'publication_date', '--max_document_frequency', '1.0']
+        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
         pygrams.main(args)
 
         # Fail if original data frame is requested from disc
@@ -239,13 +237,13 @@ class TestPyGrams(unittest.TestCase):
 
         # Instead support TFIDF pickle read - and return the TFIDF object previously saved to disc
         def pipeline_read_pickle_fake(pickle_file_name):
-            if pickle_file_name == os.path.join('data', self.out_name + '-tfidf.pkl.bz2'):
+            if pickle_file_name == os.path.join('outputs','tfidf', self.out_name + '-tfidf.pkl.bz2'):
                 return self.dumped_tfidf_obj
             self.fail(f'Should not be reading {pickle_file_name} via a factory if TFIDF was requested from pickle')
 
         mock_pipeline_read_pickle.side_effect = pipeline_read_pickle_fake
         mock_pipeline_read_pickle.return_value = self.dumped_tfidf_obj
-        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--date_header',
                 'publication_date', '--max_document_frequency', '1.0',
                 '--input_tfidf', self.out_name + '-tfidf.pkl.bz2']
         pygrams.main(args)
@@ -275,8 +273,8 @@ class TestPyGrams(unittest.TestCase):
         }
 
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
-                'publication_date', '--max_document_frequency', '1.0', '--max_n', '1']
+        args = ['-ds', self.data_source_name, '--date_header',
+                'publication_date', '--max_document_frequency', '1.0', '--max_ngrams', '1']
 
         pygrams.main(args)
 
