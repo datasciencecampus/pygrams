@@ -85,7 +85,7 @@ def get_args(command_line_arguments):
     # OUTPUT PARAMETERS
     # select outputs
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
-                        choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
+                        choices=['graph', 'wordcloud', 'report', 'termcounts'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. "
                              "termcounts represents the term frequency component of tfidf")
 
@@ -108,8 +108,8 @@ def get_args(command_line_arguments):
                         help="the desired cpc classification (for patents only)")
 
     options_suppressed_in_help = [
-        "-ih", "--id_header"
-               "-c", "--cite",
+        "-ih", "--id_header",
+        "-c", "--cite",
         "-f", "--focus",
         "-pt", "--path",
         "-ih", "--id_header",
@@ -171,23 +171,18 @@ def main(supplied_args):
     if args.input_tfidf is None:
         pickled_tf_idf_path = None
     else:
-        pickled_tf_idf_path = os.path.join(args.path, args.input_tfidf)
+        pickled_tf_idf_path = os.path.join('outputs', 'tfidf', args.input_tfidf)
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output),
-                        pickled_tf_idf_file_name=pickled_tf_idf_path, tfidf_output='tfidf' in args.output,
+                        pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
-
-
-    if 'tfidf' in outputs:
-        outputs.remove('tfidf')
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
 
     # emtech integration
-
     if args.emerging_technology:
         from scripts.pipeline import PipelineEmtech
 

@@ -33,7 +33,7 @@ def remove_empty_documents(data_frame, text_header):
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, tfidf_output=False,
+                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None,
                  output_name=None, emerging_technology=None):
 
         # load data
@@ -46,24 +46,20 @@ class Pipeline(object):
         if pickled_tf_idf_file_name is None:
 
             self.__dataframe = datafactory.get(data_filename)
-
             remove_empty_documents(self.__dataframe, text_header)
-
             self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
                                      max_document_frequency=max_df, tokenizer=LemmaTokenizer())
 
             self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
-
             self.__dataframe.drop(columns=[text_header], inplace=True)
 
-            if tfidf_output:
-                tfidf_filename = path.join('outputs', 'tfidf', output_name + '-tfidf.pkl.bz2')
-                makedirs(path.dirname(tfidf_filename), exist_ok=True)
-                with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
-                    pickle.dump(
-                        (self.__tfidf_obj, self.__dataframe, self.__text_lengths),
-                        pickle_file,
-                        protocol=4)
+            tfidf_filename = path.join('outputs', 'tfidf', output_name + '-tfidf.pkl.bz2')
+            makedirs(path.dirname(tfidf_filename), exist_ok=True)
+            with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
+                pickle.dump(
+                    (self.__tfidf_obj, self.__dataframe, self.__text_lengths),
+                    pickle_file,
+                    protocol=4)
 
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')
@@ -123,7 +119,7 @@ class Pipeline(object):
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
-        if term_counts:
+        if term_counts or emerging_technology:
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dataframe,
                                                                                  docs_mask_dict['date_header'])
         # if other outputs
