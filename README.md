@@ -16,8 +16,8 @@ The app pipeline (more details in the user option section):
 2. **[TFIDF Dictionary](#tfidf-dictionary)**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
 3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
 4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
-   1. **Document Filters** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
-   2. **Term Filters** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
+   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
+   2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **Emergence Calculations** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations or curve fitting. 
 7. **Emergence Forecasts** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
@@ -146,7 +146,11 @@ python pygrams.py -mdf 0.05
 By using a small (5% or less) maximum document frequency for unigrams, this may help remove generic words, or stop words.
 
 
+### Document Filters
 
+
+
+### Term Filters
 
 
 
