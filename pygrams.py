@@ -11,6 +11,7 @@ predictor_names = ['All', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Hol
                    'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
                    'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
 
+
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="extract popular n-grams (words or short phrases)"
                                                  " from a corpus of documents",
@@ -18,23 +19,21 @@ def get_args(command_line_arguments):
                                      conflict_handler='resolve')  # allows overridng of arguments
 
     # suppressed:________________________________________
-    parser.add_argument("-ih", "--id_header", default=None, help="the column name for the unique ID")
-    parser.add_argument("-c", "--cite", default=False, action="store_true",
-                        help="weight terms by citations (for patents only)")
-    parser.add_argument("-pt", "--path", default='data', help="the data path")
+    parser.add_argument("-ih", "--id_header", default=None, help=argparse.SUPPRESS)
+    parser.add_argument("-c", "--cite", default=False, action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-pt", "--path", default='data', help=argparse.SUPPRESS)
 
     # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
-                        help="clean output from terms that appear in general; 'set': set difference, "
-                             "'chi2': chi2 for feature importance, "
-                             "'mutual': mutual information for feature importance")
-    parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2',
-                        help="the document source for the focus function")
-    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
-                        help="table filename")
+                        help=argparse.SUPPRESS)
+    parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2', help=argparse.SUPPRESS)
+    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'), help=argparse.SUPPRESS)
 
     parser.add_argument("-j", "--json", default=True, action="store_true",
-                        help="Output configuration as JSON file alongside output report")
+                        help=argparse.SUPPRESS)
+    # tf-idf score mechanics
+    parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
+                        help=argparse.SUPPRESS)
     # end __________________________________________________
 
     # Input files
@@ -53,6 +52,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
                         help="Returns filter: intersection where all are 'Yes' or '1'"
                              "or union where any are 'Yes' or '1' in the defined --filter_columns")
+    parser.add_argument("-st", "--search_terms", type=str, nargs='+', default=[],
+                        help="Search terms filter: search terms to restrict the tfidf dictionary. "
+                             "Outputs will be related to search terms")
 
     # Time filters
     parser.add_argument("-df", "--date_from", default=None,
@@ -68,11 +70,6 @@ def get_args(command_line_arguments):
     # maximum document frequency
     parser.add_argument("-mdf", "--max_document_frequency", type=float, default=0.05,
                         help="the maximum document frequency to contribute to TF/IDF")
-
-    # tf-idf score mechanics
-    parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
-                        help="Everything is computed over "
-                             "non zero values")
 
     # Normalize tf-idf scores by document length
     parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
@@ -133,19 +130,20 @@ def get_args(command_line_arguments):
                         nargs='+',
                         help="analyse using emergence or not")
     
-    options_suppressed_in_help = [
-        "-ih", "--id_header",
-        "-c", "--cite",
-        "-f", "--focus",
-        "-pt", "--path",
-        "-ih", "--id_header",
-        "-fs", "--focus_source",
-        "-tn", "--table_name",
-        "-j", "--json"
-    ]
-
-    for options in options_suppressed_in_help:
-        parser.add_argument(options, help=argparse.SUPPRESS)
+    # options_suppressed_in_help = [
+    #     "-ih", "--id_header",
+    #     "-c", "--cite",
+    #     "-f", "--focus",
+    #     "-pt", "--path",
+    #     "-ih", "--id_header",
+    #     "-fs", "--focus_source",
+    #     "-tn", "--table_name",
+    #     "-j", "--json",
+    #     "-p", "--pick"
+    # ]
+    #
+    # for options in options_suppressed_in_help:
+    #     parser.add_argument(options, help=argparse.SUPPRESS)
 
     args = parser.parse_args(command_line_arguments)
 
@@ -165,6 +163,8 @@ def main(supplied_args):
     argscheck.checkargs()
     outputs = args.output[:]
     outputs.append('json_config')
+    # if args.pick==None:
+    #     args.pick = 'sum'
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
 
@@ -178,7 +178,7 @@ def main(supplied_args):
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output),
+                        term_counts=('termcounts' in args.output), user_ngrams=args.search_terms,
                         pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 

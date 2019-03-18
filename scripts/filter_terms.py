@@ -14,7 +14,7 @@ class FilterTerms(object):
         self.__tfidf_ngrams = tfidf_ngrams
         self.__file_name = file_name
         self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
-        if user_ngrams is not None:
+        if user_ngrams is not None and len(user_ngrams)>0:
             if not os.path.isfile(file_name):
                 with zipfile.ZipFile(file_name+".zip","r") as zip_ref:
                     zip_ref.extractall("models/glove/")
@@ -27,8 +27,8 @@ class FilterTerms(object):
 
     def __get_embeddings_vec(self, threshold):
         embeddings_vect = []
-        user_terms = self.__user_ngrams.split(',')
-        for term in tqdm(self.__tfidf_ngrams, desc='Evaluating terms distance with: ' + self.__user_ngrams, unit='term',
+        user_terms = self.__user_ngrams
+        for term in tqdm(self.__tfidf_ngrams, desc='Evaluating terms distance with: ' + ' '.join(self.__user_ngrams), unit='term',
                          total=len(self.__tfidf_ngrams)):
             compare = []
             for ind_term in term.split():
@@ -44,6 +44,6 @@ class FilterTerms(object):
             embeddings_vect.append(max_similarity_score)
         embeddings_vect_norm = ut.normalize_array(embeddings_vect, return_list=True)
         if threshold is not None:
-            return [float(int(x>threshold)) for x in embeddings_vect_norm]
+            return [float(x>threshold) for x in embeddings_vect_norm]
         return embeddings_vect
 
