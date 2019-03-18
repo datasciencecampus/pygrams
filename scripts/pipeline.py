@@ -141,7 +141,8 @@ class Pipeline(object):
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time, )
+                                  doc_pickle_file_name=self.__data_filename, time=self.__time)
+
 
     @property
     def term_score_tuples(self):
