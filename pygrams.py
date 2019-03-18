@@ -103,7 +103,7 @@ def get_args(command_line_arguments):
                         help="the desired cpc classification (for patents only)")
 
     options_suppressed_in_help = [
-        "-ih", "--id_header"
+        "-ih", "--id_header",
         "-c", "--cite",
         "-f", "--focus",
         "-pt", "--path",
