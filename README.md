@@ -237,7 +237,7 @@ python pygrams.py -emt
 An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
 
 ```
-python pygrams.py -cf
+python pygrams.py -emt -cf
 ```
 
 ### Emergence Forecasts
@@ -385,7 +385,7 @@ usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-fb {union,intersection}] [-df DATE_FROM] [-dt DATE_TO]
                   [-mn {1,2,3}] [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
                   [-p {median,max,sum,avg}] [-ndl] [-t]
-                  [-o [{graph,wordcloud,report,termcounts} [{graph,wordcloud,report,termcounts} ...]]]
+                  [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
                   [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-emt]
@@ -437,10 +437,9 @@ optional arguments:
                         normalize tf-idf scores by document length (default:
                         False)
   -t, --time            weight terms by time (default: False)
-  -o [{graph,wordcloud,report,termcounts} [{graph,wordcloud,report,termcounts} ...]], --output [{graph,wordcloud,report,termcounts} [{graph,wordcloud,report,termcounts} ...]]
+  -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
                         Note that this can be defined multiple times to get
-                        more than one output. termcounts represents the term
-                        frequency component of tfidf (default: ['report'])
+                        more than one output. (default: None)
   -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
                         outputs filename (default: out)
   -wt WORDCLOUD_TITLE, --wordcloud_title WORDCLOUD_TITLE
