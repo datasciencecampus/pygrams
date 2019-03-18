@@ -9,14 +9,20 @@
 
 ## Description of tool
 
-This python-based app (`pygrams.py`) is designed to extract popular n-grams, or terms (words or short phrases) from free text within a large (>1000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
+This python-based app (`pygrams.py`) is designed to extract popular or emergent n-grams/terms (words or short phrases) from free text within a large (>1,000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
 
-The app operates in the following steps:
-
-- A file containing a corpus of documents is selected (defaulting to a 1000 abstract patent file), where each row or list element in a file corresponds to a document. The column for the text to be analysed is specified, and optionally the rows can be filtered by date and by binary entries in specified columns.
-- The core function of the app is to perform TFIDF on the document corpus, optionally specifying minimum and maximum ngrams, and maximum document frequency. The resulting TDIDF matrix (prior to any date filtering) is stored on file.
-- The TFIDF matrix may subsequently be post-processed using a 'mask' comprising document weight vectors and term weight vectors. Document weightings include document length normalisation and time weighting (more recent documents weighted more highly). Term weightings include stop words. The date filtering is also applied at this time.
-- The default 'report' output is a ranked and scored list of 'popular' ngrams. Optional outputs are a graph, word cloud, TFIDF matrix, and weekly terms counts.
+The app pipeline (more details in the user option section):
+1. **[Input Text Data](#input-text-data)** Text data can be input by several text document types (ie. csv, xls, pickled python dataframes, etc) 
+2. **[TFIDF Dictionary](#tfidf-dictionary)**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
+3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
+4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
+   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
+   2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
+5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
+6. **[Emergence](#emergence)**
+   1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations or curve fitting. 
+   2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
+8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
 ## Installation guide
 
@@ -62,7 +68,7 @@ pyGrams is command line driven, and called in the following manner:
 python pygrams.py
 ```
 
-### Document Parameters
+### Input Text Data
 
 #### Selecting the document source (-ds, -pt)
 
@@ -82,7 +88,7 @@ For example, to load the 10,000 pickled dataset for patents, use:
 python pygrams.py -ds=USPTO-random-10000.pkl.bz2
 ```
 
-To use your own document dataset, either place in the `./data` folder of pyGrams or change the path using `-pt`. File types currently supported are:
+To use your own document dataset, please place in the `./data` folder of pyGrams. File types currently supported are:
 
 - pkl.bz2: compressed pickle file containing a dataset
 - xlsx: new Microsoft excel format
@@ -91,55 +97,26 @@ To use your own document dataset, either place in the `./data` folder of pyGrams
 
 Datasets should contain the following columns:
 
-|Column			            |	    Required?  |
-| :------------------------ | -------------------:|
-|Unique ID                  |       Yes           |
-|Free text field            |       Yes           |
-|Date                       |       Optional      |
-|Boolean fields (Yes/No)    |       Optional      |
+|Column			    |      Required?      |        Comments           |
+|:---------------- | ------------------- | -------------------------:|
+|Free text field   |       Yes           | Terms extracted from here |
+|Date              |       Optional      | Compulsory for emergence  |
+|Other headers     |       Optional      | Can filter by content     |
 
-The unique ID field should contain unique identifiers for each row of the dataset. The free text field can be any free text, for example an abstract. The date field should be in the format `YYYY-MM-DD HH:MM:SS`. The boolean fields can be any Yes/No data (there may be multiple)
-
-#### Selecting the column header names (-nh, -th, -dh)
+#### Selecting the column header names (-th, -dh)
 
 When loading a document dataset, you will need to provide the column header names for each, using:
 
-- `-nh`: unique ID column (default is 'id')
 - `-th`: free text field column (default is 'text')
-- `-dh`: date column (default is 'date')
+- `-dh`: date column (default is 'date', format is 'YYYY/MM/DD')
 
 For example, for a corpus of book blurbs you could use:
 
 ```
-python pygrams.py -nh='book_name' -th='blurb' -dh='published_date'
+python pygrams.py -th='blurb' -dh='published_date'
 ```
 
-#### Word filters (-fh, -fb)
-
-If you want to filter results, such as for female, British, authors in the above example, you can specify the boolean (yes/no) column names you wish to filter by, and the type of filter you want to apply, using:
-
-- `-fh`: the list of boolean fields (default is None)
-- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
-
-```
-python pygrams.py -fh=['female','british'] -fb='union'
-```
-
-#### Time filters (-df, -dt)
-
-This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
-
-```
-python pygrams.py -df=2000/01/20
-```
-
-The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
-
-```
-python pygrams.py -df=2000/03/01 -dt=2016/07/31
-```
-
-### TF-IDF Parameters 
+### TFIDF Dictionary
 
 #### N-gram selection (-mn, -mx)
 
@@ -167,24 +144,49 @@ For example, to set the maximum document frequency to 5% (the default), use:
 python pygrams.py -mdf 0.05
 ```
 
-By using a small (5% or less) maximum document frequency for unigrams, this may help remove generic words, or stop words.
+By using a small (5% or less) maximum document frequency may help remove generic words, or stop words.
 
-#### TFIDF score mechanics (-p)
+#### Config files
 
-By default the TFIDF score will be calculated per n-gram as the sum of the TF-IDF values over all documents for the selected n-gram. However you can select:
+There are three configuration files available inside the config directory:
 
-- `median`: the median value
-- `max`: the maximum value
-- `sum`: the sum of all values
-- `avg`: the average, over non zero values
+- stopwords_glob.txt
+- stopwords_n.txt
+- stopwords_uni.txt
 
-To choose an average scoring for example, use:
+The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+
+
+### Document Filters
+
+#### Time filters (-df, -dt)
+
+This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
 
 ```
-python pygrams.py -p='avg'
+python pygrams.py -df=2000/01/20
 ```
 
-#### Normalise by document length (-ndl)
+The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
+
+```
+python pygrams.py -df=2000/03/01 -dt=2016/07/31
+```
+
+#### Column features filters (-fh, -fb)
+
+If you want to filter results, such as for female, British in the example below, you can specify the column names you wish to filter by, and the type of filter you want to apply, using:
+
+- `-fh`: the list of column names (default is None)
+- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
+
+```
+python pygrams.py -fh=['female','british'] -fb='union'
+```
+
+This filter assumes that values are '0'/'1', or 'Yes'/'No'.
+
+#### Normalise by document length filter (-ndl)
 
 This option normalises the TFIDF scores by document length.
 
@@ -192,7 +194,7 @@ This option normalises the TFIDF scores by document length.
 python pygrams.py -ndl
 ```
 
-#### Time-weighting (-t)
+#### Time-weighting filter (-t)
 
 This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
 
@@ -200,38 +202,76 @@ This option applies a linear weight that starts from 0.01 and ends at 1 between 
 python pygrams.py -t
 ```
 
-### Outputs Parameters (-o)
+#### Choosing CPC classification (Patent specific) (-cpc)
 
-The default option outputs a report of top ranked terms. Additional command line arguments provide alternative options, for example a word cloud or force directed graph (fdg) output. The option 'all', produces all:
+This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". 
+An example script is:
 
 ```
-python pygrams.py -o='report'
+python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
+```
+
+In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
+
+### Term Filters
+
+#### Search terms filter (-st)
+
+This subsets the TFIDF term dictionary by only keeping terms related to the given search terms.
+```
+python pygrams.py -st ['pharmacy', 'medicine', 'chemist']
+```
+
+### Emergence (-emt)
+
+An option to choose between popular or emergent terminology outputs. Popular terminology is the default option; emergent terminology can be used by typing:
+
+```
+python pygrams.py -emt
+```
+
+### Emergence Calculations
+
+#### Curve Fitting (-cf)
+
+An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
+
+```
+python pygrams.py -emt -cf
+```
+
+### Emergence Forecasts
+
+Various options are available to control how emergence is forecasted.
+
+#### Predictor Names (-pns)
+
+Todo
+
+
+### Outputs (-o)
+
+Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud or 'graph summary'.
+
+```
 python pygrams.py -o='wordcloud'
-python pygrams.py -o='fdg'
-python pygrams.py -o='table'
-python pygrams.py -o='tfidf'
-python pygrams.py -o='termcounts'
-python pygrams.py -o='all'
+python pygrams.py -o='graph'
 ```
 
 The output options generate:
 
-- `report` (default): a text file containing top n terms (default is 250 terms, see `-np` for more details)
+- Report is a text file containing top n terms (default is 250 terms, see `-np` for more details)
 - `wordcloud`: a word cloud containing top n terms (default is 250 terms, see `-nd` for more details)
-- `fdg`: a force-directed graph containing top n terms (default is 250 terms, see `-nf` for more details)
-- `table`: an XLS spreadsheet to compare term rankings
-- `tfidf`: a pickle of the TFIDF matrix
-- `termcounts`: a pickle of term counts per week
-- `all`: all of the above
+- `graph`: a summary graph containing top n terms (default is 250 terms, see `-nf` for more details) linked to the most common co-located terms
 
 Note that all outputs are generated in the `outputs` subfolder. Below are some example outputs:
 
-#### Report ('report')
+#### Report
 
-The report will output the top n number of terms (default is 250) and their associated [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) score. Below is an example for patent data, where only bigrams have been analysed.
+The report will output the top n number of terms (default is 250) and their associated TFIDF score. Below is an example for patent data, where only bigrams have been analysed.
 
-|Term			            |	    TFIDF Score  |
-| :------------------------ | -------------------:|
+|Term			                |	    TFIDF Score     |
+|:------------------------- | -------------------:|
 |1. fuel cell               |       2.143778      |
 |2. heat exchanger          |       1.697166      |
 |3. exhaust gas             |       1.496812      |
@@ -247,50 +287,15 @@ The report will output the top n number of terms (default is 250) and their asso
 
 A wordcloud, or tag cloud, is a novel visual representation of text data, where words (tags) importance is shown with font size and colour. Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/pygrams/master/outputs/wordclouds/wordcloud_tech.png) using patent data. The greater the TFIDF score, the larger the font size of the term.
 
-#### Force directed graph ('fdg')
+#### Graph summary ('graph')
 
 This output provides an interactive HTML graph. The graph shows connections between terms that are generally found in the same documents.
 
-#### TFIDF matrix ('tfidf')
+1. semiconductor substrate -> dielectric layer: 0.16, conductive layer: 0.14, insulating film: 0.14, semiconductor structure: 0.13, channel region: 0.13, gate dielectric layer: 0.12, gate electrode: 0.11, doped region: 0.11, gate stack: 0.10, isolation region: 0.09
+2. pharmaceutical composition -> pharmaceutically acceptable salt: 0.82, general formula: 0.22, pharmaceutically acceptable carrier: 0.16, novel compound: 0.16, as define : 0.15, treat disease: 0.15, active ingredient: 0.13, intermediate useful: 0.13, treatment and/or prevention: 0.13, inflammatory disease: 0.13
+3. mobile device -> mobile application: 0.12, mobile device base: 0.12, medium device: 0.08, communication device: 0.08, second mobile device: 0.07, optical imaging lens: 0.06, medium content: 0.06, base station: 0.06, digital content: 0.06, communication network: 0.05
+4. memory cell -> bit line  : 0.61, memory cell array: 0.45, memory device: 0.25, memory array: 0.14, memory block: 0.13, control gate: 0.12, word line : 0.11, flash memory device: 0.11, second memory cell: 0.11, memory cell arrange: 0.10
 
-The TFIDF matrix can be saved as a pickle file, containing a list of four items:
-
-- The TFIDF sparse matrix
-- List of unique terms
-- List of document publication dates
-- List of unique document IDs
-
-#### Term counts matrix
-
-Of use for further processing, the number of patents containing a term in a given week
-(stored as a matrix) can be output as a pickle file, containing a list of four items:
-- Term counts per week (sparse matrix)
-- List of terms (column heading)
-- List of number of patents in that week
-- List of patent publication dates (row heading)
-
-### Patent specific support
-
-#### Choosing CPC classification
-
-This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". 
-An example script is:
-
-```
-python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
-```
-
-In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
-
-### Config files
-
-There are three configuration files available inside the config directory:
-
-- stopwords_glob.txt
-- stopwords_n.txt
-- stopwords_uni.txt
-
-The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
 
 ### Folder structure
 
