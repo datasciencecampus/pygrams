@@ -7,8 +7,6 @@ from scripts.documents_filter import DocumentsFilter
 class TestDocumentsFilter(unittest.TestCase):
 
     def setUp(self):
-        self.__year_to = pd.to_datetime('today').year
-        self.__month_to = pd.to_datetime('today').month
 
         self.__docs_mask_dict = {}
         # doc_weights

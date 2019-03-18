@@ -86,6 +86,15 @@ class ArgsChecker:
                 print('argument [-tn] can only be used when output includes table [-o] "table"')
                 app_exit = True
 
+        invalid_predictor_names = []
+        for i in self.args.predictor_names:
+            if i >= 13:
+                invalid_predictor_names.append(i)
+
+        if len(invalid_predictor_names) > 0:
+            print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
+            app_exit = True
+
         if app_exit:
             exit(0)
 
