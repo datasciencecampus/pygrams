@@ -83,7 +83,7 @@ def get_args(command_line_arguments):
     # OUTPUT PARAMETERS
     # select outputs
 
-    parser.add_argument("-o", "--output", nargs='*',
+    parser.add_argument("-o", "--output", nargs='*', default=[],
                         choices=['graph', 'wordcloud'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. ")
 
