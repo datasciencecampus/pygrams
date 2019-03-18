@@ -398,8 +398,7 @@ extract popular n-grams (words or short phrases) from a corpus of documents
 ```
 It continues with a detailed description of the arguments:
 ```
-optional arguments:
-  -h, --help            show this help message and exit
+-h, --help            show this help message and exit
   -ds DOC_SOURCE, --doc_source DOC_SOURCE
                         the document source to process (default: USPTO-
                         random-1000.pkl.bz2)
@@ -417,6 +416,10 @@ optional arguments:
                         Returns filter: intersection where all are 'Yes' or
                         '1'or union where any are 'Yes' or '1' in the defined
                         --filter_columns (default: union)
+  -st SEARCH_TERMS [SEARCH_TERMS ...], --search_terms SEARCH_TERMS [SEARCH_TERMS ...]
+                        Search terms filter: search terms to restrict the
+                        tfidf dictionary. Outputs will be related to search
+                        terms (default: [])
   -df DATE_FROM, --date_from DATE_FROM
                         The first date for the document cohort in YYYY/MM/DD
                         format (default: None)
@@ -430,16 +433,14 @@ optional arguments:
   -mdf MAX_DOCUMENT_FREQUENCY, --max_document_frequency MAX_DOCUMENT_FREQUENCY
                         the maximum document frequency to contribute to TF/IDF
                         (default: 0.05)
-  -p {median,max,sum,avg}, --pick {median,max,sum,avg}
-                        Everything is computed over non zero values (default:
-                        sum)
   -ndl, --normalize_doc_length
                         normalize tf-idf scores by document length (default:
                         False)
   -t, --time            weight terms by time (default: False)
   -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
                         Note that this can be defined multiple times to get
-                        more than one output. (default: None)
+                        more than one output. termcounts represents the term
+                        frequency component of tfidf (default: [])
   -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
                         outputs filename (default: out)
   -wt WORDCLOUD_TITLE, --wordcloud_title WORDCLOUD_TITLE
@@ -495,8 +496,7 @@ optional arguments:
                         term (default: 20)
   -stp STEPS_AHEAD, --steps_ahead STEPS_AHEAD
                         number of steps ahead to analyse for (default: 5)
-  -cur, --curves        analyse using curve or not (default: False)
-  -tst, --test          analyse using test or not (default: False)
+  -cf, --curve-fitting  analyse using curve or not (default: False)
   -nrm, --normalised    analyse using normalised patents counts or not
                         (default: False)
   -emr {emergent,stationary,declining} [{emergent,stationary,declining} ...], --emergence {emergent,stationary,declining} [{emergent,stationary,declining} ...]
