@@ -11,8 +11,8 @@ class TestDocumentsFilter(unittest.TestCase):
 
     def setUp(self):
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        tfidf_obj = TFIDF(docs_df=df, ngram_range=(1, 3), max_document_frequency=0.1,
-                          tokenizer=LemmaTokenizer(), text_header='abstract')
+        tfidf_obj = TFIDF(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
+                          tokenizer=LemmaTokenizer())
         self.feature_names = tfidf_obj.feature_names
 
     def test_embeddings_filter_binary(self):
