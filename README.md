@@ -9,10 +9,10 @@
 
 ## Description of tool
 
-This python-based app (`pygrams.py`) is designed to extract popular n-grams, or terms (words or short phrases) from free text within a large (>1,000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
+This python-based app (`pygrams.py`) is designed to extract popular or emergent n-grams/terms (words or short phrases) from free text within a large (>1,000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
 
 The app pipeline (more details in the user option section):
-1. **Input Text Data** Text data can be input by several text document types (ie. csv, xls, pickled python dataframes, etc) 
+1. **[Input Text Data](#input-text-data)** Text data can be input by several text document types (ie. csv, xls, pickled python dataframes, etc) 
 2. **TFIDF Dictionary**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
 3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
 4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
@@ -67,7 +67,7 @@ pyGrams is command line driven, and called in the following manner:
 python pygrams.py
 ```
 
-### Document Parameters
+### Input Text Data
 
 #### Selecting the document source (-ds, -pt)
 
