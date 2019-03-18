@@ -107,7 +107,7 @@ Datasets should contain the following columns:
 When loading a document dataset, you will need to provide the column header names for each, using:
 
 - `-th`: free text field column (default is 'text')
-- `-dh`: date column (default is 'date', format is 'YYYY-MM-DD')
+- `-dh`: date column (default is 'date', format is 'YYYY/MM/DD')
 
 For example, for a corpus of book blurbs you could use:
 
@@ -148,25 +148,6 @@ By using a small (5% or less) maximum document frequency for unigrams, this may 
 
 ### Document Filters
 
-
-
-### Term Filters
-
-
-
-
-
-#### Word filters (-fh, -fb)
-
-If you want to filter results, such as for female, British, authors in the above example, you can specify the boolean (yes/no) column names you wish to filter by, and the type of filter you want to apply, using:
-
-- `-fh`: the list of boolean fields (default is None)
-- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
-
-```
-python pygrams.py -fh=['female','british'] -fb='union'
-```
-
 #### Time filters (-df, -dt)
 
 This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
@@ -181,10 +162,20 @@ The following will restrict the document cohort to only those between 1 March 20
 python pygrams.py -df=2000/03/01 -dt=2016/07/31
 ```
 
-### TF-IDF Parameters 
+#### Column features filters (-fh, -fb)
 
+If you want to filter results, such as for female, British in the example below, you can specify the column names you wish to filter by, and the type of filter you want to apply, using:
 
-#### Normalise by document length (-ndl)
+- `-fh`: the list of column names (default is None)
+- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
+
+```
+python pygrams.py -fh=['female','british'] -fb='union'
+```
+
+This filter assumes that values are '0'/'1', or 'Yes'/'No'.
+
+#### Normalise by document length filter (-ndl)
 
 This option normalises the TFIDF scores by document length.
 
@@ -192,13 +183,24 @@ This option normalises the TFIDF scores by document length.
 python pygrams.py -ndl
 ```
 
-#### Time-weighting (-t)
+#### Time-weighting filter (-t)
 
 This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
 
 ```
 python pygrams.py -t
 ```
+
+### Term Filters
+
+#### Search terms filter (-st)
+
+This subsets the TFIDF term dictionary by removing terms not related to the given search terms.
+```
+python pygrams.py -st ['pharmacy', 'medicine', 'chemist']
+```
+
+
 
 ### Outputs Parameters (-o)
 
