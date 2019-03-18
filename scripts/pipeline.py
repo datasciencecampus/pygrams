@@ -93,8 +93,8 @@ class Pipeline(object):
         # todo: this is another weight function...
 
         # term weights - embeddings
-        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams,
-                                       file_name=path.join('data', 'embeddings', 'glove', 'w2v_glove.6B.50d.txt'))
+        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams)
+
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # todo: replace tfidf_mask with isolated functions: clean_unigrams, unbias_ngrams;
