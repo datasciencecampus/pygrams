@@ -1,7 +1,9 @@
-from os import path
 import datetime
+from os import path
 import pandas as pd
+
 from scripts.utils.pygrams_exception import PygramsException
+
 
 class ArgsChecker:
 

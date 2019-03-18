@@ -61,7 +61,6 @@ def get_args(command_line_arguments):
                         help="The last date for the document cohort in YYYY/MM/DD format")
 
     # TF-IDF PARAMETERS
-
     # ngrams selection
     parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_ngrams", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
@@ -107,20 +106,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-cpc", "--cpc_classification", default=None,
                         help="the desired cpc classification (for patents only)")
 
-    options_suppressed_in_help = [
-        "-ih", "--id_header",
-        "-c", "--cite",
-        "-f", "--focus",
-        "-pt", "--path",
-        "-ih", "--id_header",
-        "-fs", "--focus_source",
-        "-tn", "--table_name",
-        "-j", "--json",
-    ]
-
-    for options in options_suppressed_in_help:
-        parser.add_argument(options, help=argparse.SUPPRESS)
-
+    # emtech options
     parser.add_argument("-emt", "--emerging_technology", default=False, action="store_true",
                         help="denote whether emerging technology should be forecast")
 
@@ -146,8 +132,23 @@ def get_args(command_line_arguments):
     parser.add_argument("-emr", "--emergence", default=['emergent'], choices=['emergent', 'stationary', 'declining'],
                         nargs='+',
                         help="analyse using emergence or not")
+    
+    options_suppressed_in_help = [
+        "-ih", "--id_header",
+        "-c", "--cite",
+        "-f", "--focus",
+        "-pt", "--path",
+        "-ih", "--id_header",
+        "-fs", "--focus_source",
+        "-tn", "--table_name",
+        "-j", "--json"
+    ]
+
+    for options in options_suppressed_in_help:
+        parser.add_argument(options, help=argparse.SUPPRESS)
 
     args = parser.parse_args(command_line_arguments)
+
     args.path = 'data'
     return args
 
@@ -168,6 +169,7 @@ def main(supplied_args):
     terms_mask_dict = argscheck.get_terms_mask_dict()
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
+
     if args.input_tfidf is None:
         pickled_tf_idf_path = None
     else:
