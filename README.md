@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/datasciencecampus/pyGrams/branch/master/graph/badge.svg)](https://codecov.io/gh/datasciencecampus/pyGrams)
 [![LICENSE.](https://img.shields.io/badge/license-OGL--3-blue.svg?style=flat)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
-# pyGrams 
+
 
 <p align="center"><img align="center" src="meta/images/pygrams-logo.png" width="400px"></p>
 
@@ -19,7 +19,7 @@ The app pipeline (more details in the user option section):
    1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
    2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
-6. **[Emergence](#emergence)**
+6. **[Emergence](#emergence-calculations)**
    1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations or curve fitting. 
    2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
 8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
@@ -70,7 +70,7 @@ python pygrams.py
 
 ### Input Text Data
 
-#### Selecting the document source (-ds, -pt)
+#### Selecting the document source (-ds)
 
 This argument is used to select the corpus of documents to analyse. The default source is a pre-created random 1,000 patent dataset from the USPTO, `USPTO-random-1000.pkl.bz2`. 
 
@@ -146,7 +146,7 @@ python pygrams.py -mdf 0.05
 
 By using a small (5% or less) maximum document frequency may help remove generic words, or stop words.
 
-#### Config files
+#### Stopwords
 
 There are three configuration files available inside the config directory:
 
@@ -222,7 +222,9 @@ This subsets the TFIDF term dictionary by only keeping terms related to the give
 python pygrams.py -st ['pharmacy', 'medicine', 'chemist']
 ```
 
-### Emergence (-emt)
+### Emergence Calculations
+
+#### Emergence (-emt)
 
 An option to choose between popular or emergent terminology outputs. Popular terminology is the default option; emergent terminology can be used by typing:
 
@@ -230,14 +232,12 @@ An option to choose between popular or emergent terminology outputs. Popular ter
 python pygrams.py -emt
 ```
 
-### Emergence Calculations
-
 #### Curve Fitting (-cf)
 
 An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
 
 ```
-python pygrams.py -emt -cf
+python pygrams.py -cf
 ```
 
 ### Emergence Forecasts
@@ -246,8 +246,66 @@ Various options are available to control how emergence is forecasted.
 
 #### Predictor Names (-pns)
 
-Todo
+The forecast method is selected using argument pns, in this case corresponding to Linear (2=default) and Holt-Winters (6). 
 
+```
+Python pygrams.py -pns=2
+Python pygrams.py -pns=6
+```
+
+The full list of options is included below, with multiple inputs are allowed.
+
+0. All options
+1. Naive
+2. Linear
+3. Quadratic
+4. Cubic
+5. ARIMA
+6. Holt-Winters
+7. LSTM-multiLA-stateful
+8. LSTM-multiLA-stateless
+9. LSTM-1LA-stateful
+10. LSTM-1LA-stateless
+11. LSTM-multiM-1LA-stateful
+12. LSTM-multiM-1LA-stateless
+
+#### Other options
+
+number of terms
+
+```
+Python pygrams.py -nts=25
+```
+
+minimum number of patents per quarter referencing a term (default: 20)
+
+```
+Python pygrams.py -nts=25
+```
+
+number of steps ahead to analyse for (default: 5) 
+
+```
+Python pygrams.py -stp=5
+```
+
+analyse using curve or not (default: False)
+
+```
+Python pygrams.py -cur=True
+```
+
+analyse using test or not (default: False)
+
+```
+Python pygrams.py -tst=False
+```
+
+analyse using normalised patents counts or not (default: False)
+
+```
+Python pygrams.py -nrm=Fslse
+```
 
 ### Outputs (-o)
 
@@ -291,10 +349,12 @@ A wordcloud, or tag cloud, is a novel visual representation of text data, where 
 
 This output provides an interactive HTML graph. The graph shows connections between terms that are generally found in the same documents.
 
-1. semiconductor substrate -> dielectric layer: 0.16, conductive layer: 0.14, insulating film: 0.14, semiconductor structure: 0.13, channel region: 0.13, gate dielectric layer: 0.12, gate electrode: 0.11, doped region: 0.11, gate stack: 0.10, isolation region: 0.09
-2. pharmaceutical composition -> pharmaceutically acceptable salt: 0.82, general formula: 0.22, pharmaceutically acceptable carrier: 0.16, novel compound: 0.16, as define : 0.15, treat disease: 0.15, active ingredient: 0.13, intermediate useful: 0.13, treatment and/or prevention: 0.13, inflammatory disease: 0.13
-3. mobile device -> mobile application: 0.12, mobile device base: 0.12, medium device: 0.08, communication device: 0.08, second mobile device: 0.07, optical imaging lens: 0.06, medium content: 0.06, base station: 0.06, digital content: 0.06, communication network: 0.05
-4. memory cell -> bit line  : 0.61, memory cell array: 0.45, memory device: 0.25, memory array: 0.14, memory block: 0.13, control gate: 0.12, word line : 0.11, flash memory device: 0.11, second memory cell: 0.11, memory cell arrange: 0.10
+| Term                       | Connections                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| semiconductor substrate    | dielectric layer: 0.16, conductive layer: 0.14, insulating film: 0.14, semiconductor structure: 0.13, channel region: 0.13, gate dielectric layer: 0.12, gate electrode: 0.11, doped region: 0.11, gate stack: 0.10, isolation region: 0.09 |
+| pharmaceutical composition | pharmaceutically acceptable salt: 0.82, general formula: 0.22, pharmaceutically acceptable carrier: 0.16, novel compound: 0.16, as define : 0.15, treat disease: 0.15, active ingredient: 0.13, intermediate useful: 0.13, treatment and/or prevention: 0.13, inflammatory disease: 0.13 |
+| mobile device              | mobile application: 0.12, mobile device base: 0.12, medium device: 0.08, communication device: 0.08, second mobile device: 0.07, optical imaging lens: 0.06, medium content: 0.06, base station: 0.06, digital content: 0.06, communication network: 0.05 |
+| memory cell                | bit line  : 0.61, memory cell array: 0.45, memory device: 0.25, memory array: 0.14, memory block: 0.13, control gate: 0.12, word line : 0.11, flash memory device: 0.11, second memory cell: 0.11, memory cell arrange: 0.10 |
 
 
 ### Folder structure
@@ -325,10 +385,14 @@ usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-fb {union,intersection}] [-df DATE_FROM] [-dt DATE_TO]
                   [-mn {1,2,3}] [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
                   [-p {median,max,sum,avg}] [-ndl] [-t]
-                  [-o [{graph,wordcloud,report,tfidf,termcounts} [{graph,wordcloud,report,tfidf,termcounts} ...]]]
+                  [-o [{graph,wordcloud,report,termcounts} [{graph,wordcloud,report,termcounts} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
-                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION]
+                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-emt]
+                  [-pns PREDICTOR_NAMES [PREDICTOR_NAMES ...]] [-nts NTERMS]
+                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cur] [-tst]
+                  [-nrm]
+                  [-emr {emergent,stationary,declining} [{emergent,stationary,declining} ...]]
 
 extract popular n-grams (words or short phrases) from a corpus of documents
 ```
@@ -373,7 +437,7 @@ optional arguments:
                         normalize tf-idf scores by document length (default:
                         False)
   -t, --time            weight terms by time (default: False)
-  -o [{graph,wordcloud,report,tfidf,termcounts} [{graph,wordcloud,report,tfidf,termcounts} ...]], --output [{graph,wordcloud,report,tfidf,termcounts} [{graph,wordcloud,report,tfidf,termcounts} ...]]
+  -o [{graph,wordcloud,report,termcounts} [{graph,wordcloud,report,termcounts} ...]], --output [{graph,wordcloud,report,termcounts} [{graph,wordcloud,report,termcounts} ...]]
                         Note that this can be defined multiple times to get
                         more than one output. termcounts represents the term
                         frequency component of tfidf (default: ['report'])
@@ -394,6 +458,50 @@ optional arguments:
   -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
                         the desired cpc classification (for patents only)
                         (default: None)
+  -emt, --emerging_technology
+                        denote whether emerging technology should be forecast
+                        (default: False)
+  -pns PREDICTOR_NAMES [PREDICTOR_NAMES ...], --predictor_names PREDICTOR_NAMES [PREDICTOR_NAMES ...]
+                        0. All options for predictor algorithms, multiple
+                        inputs are allowed, default is to select Linear (2):
+                        1. Naive options for predictor algorithms, multiple
+                        inputs are allowed, default is to select Linear (2):
+                        2. Linear options for predictor algorithms, multiple
+                        inputs are allowed, default is to select Linear (2):
+                        3. Quadratic options for predictor algorithms,
+                        multiple inputs are allowed, default is to select
+                        Linear (2): 4. Cubic options for predictor algorithms,
+                        multiple inputs are allowed, default is to select
+                        Linear (2): 5. ARIMA options for predictor algorithms,
+                        multiple inputs are allowed, default is to select
+                        Linear (2): 6. Holt-Winters options for predictor
+                        algorithms, multiple inputs are allowed, default is to
+                        select Linear (2): 7. LSTM-multiLA-stateful options
+                        for predictor algorithms, multiple inputs are allowed,
+                        default is to select Linear (2): 8. LSTM-multiLA-
+                        stateless options for predictor algorithms, multiple
+                        inputs are allowed, default is to select Linear (2):
+                        9. LSTM-1LA-stateful options for predictor algorithms,
+                        multiple inputs are allowed, default is to select
+                        Linear (2): 10. LSTM-1LA-stateless options for
+                        predictor algorithms, multiple inputs are allowed,
+                        default is to select Linear (2): 11. LSTM-multiM-1LA-
+                        stateful options for predictor algorithms, multiple
+                        inputs are allowed, default is to select Linear (2):
+                        12. LSTM-multiM-1LA-stateless (default: [2])
+  -nts NTERMS, --nterms NTERMS
+                        number of terms to analyse (default: 25)
+  -mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
+                        minimum number of patents per quarter referencing a
+                        term (default: 20)
+  -stp STEPS_AHEAD, --steps_ahead STEPS_AHEAD
+                        number of steps ahead to analyse for (default: 5)
+  -cur, --curves        analyse using curve or not (default: False)
+  -tst, --test          analyse using test or not (default: False)
+  -nrm, --normalised    analyse using normalised patents counts or not
+                        (default: False)
+  -emr {emergent,stationary,declining} [{emergent,stationary,declining} ...], --emergence {emergent,stationary,declining} [{emergent,stationary,declining} ...]
+                        analyse using emergence or not (default: ['emergent'])
 ```
 
 ## Acknowledgements
