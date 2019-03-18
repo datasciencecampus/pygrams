@@ -120,7 +120,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
 
-    parser.add_argument("-cur", "--curves", default=False, action="store_true",
+    parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
                         help="analyse using curve or not")
     parser.add_argument("-tst", "--test", default=False, action="store_true",
                         help="analyse using test or not")
