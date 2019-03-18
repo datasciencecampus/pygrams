@@ -29,5 +29,6 @@ class TestDataFactory(unittest.TestCase):
         df = factory.get('tests/data/USPTO-random-100.pkl.bz2')
         self.assertEquals(len(df['abstract']), 100)
 
+
 if __name__ == '__main__':
     unittest.main()

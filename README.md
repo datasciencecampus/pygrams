@@ -4,34 +4,41 @@
 [![LICENSE.](https://img.shields.io/badge/license-OGL--3-blue.svg?style=flat)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
 # pyGrams 
- 
+
 <p align="center"><img align="center" src="meta/images/pygrams-logo.png" width="400px"></p>
- 
+
 ## Description of tool
 
-This python-based app (`pygrams.py`) is designed to extract popular n-grams from free text within a large (>1000) corpus of documents.
+This python-based app (`pygrams.py`) is designed to extract popular n-grams, or terms (words or short phrases) from free text within a large (>1000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
+
+The app operates in the following steps:
+
+- A file containing a corpus of documents is selected (defaulting to a 1000 abstract patent file), where each row or list element in a file corresponds to a document. The column for the text to be analysed is specified, and optionally the rows can be filtered by date and by binary entries in specified columns.
+- The core function of the app is to perform TFIDF on the document corpus, optionally specifying minimum and maximum ngrams, and maximum document frequency. The resulting TDIDF matrix (prior to any date filtering) is stored on file.
+- The TFIDF matrix may subsequently be post-processed using a 'mask' comprising document weight vectors and term weight vectors. Document weightings include document length normalisation and time weighting (more recent documents weighted more highly). Term weightings include stop words. The date filtering is also applied at this time.
+- The default 'report' output is a ranked and scored list of 'popular' ngrams. Optional outputs are a graph, word cloud, TFIDF matrix, and weekly terms counts.
 
 ## Installation guide
 
 pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
-1. Please make sure Python 3.6 is installed and set at your path.  
+1. Please make sure Python 3.6 is installed and set in your path.  
 
    To check the Python version default for your system, run the following in command line/terminal:
 
    ```
    python --version
    ```
-   
+
    **_Note_**: If Python 2.x is the default Python version, but you have installed Python 3.x, your path may be setup to use `python3` instead of `python`.
-   
+
 2. To install pyGrams packages and dependencies, from the root directory (./pyGrams) run:
 
    ``` 
-   pip install -e .
+   pip install -e
    ```
-   
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure and we will get back to you. Or open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
+
+   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
 ### System requirements
 
@@ -118,30 +125,30 @@ If you want to filter results, such as for female, British, authors in the above
 python pygrams.py -fh=['female','british'] -fb='union'
 ```
 
-#### Time filters (-mf, -yf, -mt, -yt)
+#### Time filters (-df, -dt)
 
-This argument can be used to filter documents to a certain timeframe. For example, the below, will restrict the document cohort to only those from 2000 up to now (the default 'month from' `-mf` is January).
-
-```
-python pygrams.py -yf=2000
-```
-
-This will restrict the document cohort to only those between March 2000 and July 2016.
+This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
 
 ```
-python pygrams.py -mf=03 -yf=2000 -mt=07 -yt=2016
+python pygrams.py -df=2000/01/20
+```
+
+The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
+
+```
+python pygrams.py -df=2000/03/01 -dt=2016/07/31
 ```
 
 ### TF-IDF Parameters 
 
 #### N-gram selection (-mn, -mx)
 
-An n-gram is a contiguous sequence of n items ([source](https://en.wikipedia.org/wiki/N-gram)). N-grams can be unigrams (single words, e.g., vehicle), bigrams (sets of words, e.g., aerial vehicle), trigrams (trio of words, e.g., unmanned aerial vehicle) or any n number of continuous terms. 
+An n-gram is a contiguous sequence of n items ([source](https://en.wikipedia.org/wiki/N-gram)). N-grams can be unigrams (single words, e.g., vehicle), bigrams (sequences of two words, e.g., aerial vehicle), trigrams (sequences of three words, e.g., unmanned aerial vehicle) or any n number of continuous terms. 
 
-The following arguments will set the n-gram limit to be bigrams or trigrams (the default).
+The following arguments will set the n-gram limit to be unigrams, bigrams or trigrams (the default).
 
 ```
-python pygrams.py -mn=2 -mx=3
+python pygrams.py -mn=1 -mx=3
 ```
 
 To analyse only unigrams:
@@ -154,17 +161,17 @@ python pygrams.py -mn=1 -mx=1
 
 Terms identified are filtered by the maximum number of documents that use this term; the default is 0.3, representing an upper limit of 30% of documents containing this term. If a term occurs in more that 30% of documents it is rejected.
 
-For example, to set the maximum document frequency to 5%, use:
+For example, to set the maximum document frequency to 5% (the default), use:
 
 ```
 python pygrams.py -mdf 0.05
 ```
 
-By using a small ($\leq$ 5%) maximum document frequency for unigrams, this may help remove generic words, or stop words.
+By using a small (5% or less) maximum document frequency for unigrams, this may help remove generic words, or stop words.
 
-#### TF-IDF score mechanics (-p)
+#### TFIDF score mechanics (-p)
 
-By default the TF-IDF score will be calculated per n-gram as the sum of the TF-IDF values over all documents for the selected n-gram. However you can select:
+By default the TFIDF score will be calculated per n-gram as the sum of the TF-IDF values over all documents for the selected n-gram. However you can select:
 
 - `median`: the median value
 - `max`: the maximum value
@@ -177,36 +184,20 @@ To choose an average scoring for example, use:
 python pygrams.py -p='avg'
 ```
 
+#### Normalise by document length (-ndl)
+
+This option normalises the TFIDF scores by document length.
+
+```
+python pygrams.py -ndl
+```
+
 #### Time-weighting (-t)
 
 This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
 
 ```
 python pygrams.py -t
-```
-
-#### Term focus (-f)
-
-This option utilises a second random document dataset, by default `USPTO-random-1000.pkl.bz2`
-(termed the focus source), whose terms are discounted from the filtered dataset to try and 'focus' the identified terms away from terms found more generally in a document corpus. An
-example focus (using `set` difference) is as follows:
-
-```
-python pygrams.py -f=set
-```
-
-The available focus options are:
-
-- `set`: discounts terms that are also found in the focus source
-- `chi2`: discounts terms that are not found in the focus source using chi2
-- `mutual`: discounts terms that are not found in the focus source using mutual information
-
-#### Choose focus source (-fs)
-
-This selects the set of documents for use during the term focus option, for example for a larger dataset.
-
-```
-python pygrams.py -fs=USPTO-random-100000.pkl.bz2
 ```
 
 ### Outputs Parameters (-o)
@@ -237,9 +228,9 @@ Note that all outputs are generated in the `outputs` subfolder. Below are some e
 
 #### Report ('report')
 
-The report will output the top n number of terms (default is 250) and their associated [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) score. Below is an example for patent data, where only bigrams have been analysed.
+The report will output the top n number of terms (default is 250) and their associated [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) score. Below is an example for patent data, where only bigrams have been analysed.
 
-|Term			            |	    TF-IDF Score  |
+|Term			            |	    TFIDF Score  |
 | :------------------------ | -------------------:|
 |1. fuel cell               |       2.143778      |
 |2. heat exchanger          |       1.697166      |
@@ -254,17 +245,17 @@ The report will output the top n number of terms (default is 250) and their asso
 
 #### Wordcloud ('wordcloud')
 
-A wordcloud, or tag cloud, is a novel visual representation of text data, where words (tags) importance is shown with font size and colour. Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/pygrams/master/outputs/wordclouds/wordcloud_tech.png) using patent data. The greater the TF-IDF score, the larger the font size of the term.
+A wordcloud, or tag cloud, is a novel visual representation of text data, where words (tags) importance is shown with font size and colour. Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/pygrams/master/outputs/wordclouds/wordcloud_tech.png) using patent data. The greater the TFIDF score, the larger the font size of the term.
 
 #### Force directed graph ('fdg')
 
 This output provides an interactive HTML graph. The graph shows connections between terms that are generally found in the same documents.
 
-#### TF-IDF matrix ('tfidf')
+#### TFIDF matrix ('tfidf')
 
-The TF-IDF matrix can be saved as a pickle file, containing a list of four items:
+The TFIDF matrix can be saved as a pickle file, containing a list of four items:
 
-- The TF-IDF sparse matrix
+- The TFIDF sparse matrix
 - List of unique terms
 - List of document publication dates
 - List of unique document IDs
@@ -282,24 +273,14 @@ Of use for further processing, the number of patents containing a term in a give
 
 #### Choosing CPC classification
 
-This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. 
-The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". In 
-this case a larger patent dataset is generally required to allow for the reduction in patent numbers after subsetting. 
+This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". 
 An example script is:
 
 ```
 python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
 ```
 
-In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the tf-idf will be run for 197 patents.
-
-#### Citation weighting
-
-This will weight the term TFIDF scores by the number of citations each patent has. The weight is a normalised value between 0 and 1 with the higher the number indicating a higher number of citations.
-
-```
-python pygrams.py -c
-```
+In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
 
 ### Config files
 
@@ -309,8 +290,18 @@ There are three configuration files available inside the config directory:
 - stopwords_n.txt
 - stopwords_uni.txt
 
-The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams.
-The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams) and the last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+
+### Folder structure
+
+- pygrams.py is the main python program file in the root folder (Pygrams).
+- README.md is this markdown readme file in the root folder
+- pipeline.py in the scripts folder provides the main program sequence along with pygrams.py.
+- The 'data' folder is where to place the source text data files.
+- The 'outputs' folder contains all the program outputs.
+- The 'config' folder contains the stop word configuration files.
+- The setup file in the root folder, along with the meta folder, contain installation related files.
+- The test folder contains unit tests.
 
 ## Help
 
@@ -320,95 +311,84 @@ A help function details the range and usage of these command line arguments:
 python pygrams.py -h
 ```
 
-An edited version of the help output is included below. This starts with a summary of arguments:
+The help output is included below. This starts with a summary of arguments:
 
 ```
 python pygrams.py -h
-usage: pygrams.py [-h] [-cpc CPC_CLASSIFICATION] [-c] [-f {set,chi2,mutual}]
-                  [-ndl] [-t] [-pt PATH] [-ih ID_HEADER] [-th TEXT_HEADER]
+usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-dh DATE_HEADER] [-fc FILTER_COLUMNS]
-                  [-fb {union,intersection}] [-p {median,max,sum,avg}]
-                  [-o {fdg,wordcloud,report,table,tfidf,termcounts,all}] [-j]
-                  [-yf YEAR_FROM] [-mf MONTH_FROM] [-yt YEAR_TO]
-                  [-mt MONTH_TO] [-np NUM_NGRAMS_REPORT]
-                  [-nd NUM_NGRAMS_WORDCLOUD] [-nf NUM_NGRAMS_FDG]
-                  [-ds DOC_SOURCE] [-fs FOCUS_SOURCE] [-mn {1,2,3}]
-                  [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
-                  [-rn REPORT_NAME] [-wn WORDCLOUD_NAME] [-wt WORDCLOUD_TITLE]
-                  [-tn TABLE_NAME] [-nltk NLTK_PATH]
+                  [-fb {union,intersection}] [-df DATE_FROM] [-dt DATE_TO]
+                  [-mn {1,2,3}] [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
+                  [-p {median,max,sum,avg}] [-ndl] [-t]
+                  [-o [{graph,wordcloud,report,tfidf,termcounts} [{graph,wordcloud,report,tfidf,termcounts} ...]]]
+                  [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
+                  [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
+                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION]
 
-create report, wordcloud, and fdg graph for document abstracts
-
+extract popular n-grams (words or short phrases) from a corpus of documents
 ```
 It continues with a detailed description of the arguments:
 ```
 optional arguments:
   -h, --help            show this help message and exit
-  -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
-                        the desired cpc classification (for patents only)
-  -c, --cite            weight terms by citations (for patents only)
-  -f {set,chi2,mutual}, --focus {set,chi2,mutual}
-                        clean output from terms that appear in general; 'set':
-                        set difference, 'chi2': chi2 for feature importance,
-                        'mutual': mutual information for feature importance
-  -ndl, --normalize_doc_length
-                        normalize tf-idf scores by document length
-  -t, --time            weight terms by time
-  -pt PATH, --path PATH
-                        the data path
-  -ih ID_HEADER, --id_header ID_HEADER
-                        the column name for the unique ID
-  -th TEXT_HEADER, --text_header TEXT_HEADER
-                        the column name for the free text
-  -dh DATE_HEADER, --date_header DATE_HEADER
-                        the column name for the date
-  -fc FILTER_COLUMNS, --filter_columns FILTER_COLUMNS
-                        list of columns to filter by
-  -fb {union,intersection}, --filter_by {union,intersection}
-                        options are <all> <any> defaults to any. Returns
-                        filter where all are 'Yes' or any are 'Yes
-  -p {median,max,sum,avg}, --pick {median,max,sum,avg}
-                        options are <median> <max> <sum> <avg> defaults to
-                        sum. Average is over non zero values
-  -o {fdg,wordcloud,report,table,tfidf,termcounts,all}, --output {fdg,wordcloud,report,table,tfidf,termcounts,all}
-                        options are: <fdg> <wordcloud> <report> <table>
-                        <tfidf> <termcounts> <all>
-  -j, --json            Output configuration as JSON file alongside output
-                        report
-  -yf YEAR_FROM, --year_from YEAR_FROM
-                        The first year for the document cohort in YYYY format
-  -mf MONTH_FROM, --month_from MONTH_FROM
-                        The first month for the document cohort in MM format
-  -yt YEAR_TO, --year_to YEAR_TO
-                        The last year for the document cohort in YYYY format
-  -mt MONTH_TO, --month_to MONTH_TO
-                        The last month for the document cohort in MM format
-  -np NUM_NGRAMS_REPORT, --num_ngrams_report NUM_NGRAMS_REPORT
-                        number of ngrams to return for report
-  -nd NUM_NGRAMS_WORDCLOUD, --num_ngrams_wordcloud NUM_NGRAMS_WORDCLOUD
-                        number of ngrams to return for wordcloud
-  -nf NUM_NGRAMS_FDG, --num_ngrams_fdg NUM_NGRAMS_FDG
-                        number of ngrams to return for fdg graph
   -ds DOC_SOURCE, --doc_source DOC_SOURCE
-                        the doc source to process
-  -fs FOCUS_SOURCE, --focus_source FOCUS_SOURCE
-                        the doc source for the focus function
-  -mn {1,2,3}, --min_n {1,2,3}
-                        the minimum ngram value
-  -mx {1,2,3}, --max_n {1,2,3}
-                        the maximum ngram value
+                        the document source to process (default: USPTO-
+                        random-1000.pkl.bz2)
+  -it INPUT_TFIDF, --input_tfidf INPUT_TFIDF
+                        Load a pickled TFIDF output instead of creating TFIDF
+                        by processing a document source (default: None)
+  -th TEXT_HEADER, --text_header TEXT_HEADER
+                        the column name for the free text (default: abstract)
+  -dh DATE_HEADER, --date_header DATE_HEADER
+                        the column name for the date (default: None)
+  -fc FILTER_COLUMNS, --filter_columns FILTER_COLUMNS
+                        list of columns with binary entries by which to filter
+                        the rows (default: None)
+  -fb {union,intersection}, --filter_by {union,intersection}
+                        Returns filter: intersection where all are 'Yes' or
+                        '1'or union where any are 'Yes' or '1' in the defined
+                        --filter_columns (default: union)
+  -df DATE_FROM, --date_from DATE_FROM
+                        The first date for the document cohort in YYYY/MM/DD
+                        format (default: None)
+  -dt DATE_TO, --date_to DATE_TO
+                        The last date for the document cohort in YYYY/MM/DD
+                        format (default: None)
+  -mn {1,2,3}, --min_ngrams {1,2,3}
+                        the minimum ngram value (default: 1)
+  -mx {1,2,3}, --max_ngrams {1,2,3}
+                        the maximum ngram value (default: 3)
   -mdf MAX_DOCUMENT_FREQUENCY, --max_document_frequency MAX_DOCUMENT_FREQUENCY
                         the maximum document frequency to contribute to TF/IDF
-  -rn REPORT_NAME, --report_name REPORT_NAME
-                        report filename
-  -wn WORDCLOUD_NAME, --wordcloud_name WORDCLOUD_NAME
-                        wordcloud filename
+                        (default: 0.05)
+  -p {median,max,sum,avg}, --pick {median,max,sum,avg}
+                        Everything is computed over non zero values (default:
+                        sum)
+  -ndl, --normalize_doc_length
+                        normalize tf-idf scores by document length (default:
+                        False)
+  -t, --time            weight terms by time (default: False)
+  -o [{graph,wordcloud,report,tfidf,termcounts} [{graph,wordcloud,report,tfidf,termcounts} ...]], --output [{graph,wordcloud,report,tfidf,termcounts} [{graph,wordcloud,report,tfidf,termcounts} ...]]
+                        Note that this can be defined multiple times to get
+                        more than one output. termcounts represents the term
+                        frequency component of tfidf (default: ['report'])
+  -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
+                        outputs filename (default: out)
   -wt WORDCLOUD_TITLE, --wordcloud_title WORDCLOUD_TITLE
-                        wordcloud title
-  -tn TABLE_NAME, --table_name TABLE_NAME
-                        table filename
+                        wordcloud title (default: Popular Terms)
   -nltk NLTK_PATH, --nltk_path NLTK_PATH
-                        custom path for NLTK data
+                        custom path for NLTK data (default: None)
+  -np NUM_NGRAMS_REPORT, --num_ngrams_report NUM_NGRAMS_REPORT
+                        number of ngrams to return for report (default: 250)
+  -nd NUM_NGRAMS_WORDCLOUD, --num_ngrams_wordcloud NUM_NGRAMS_WORDCLOUD
+                        number of ngrams to return for wordcloud (default:
+                        250)
+  -nf NUM_NGRAMS_FDG, --num_ngrams_fdg NUM_NGRAMS_FDG
+                        number of ngrams to return for fdg graph (default:
+                        250)
+  -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
+                        the desired cpc classification (for patents only)
+                        (default: None)
 ```
 
 ## Acknowledgements

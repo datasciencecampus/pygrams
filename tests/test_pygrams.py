@@ -194,8 +194,7 @@ class TestPyGrams(unittest.TestCase):
         }
 
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
-                'publication_date', '--max_document_frequency', '1.0']
+        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
 
         pygrams.main(args)
 
@@ -225,8 +224,7 @@ class TestPyGrams(unittest.TestCase):
 
         # Make a note of the dumped TFIDF object for later
         self.preparePyGrams(fake_df_data, mock_factory_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
-                'publication_date', '--max_document_frequency', '1.0']
+        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
         pygrams.main(args)
 
         # Fail if original data frame is requested from disc
@@ -239,13 +237,13 @@ class TestPyGrams(unittest.TestCase):
 
         # Instead support TFIDF pickle read - and return the TFIDF object previously saved to disc
         def pipeline_read_pickle_fake(pickle_file_name):
-            if pickle_file_name == os.path.join('data', self.out_name + '-tfidf.pkl.bz2'):
+            if pickle_file_name == os.path.join('outputs','tfidf', self.out_name + '-tfidf.pkl.bz2'):
                 return self.dumped_tfidf_obj
             self.fail(f'Should not be reading {pickle_file_name} via a factory if TFIDF was requested from pickle')
 
         mock_pipeline_read_pickle.side_effect = pipeline_read_pickle_fake
         mock_pipeline_read_pickle.return_value = self.dumped_tfidf_obj
-        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+        args = ['-o', 'termcounts', '-ds', self.data_source_name, '--date_header',
                 'publication_date', '--max_document_frequency', '1.0',
                 '--input_tfidf', self.out_name + '-tfidf.pkl.bz2']
         pygrams.main(args)
@@ -275,8 +273,8 @@ class TestPyGrams(unittest.TestCase):
         }
 
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-o', 'tfidf', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
-                'publication_date', '--max_document_frequency', '1.0', '--max_n', '1']
+        args = ['-ds', self.data_source_name, '--date_header',
+                'publication_date', '--max_document_frequency', '1.0', '--max_ngrams', '1']
 
         pygrams.main(args)
 
@@ -338,10 +336,12 @@ class TestPyGrams(unittest.TestCase):
         args = pygrams.get_args([])
         self.assertFalse(args.json)
 
+    @unittest.skip("jason compulsory now, so not an option")
     def test_args_json_requested_short(self):
         args = pygrams.get_args(['-j'])
         self.assertTrue(args.json)
 
+    @unittest.skip("jason compulsory now, so not an option")
     def test_args_json_requested_long(self):
         args = pygrams.get_args(['--json'])
         self.assertTrue(args.json)
@@ -362,8 +362,8 @@ class TestPyGrams(unittest.TestCase):
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
-        pygrams.main(['-j', f'--outputs_name={output_file_name}', '-c', '-f=set', '-p=sum', '-cpc=Y12',
-                      '-yf=1999', '-yt=2000', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+        pygrams.main([f'--outputs_name={output_file_name}', '-f=set', '-p=sum', '-cpc=Y12',
+                      '--date_from=1999/03/12', '--date_to=2000/11/30', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
 
         mock_open.assert_called_with(json_file_name, 'w')
 
@@ -374,8 +374,8 @@ class TestPyGrams(unittest.TestCase):
                 'tech_report': report_file_name
             },
             'month_year': {
-                'from': '1999-01-01',
-                'to': '2000-12-31'
+                'from': '1999-03-12',
+                'to': '2000-11-30'
             },
             'parameters': {
                 'pick': 'sum',
@@ -392,8 +392,8 @@ class TestPyGrams(unittest.TestCase):
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
-        pygrams.main(['-j', f'--outputs_name={output_file_name}', '-c', '-t', '-f=set', '-p=max', '-cpc=Y12',
-                      '-yf=1998', '-yt=2001', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+        pygrams.main([ f'--outputs_name={output_file_name}', '-t', '-f=set', '-p=max', '-cpc=Y12',
+                      '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
 
         mock_open.assert_called_with(json_file_name, 'w')
 
