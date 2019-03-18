@@ -240,7 +240,7 @@ An option to choose between curve fitting or [Porter 2018](https://www.researchg
 python pygrams.py -emt -cf
 ```
 
-### Emergence Forcasts
+### Emergence Forecasts
 
 Various options are available to control how emergence is forecasted.
 
