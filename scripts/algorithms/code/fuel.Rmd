@@ -1,0 +1,336 @@
+---
+title: "Local Linear Model - FUEL CELL (quarterly)"
+author: "Sonia Mazzi"
+date: "03/01/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo = FALSE, warning = FALSE, include = FALSE}
+library(tidyverse)
+```
+
+```{r}
+fuel = read_csv("fuel_cell_quarterly.csv", col_names = FALSE)
+combustion = read_csv("combustion_engine_quarterly.csv", col_names = FALSE)
+
+head(fuel)
+names(fuel) = "fuel"
+names(combustion) = "combustion"
+head(cbind(fuel,combustion))
+```
+
+```{r}
+fuel = fuel %>% mutate(time = seq(1,length(fuel)))
+fuel
+```
+
+```{r}
+ggplot(fuel, aes(x=time, y=fuel)) +
+  geom_point() +
+  geom_line()
+```
+```{r}
+acf(fuel$fuel)
+acf(fuel$fuel, type="partial")
+acf(diff(fuel$fuel))
+acf(diff(fuel$fuel), type="partial")
+```
+
+
+## The diffuse Kalman Filter for the locally linear model
+
+The likelihood
+
+```{r}
+YY = fuel$fuel
+ls.out = lm(fuel~time, data = fuel, subset = time<5 )
+coef = ls.out$coefficients
+bb = c(sum(coef), coef[2])
+bb
+```
+
+```{r}
+#This is the function that computes the likelihood for LLM with
+#sigma.alpha is factored out of the model
+#need 
+#YY: time series and
+#bb: vector (a+b, b), a and b are the LSE of intercept and slope of the LS line using
+#the first few observations of YY
+lik<-function(vec){
+sigma.eps = 1
+sigma.gnu = vec[1]
+sigma.eta = vec[2]
+#theta = vec[3]#this is for AR
+#theta<-1#this is for a random walk for beta values
+y = YY
+ll = length(y)
+aux = c(1,1,0,1)
+TT = matrix(aux,2,2,byrow=T)
+lTT = nrow(TT)
+#A<-cbind(diag(rep(1,lTT)),rep(0,lTT))
+A = cbind(diag(-1,lTT),bb)#
+ncA0 = ncol(A)
+QQ = matrix(0,ncA0,ncA0)
+DD = rep(0,ll)
+elem = c((sigma.gnu^2),0,0,(sigma.eta^2))
+HHt = matrix(elem,lTT,lTT,byrow=T)
+#P<-matrix(rep(0,lTT^2),lTT,lTT)
+P0 = matrix(0, lTT, lTT)
+P = P0
+Z = matrix(c(1,0),1,lTT)
+#
+for (i in 1:ll){
+GGt = sigma.eps^2
+aux2 = matrix(c(rep(0,(ncA0-1)),y[i]),1,ncA0)
+E = aux2-Z%*%A
+D = Z%*%P%*%t(Z) + GGt
+DD[i] = D
+Dinv = 1/D
+K = TT %*% P %*% t(Z) %*% Dinv
+A = TT %*% A + K %*% E
+L = TT - K %*% Z
+P = L %*% P %*% t(TT) + HHt
+QQ = QQ + t(E) %*% Dinv %*% E
+}
+#print(QQ)
+#
+SS = QQ[(1:lTT),(1:lTT)]
+aux = eigen(SS)$values
+ldSS = sum(log(aux))
+qqq = as.matrix(QQ[((lTT+1):ncA0),((lTT+1):ncA0)])
+ss = QQ[(1:lTT),((lTT+1):ncA0)]
+Sinv = solve(SS)
+gamma.est = Sinv %*% ss
+sigma2.est = (qqq - t(ss) %*% Sinv %*% ss)/ll
+sigma2.est = as.numeric(sigma2.est)
+sigmatilde2 = (ll/(ll-ncA0+1))*sigma2.est
+#linfty<-(-0.5)*((ll-ncA0+1)*(1+log(sigmatilde2))+ldSS+sum(log(abs(DD))))
+loglik = (-0.5)*((ll-ncA0+1)*(1+log(sigmatilde2))+sum(log(abs(DD))))
+-loglik}
+```
+
+```{r}
+lik(c(.05,.05))
+min.out = nlminb(c(1,1), lik)
+min.out$par
+```
+
+
+
+```{r}
+#locally linear trend
+#####################
+#This is the DKF 
+# The state space form is
+#     y(x)  =  Z(x)*alpha(x) + G*u(x)
+#alpha(x+1) = TT*alpha(x) + H*u(x)
+# the DKF is initialized with A0 and P0 (Q0=0).
+#
+#sigma.eps^2 is concentrated out
+#
+dkf = function(vec, YY){
+sigma.eps = 1
+sigma.gnu = vec[1]
+sigma.eta = vec[2]
+y = YY
+ll = length(y)
+aux = c(1, 1, 0, 1)
+TT = matrix(aux, 2, 2, byrow=T)
+#print(TT)
+lTT = nrow(TT)
+A = cbind(diag(-1, lTT), bb)
+#print(A)
+ncA0 = ncol(A)
+QQ = matrix(0, ncA0, ncA0)
+DD = rep(0, ll)
+EE = matrix(0, 1, (ncA0*ll))
+AA = matrix(rep(0, ncA0 * lTT * (ll + 1)), lTT, (ncA0 * (ll + 1)))
+AA[,(1:ncA0)] = A
+PP = matrix(rep(0,(lTT*lTT*(ll+1))),lTT,(lTT*(ll+1)))
+KK = matrix(rep(0,(lTT*ll)),lTT,ll)
+elem = c((sigma.gnu^2), 0, 0, (sigma.eta^2))
+HHt = matrix(elem,lTT,lTT,byrow=T)
+P = matrix(0 ,lTT,lTT)
+PP[ ,(1:lTT)] = P
+ee = rep(0,ll)
+mse.ee = rep(0,ll)
+for (i in 1:ll){
+Z = matrix(c(1,0),1,lTT)
+GGt = sigma.eps^2
+aux2 = matrix(c(rep(0,(ncA0-1)),y[i]),1,ncA0)
+E = aux2-Z%*%A
+EE[,((i-1)*ncA0+1):(i*ncA0)] = E
+EEgam = matrix(E[,(1:lTT)],1,lTT)
+D = Z%*%P%*%t(Z) + GGt
+DD[i] = D
+Dinv = 1/D
+K = TT %*% P %*% t(Z) %*% Dinv
+KK[,i] = K
+A = TT %*% A + K %*% E
+AA[,((i*ncA0+1):((i+1)*ncA0))] = A
+L = TT-K%*%Z
+P = L%*%P%*%t(TT) + HHt
+PP[,((i*lTT+1):((i+1)*lTT))] = P
+if (i>2){
+SS = QQ[(1:lTT),(1:lTT)]
+#print(eigen(SS)$values)
+SSinv = solve(SS)
+ss = QQ[(1:lTT),((lTT+1):ncA0)]
+gamma = SSinv%*%ss
+aux = matrix(c(-gamma,1),ncA0,1)
+ee[i] = E%*%aux
+mse.ee[i] = EEgam%*%SSinv%*%t(EEgam)}
+#junk<-t(E)%*%Dinv%*%E
+#print(eigen(junk)$values)
+QQ = QQ+t(E)%*%Dinv%*%E}
+SS = QQ[(1:lTT),(1:lTT)]
+aux = eigen(SS)$values
+#print(aux)
+ldSS = sum(log(aux))
+qqq = as.matrix(QQ[((lTT+1):ncA0),((lTT+1):ncA0)])
+ss = QQ[(1:lTT),((lTT+1):ncA0)]
+Sinv = solve(SS)
+gamma.est = Sinv %*% ss
+sigma2.est = (qqq-t(ss) %*% Sinv %*% ss)/ll
+sigma2.est = as.numeric(sigma2.est)
+mse.gamma.est = sigma2.est*Sinv
+mse.ee = sigma2.est * (DD + mse.ee)
+l0 = (-0.5) * (ll*(1 + log(sigma2.est)) + sum(log(abs(DD))))
+sigmatilde2 = (ll/(ll - ncA0 + 1)) * sigma2.est
+linfty = (-0.5)*((ll-ncA0+1)*(1 + log(sigmatilde2)) + ldSS + sum(log(abs(DD))))
+ee.std = ee/sqrt(mse.ee)
+list(gamma.est = gamma.est, mse.gamma = mse.gamma.est, linfty = linfty, l0 = l0, ncA0 = ncA0, ll = ll,
+D=DD, E=EE, Z=Z, A = AA, P = PP, K = KK, TT = TT, y = y, ee = ee, mse.ee = mse.ee, ee.std = ee.std,
+sigma2 = sigma2.est, 
+sigma.eps2 = sigma2.est*sigma.eps^2,
+sigma.gnu2 = sigma2.est*sigma.gnu^2,
+sigma.eta2 = sigma2.est*sigma.eta^2,
+sigma.eps = sqrt(sigma2.est*sigma.eps^2),
+sigma.gnu = sqrt(sigma2.est*sigma.gnu^2),
+sigma.eta = sqrt(sigma2.est*sigma.eta^2)
+)}
+```
+
+```{r}
+dkf.out = dkf(min.out$par, fuel$fuel)
+```
+
+#The smoothing stage
+
+```{r}
+#This is the smoothing filter.
+#Run the DKF first
+#
+smfilt = function(dkf.out){
+y = dkf.out$y
+ll = length(y)
+TT = dkf.out$TT
+lTT = ncol(TT)
+ncA0 = dkf.out$ncA0
+N = matrix(0,lTT,ncA0)
+R = matrix(0,lTT,lTT)
+Z = dkf.out$Z
+ncolZ = ncol(Z)
+gamma.est = dkf.out$gamma.est
+mse.gamma = as.matrix(dkf.out$mse.gamma)
+sigma2 = as.numeric(dkf.out$sigma2)
+alphahat = matrix(0,ncolZ,ll)
+mse.alphahat = matrix(0,lTT,lTT*ll)
+for (i in 1:ll){
+#Z = matrix(dkf.out$Z[ll-i+1,],1,ncolZ)
+tZ = t(Z)
+D = dkf.out$D[(ll-i+1)]
+E = dkf.out$E[,((ll*ncA0-ncA0*i+1):(ncA0*ll-ncA0*(i-1)))]
+A = dkf.out$A[,((ll*ncA0-ncA0*i+1):(ncA0*ll-ncA0*(i-1)))]
+P = dkf.out$P[,((ll*ncolZ-ncolZ*i+1):(ncolZ*ll-ncolZ*(i-1)))]
+K = matrix(dkf.out$K[,(ll-i+1)],ncolZ,1)
+L = TT-K%*%Z
+Dinv = 1/D
+Dinv = as.numeric(Dinv)
+tL = t(L)
+junk = Dinv*tZ
+N = junk%*%E +tL%*%N
+R = Dinv*(tZ%*%Z)+tL%*%R%*%L
+Naux = (A+P%*%N)
+Naux2 = Naux%*%matrix(c(-gamma.est,1),ncA0,1)
+alphahat[,ll-i+1] = Naux2
+Naux2 = as.matrix(Naux[,(1:lTT)])
+mse = (sigma2*(P-P%*%R%*%P))+(Naux2%*%mse.gamma%*%t(Naux2))
+mse.alphahat[, (2*ll-2*i+1):(2*ll-2*i+2)] = mse
+}
+#eband.low<-alphahat-2*sqrt(mse.alphahat)
+#eband.high<-alphahat+2*sqrt(mse.alphahat)
+list(alpha=alphahat, mse.alpha = mse.alphahat)
+}
+```
+
+
+```{r}
+sm.out = smfilt(dkf.out)
+sm.out$alpha
+sm.out$mse.alpha
+```
+
+# plotting signal
+
+```{r}
+alpha = sm.out$alpha
+mse.alpha = sm.out$mse.alpha
+ll = dkf.out$ll
+print(ll)
+```
+
+```{r}
+# mu
+Z1 = matrix(c(1,0),1,2)
+mu = alpha[1,]
+# beta
+Z2 = matrix(c(0,1),1,2)
+beta = alpha[2,]
+#intercept
+Z3 = matrix (c(1,-1),1,2)
+int = mu - beta
+mse.mu = rep(0,ll)
+mse.beta = rep(0,ll)
+mse.int = rep(0,ll)
+for (i in 1:ll){
+msealpha = mse.alpha[,(2*i-1):(2*i)]  
+mse.beta[i] = Z2 %*% msealpha %*% t(Z2)
+mse.mu[i] = Z1 %*% msealpha %*% t(Z1)
+mse.int[i] = Z3 %*% msealpha %*% t(Z3)
+}
+
+df = tibble(mu, mse.mu, beta, mse.beta, int, mse.int)
+df = cbind(fuel, df)
+df = mutate(df, mu.low = mu - 2*sqrt(mse.mu))
+df = mutate(df, mu.hi = mu + 2*sqrt(mse.mu))
+df = mutate(df, beta.low = beta - 2*sqrt(mse.beta))
+df = mutate(df, beta.hi = beta + 2*sqrt(mse.beta))
+df = mutate(df, int.low = int -2*sqrt(mse.int))
+df = mutate(df, int.hi = int + 2*sqrt(mse.int))
+df
+```
+```{r}
+par(mfrow=c(2,2))
+ggplot(df, aes(x=time, y=fuel)) +
+  geom_line() +
+  geom_line(aes(x=time, y = mu), col="green") +
+  geom_line(aes(x=time, y = mu.low), linetype = "dashed", col = "green") +
+  geom_line(aes(x=time, y = mu.hi), linetype = "dashed", col = "green") 
+
+ggplot(df, aes(x=time, y = beta)) +
+  geom_line() +
+  geom_line(aes(x=time, y = beta.low), linetype = "dashed", col = "green") +
+  geom_line(aes(x=time, y = beta.hi), linetype = "dashed", col = "green") 
+
+ggplot(df, aes(x=time, y = int)) +
+  geom_line() +
+  geom_line(aes(x=time, y = int.low), linetype = "dashed", col = "green") +
+  geom_line(aes(x=time, y = int.hi), linetype = "dashed", col = "green") 
+
+```
+

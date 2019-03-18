@@ -1,0 +1,28 @@
+#This is the function that produces up to k-step ahead forecasts and their mse's
+#need the dkf output and the forecast horizon, k>1
+#
+forecast = function(dkf.out, k){
+A = dkf.out$Alast
+P = dkf.out$Plast
+TT = dkf.out$TT
+Z = dkf.out$Z
+ncA0 = dkf.out$ncA0
+gamma = dkf.out$gamma.est
+mse.gamma = dkf.out$mse.gamma
+sigma2 = dkf.out$sigma2
+Agamma = A[,1:(ncA0-1)]
+yhat = rep(0,k)
+mse_yhat = rep(0,k)
+alpha = A %*% matrix(c(-gamma, 1), ncA0, 1)
+yhat[1] = Z %*% alpha
+msealpha = sigma2 * P + Agamma %*% mse.gamma %*% t(Agamma)
+mse_yhat[1] = Z %*% msealpha %*% t(Z)
+if (k>1){
+for (i in 2:k){
+yhat[i] = Z %*% TT %*% alpha
+mse_yhat[i] = Z %*% TT %*% msealpha %*% t(TT) %*% t(Z)
+TT = TT %*% TT
+}
+}
+list(yhat = yhat, mse_yhat = mse_yhat)
+} 

@@ -1,0 +1,726 @@
+---
+title: "Signal extraction examples "
+author: "Sonia Mazzi"
+date: "13/12/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo = FALSE, warning = FALSE, include = FALSE}
+library(tidyverse)
+library(gridExtra)
+library(kableExtra)
+library(rmarkdown)
+```
+
+# Signal extraction using a state-space model
+
+Suppose that we have $y = \{y_t\}_{t=1}^n$ and $y_t = \mu_t + \epsilon_t$, where $\mu_t$ is a stochastic process (with linear dynamic) and $\epsilon_t$'s are iid with mean zero and constant variance. Note that $y_t$ can be a vector.
+
+The stochastic specification of $\mu_t$ allows to model $y$ in different ways.
+
+
+For more details on the state-space model and signal-extraction algorithms see
+
+de Jong, P.(1991). The diffuse Kalman filter. *The Annals of Statistics*. Vol 19, No.2, pp 1073 - 1083.
+
+I will illustrate the signal extraction prodedure with three sample quarterly time series: `combustion`, and `image`.
+
+# `combustion`
+
+
+```{r echo=F, warning=FALSE, message=FALSE}
+combustion = read_csv("combustion_engine_quarterly.csv", col_names = FALSE)
+names(combustion) = "combustion"
+#head(combustion)
+```
+
+```{r echo=F, message=FALSE}
+combustion = combustion %>% mutate(time = seq(1,length(combustion)))
+combustion = combustion[ , c(2,1)]
+diff.comb =  tibble( diff.comb = diff(combustion$combustion)) 
+diff.comb = mutate(diff.comb, time = seq(1:length(diff.comb)))
+#combustion
+```
+
+```{r echo =FALSE}
+ggplot(combustion, aes(x=time, y=combustion)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Time plot of combustion")
+```
+
+
+```{r echo =FALSE}
+ggplot(diff.comb, aes(x=time, y=diff.comb)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Time plot of the first difference of combustion")
+```
+
+
+
+
+```{r echo=FALSE}
+par(mfrow = c(2,2))
+acf(combustion$combustion)
+acf(combustion$combustion, type="partial")
+acf(diff(combustion$combustion))
+acf(diff(combustion$combustion), type="partial")
+```
+
+We can observe that the plots above indicate that `combustion` is a 'pure trend' series, with some extreme observations (possibly caused by other processes).
+
+First I will fit a general locally linear model (LLM), which is essentially a random walk with a time varying drift.
+
+In the LLM it is assumed
+
+$y_t = \mu_t + \epsilon_t$, $\mu_{t+1} = \mu_t + d_t + \nu_t$, $d_{t+1} = \delta d_t + \eta_t$
+
+where $\{\epsilon_t\}$, $\{\nu_t\}$, $\{\eta_t\}$ are mutually independent white noise processes with variances $\sigma_\epsilon^2$,
+$\sigma_\nu^2$ and $\sigma_\eta^2$.
+
+
+
+# Fitting the LLM for `combustion`
+
+
+
+
+```{r echo = FALSE}
+YY = combustion$combustion
+```
+
+
+```{r echo = FALSE}
+#parameter estimation
+source("likelihoodLLMvarb")
+#lik.llm.vard(c(.05,.05,0.9))
+min.out.combustion = nlminb(c(1,1,0.5), lik.llm.vard)
+```
+
+
+
+
+```{r echo=FALSE}
+#Diffuse Kalman Filter
+source("dkfLLMvarb")
+dkf.out.combustion = dkf.llm.vard(min.out.combustion$par,combustion$combustion)
+```
+
+
+## Estimated parameters
+
+```{r echo=FALSE}
+eps = dkf.out.combustion$sigma.eps
+gnu = dkf.out.combustion$sigma.gnu
+eta = dkf.out.combustion$sigma.eta
+delta = dkf.out.combustion$delta
+label=c("$\\sigma_{\\epsilon}$", "$\\sigma_{\\nu}$", "$\\sigma_{\\eta}$", "$\\delta$")
+val = c(eps, gnu, eta, delta)
+tt = data.frame(Parameter = label, Estimate = val)
+kable(tt, escape = F) 
+```
+
+
+
+
+```{r echo=FALSE}
+#The smoothing stage
+source("smfilter")
+sm.out.combustion = smfilt(dkf.out.combustion)
+#sm.out$alpha
+#sm.out$mse.alpha
+```
+
+# Plots of predicted signal
+
+```{r echo=FALSE}
+alpha = sm.out.combustion$alpha
+mse.alpha = sm.out.combustion$mse.alpha
+```
+
+```{r echo=FALSE}
+ll = dkf.out.combustion$ll
+# mu
+Z1 = matrix(c(1,0),1,2)
+mu = alpha[1,]
+# beta
+Z2 = matrix(c(0,1),1,2)
+beta = alpha[2,]
+#intercept
+time = seq(1,ll)
+int = mu - beta * time 
+mse.mu = rep(0,ll)
+mse.beta = rep(0,ll)
+mse.int = rep(0,ll)
+for (i in 1:ll){
+msealpha = mse.alpha[,(2*i-1):(2*i)]  
+mse.beta[i] = Z2 %*% msealpha %*% t(Z2)
+mse.mu[i] = Z1 %*% msealpha %*% t(Z1)
+Z3 = matrix(c(1,-i),1,2)
+mse.int[i] = Z3 %*% msealpha %*% t(Z3)
+}
+
+df = tibble(mu, mse.mu, beta, mse.beta, int, mse.int)
+df = cbind(combustion, df)
+df = mutate(df, mu.low = mu - 2*sqrt(mse.mu))
+df = mutate(df, mu.hi = mu + 2*sqrt(mse.mu))
+df = mutate(df, beta.low = beta - 2*sqrt(mse.beta))
+df = mutate(df, beta.hi = beta + 2*sqrt(mse.beta))
+df = mutate(df, int.low = int -2*sqrt(mse.int))
+df = mutate(df, int.hi = int + 2*sqrt(mse.int))
+```
+
+
+```{r echo=FALSE}
+p1 = ggplot(df, aes(x=time, y=combustion)) +
+  geom_line() +
+  geom_line(aes(x=time, y = mu), col="green") +
+  geom_line(aes(x=time, y = mu.low), linetype = "dashed", col = "green") +
+  geom_line(aes(x=time, y = mu.hi), linetype = "dashed", col = "green") 
+
+p2 = ggplot(subset(df,time>3), aes(x=time, y = beta)) +
+  geom_line() +
+  geom_line(aes(x=time, y = beta.low), linetype = "dashed", col = "red") +
+  geom_line(aes(x=time, y = beta.hi), linetype = "dashed", col = "red") +
+  ylab("drift (slope)")
+
+p3 = ggplot(subset(df,time>3), aes(x=time, y = int)) +
+  geom_line() +
+  geom_line(aes(x=time, y = int.low), linetype = "dashed", col = "blue") +
+  geom_line(aes(x=time, y = int.hi), linetype = "dashed", col = "blue") +
+  ylab("intercept")
+```
+
+```{r}
+grid.arrange(p1, p2, p3, nrow = 2)
+```
+
+\pagebreak
+
+In the above plots, the green solid line has predicted $\mu_t$s. All dotted lines are approximate 95% confidence bands (predicted value$\pm 2\sqrt{mse}$).
+
+
+The "drift" is $d_t$ and the "intercept" is $\mu_t - t d_t$. The drift can be interpreted as the first derivative of the ideal smooth trend. So, when the drift is positive there is growth and when the drift is negative the trend is decreasing. 
+
+Note that for `combustion` the last few quarters, although the drift is negative, it has started to increase, possibly announcing that the decay in trend is decelarting  and a period of growth in trend is coming once the drift crosses the zero line.
+This is re-inforced by an accompanying decrease in "intercept".
+
+# Residual Analysis
+
+```{r echo=FALSE}
+ee = dkf.out.combustion$ee
+par(mfrow=c(2,2))
+plot(ee, type= "l")
+acf(ee)
+acf(ee, type = "partial")
+qqnorm(ee)
+```
+
+The plots above don't indicate that the model isn't fitting the data well.
+
+
+\pagebreak
+
+## Forecasting
+
+```{r echo=FALSE}
+source("forecast")
+k=4
+forecast.out.combustion = forecast(dkf.out.combustion, k)
+```
+
+```{r echo=FALSE}
+yy = combustion$combustion
+lyy = length(yy)
+yy_f = c(combustion$combustion, forecast.out.combustion$yhat)
+hi = forecast.out.combustion$yhat - 2 * sqrt(forecast.out.combustion$mse_yhat)
+lo = forecast.out.combustion$yhat + 2 * sqrt(forecast.out.combustion$mse_yhat)
+plot(yy_f, type="l", ylab = "Combustion", xlab = "Time", main = "1- to 8-step ahead forecasts (in red)")
+lines(seq(lyy+1, lyy+k, 1), hi, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), lo, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), forecast.out.combustion$yhat, lwd =2, col= "red")
+
+```
+
+## Prediction accuracy
+
+We fit the model for the series except the last four observations and predict the next four observations.
+
+Let $\hat y_{n+i}$ be the predictor of $y_{n+i}$ using $y_1, \dots, y_n$, $i= 1, \dots, k$.
+
+
+
+```{r echo=FALSE}
+source("likelihoodLLMvarb")
+source("dkfLLMvarb")
+source("forecast")
+
+time_series_data = combustion$combustion
+ll = length(time_series_data)
+
+k = 4 #nr of steps-ahead prediction
+
+predictions = c(0, k)
+mse = matrix(0, k)
+err_div_obs = matrix(0, k)
+```
+
+
+  
+```{r echo=FALSE}
+YY = time_series_data[1 : (ll-k)]
+#Parameter estimation
+min.out.tsd = nlminb(c(1,1,0.6), lik.llm.vard)
+#Diffuse Kalman Filter
+dkf.out.tsd = dkf.llm.vard(min.out.tsd$par,YY)
+```
+
+```{r echo=FALSE}
+#forecasting
+source("forecast")
+forecast.out.tsd = forecast(dkf.out.tsd, k)
+aux = forecast.out.tsd$yhat
+predictions = aux 
+mse = ( time_series_data[(ll-k+1) : ll] - aux)^2
+err_div_obs = 1 -  aux / (time_series_data[(ll-k+1) : ll])
+```
+
+
+If $k = 4$, then
+
+
+```{r echo=FALSE}
+YY=combustion$combustion
+ll = length(YY)
+y = YY[(ll-4) : ll]
+yhat = c(YY[ll-4], predictions)
+kk = seq(0,4,1)
+tt = data.frame(kk, y, yhat)
+names(tt) = c("$i$", "$y_{n+i}$", "$\\hat y_{n+i}$")
+kable(tt, escape = F) 
+```
+We define $e_{n+i}= y_{n+i} - \hat y_{n+i}$, $i = 1,\dots,k$, the prediction errors.
+Then, the mean squared error of prediction is $\frac 1n \sum_{i=1}^k (e_{n+1})^2$ and the mean absolute percentage error is $\frac 1n \sum_{i=1}^k 100 |e_{n+i}|/|y_{n+i}|$.
+
+
+```{r echo=FALSE}
+MSE=sqrt(mean(mse))
+err = mean(abs(100*err_div_obs))
+```
+
+From the data:
+
+The square root of the Mean Squared Error is `r MSE`.
+
+The mean Absolute Percentage Error is `r err`.
+
+
+```{r echo=FALSE}
+k=4
+yy = combustion$combustion
+lyy = length(yy)-k
+hi = forecast.out.tsd$yhat - 2 * sqrt(forecast.out.tsd$mse_yhat)
+lo = forecast.out.tsd$yhat + 2 * sqrt(forecast.out.tsd$mse_yhat)
+plot(yy, type="l", ylab = "Combustion", xlab = "Time", main = "1- to 4-step ahead forecasts (in red)", xlim=c(0,55))
+lines(seq(lyy, lyy+k, 1), c(yy[lyy],predictions), lty = 1, col= "red")
+lines(seq(lyy+1, lyy+k, 1), hi, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), lo, lty = 2, col= "red")
+```
+
+Let us zoom-in
+
+
+```{r echo=FALSE}
+yy = combustion$combustion
+lyy = length(yy) - k
+hi = forecast.out.tsd$yhat - 2 * sqrt(forecast.out.tsd$mse_yhat)
+lo = forecast.out.tsd$yhat + 2 * sqrt(forecast.out.tsd$mse_yhat)
+plot(seq(35,ll,1), yy[35:ll], type="l", ylab = "Combustion", xlab = "Time", main = "1- to 4-step ahead forecasts (in red)", ylim = c(300,420))
+lines(seq(lyy, lyy+k, 1), c(yy[lyy],predictions), lty = 1, col= "red")
+lines(seq(lyy+1, lyy+k, 1), hi, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), lo, lty = 2, col= "red")
+```
+
+
+
+# `image`
+
+
+```{r echo=F, warning=FALSE, message=FALSE}
+image = read_csv("image_data_quarterly.csv", col_names = FALSE)
+names(image) = "image"
+#head(image)
+```
+
+```{r echo=F, message=FALSE}
+image = image %>% mutate(time = seq(1,length(image)))
+image = image[ , c(2,1)]
+diff_image =  tibble( diff_image = diff(image$image)) 
+diff_image = mutate(diff_image, time = seq(1:length(diff_image)))
+second_diff_image = tibble(second_diff_image = diff(image$image,  lag = 2 )) 
+second_diff_image = mutate(second_diff_image, time = seq(1:length(second_diff_image)))
+
+#image
+```
+
+```{r echo =FALSE}
+ggplot(image, aes(x=time, y=image)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Time plot of image")
+```
+
+
+```{r echo =FALSE}
+ggplot(diff_image, aes(x=time, y=diff_image)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Time plot of the first difference of image")
+```
+
+```{r echo =FALSE}
+ggplot(second_diff_image, aes(x=time, y=second_diff_image)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Time plot of the second difference of image")
+```
+
+
+
+```{r echo=FALSE}
+par(mfrow = c(3,2))
+acf(image$image)
+acf(image$image, type="partial")
+acf(diff(image$image))
+acf(diff(image$image), type="partial")
+acf(diff(image$image,lag=2))
+acf(diff(image$image, lag=2), type="partial")
+
+```
+
+We can observe that the plots above indicate that the autocorrelation function of the first difference is significant at lag one. Also, 
+from the time plot of the first difference we clearly see that the series has a change in variance (it is heteroscedastic). So, a LLM would not be a appropriate. Instead a locally quadratic model (LQM) will be fitted.
+
+
+In the LQM it is assumed
+
+$y_t = \mu_t + \epsilon_t$, $\mu_{t+2} = 2 \mu_{t+1} - \mu_t + d_t + \nu_t$, $d_{t+1} = \delta d_t + \eta_t$
+
+where $\{\epsilon_t\}$, $\{\nu_t\}$, $\{\eta_t\}$ are mutually independent white noise processes with variances $\sigma_\epsilon^2$,
+$\sigma_\nu^2$ and $\sigma_\eta^2$.
+
+
+
+# Fitting the LQM for `image`
+
+
+```{r echo = FALSE}
+YY = image$image
+```
+
+
+```{r echo = FALSE}
+#parameter estimation
+source("likelihoodLQMvard")
+min.out.image = nlminb(c(.1,.1,0.7), lik.lqm.vard)
+min.out.image$par
+min.out.image$objective
+
+```
+```{r}
+min.out.image = nlminb(c(.5,.5,0.9), lik.lqm.vard)
+min.out.image$par
+min.out.image$objective
+
+```
+
+
+
+```{r echo=FALSE}
+#Diffuse Kalman Filter
+source("dkfLQMvard")
+dkf.out.image = dkf.lqm.vard(min.out.image$par,image$image)
+```
+
+
+## Estimated parameters
+
+```{r echo=FALSE}
+eps = dkf.out.image$sigma.eps
+gnu = dkf.out.image$sigma.gnu
+eta = dkf.out.image$sigma.eta
+delta = dkf.out.image$delta
+drift = dkf.out.image$gamma.est[3]
+se.drift = sqrt(dkf.out.image$mse.gamma[3,3])
+label=c("$\\sigma_{\\epsilon}$", "$\\sigma_{\\nu}$", "$\\sigma_{\\eta}$", "$\\delta$")
+val = c(eps, gnu, eta, delta)
+tt = data.frame(Parameter = label, Estimate = val)
+kable(tt, escape = F) 
+```
+
+
+
+
+```{r echo=FALSE}
+#The smoothing stage
+source("smfilter")
+sm.out.image = smfilt(dkf.out.image)
+#sm.out.image$alpha
+#sm.out.image$mse.alpha
+```
+
+# Plots of predicted signal
+
+```{r echo=FALSE}
+alpha = sm.out.image$alpha
+#alpha
+mse.alpha = sm.out.image$mse.alpha
+```
+
+```{r echo=FALSE}
+ll = dkf.out.image$ll
+# mu
+Z1 = matrix(c(1,0,0),1,3)
+mu = alpha[1,]
+# beta
+Z2 = matrix(c(1,-1,-0.5),1,3)
+deriv1 = rep(0,ll)
+#intercept
+Z3 = matrix(c(0,0,1), 1, 3)
+deriv2 = alpha[3,] 
+mse.mu = rep(0,ll)
+mse.deriv1 = rep(0,ll)
+mse.deriv2 = rep(0,ll)
+for (i in 1:ll){
+alphai = alpha[,i]  
+deriv1[i] = Z2 %*% alphai
+msealpha = mse.alpha[,(3*i-2):(3*i)]  
+mse.mu[i] = Z1 %*% msealpha %*% t(Z1)
+mse.deriv1[i] = Z2 %*% msealpha %*% t(Z2)
+mse.deriv2[i] = Z3 %*% msealpha %*% t(Z3)
+}
+
+df = tibble(mu, mse.mu, deriv1, mse.deriv1, deriv2, mse.deriv2)
+df = cbind(image, df)
+df = mutate(df, mu.low = mu - 2*sqrt(mse.mu))
+df = mutate(df, mu.hi = mu + 2*sqrt(mse.mu))
+df = mutate(df, deriv1.low = deriv1 - 2*sqrt(mse.deriv1))
+df = mutate(df, deriv1.hi = deriv1 + 2*sqrt(mse.deriv1))
+df = mutate(df, deriv2.low = deriv2 -2*sqrt(mse.deriv2))
+df = mutate(df, deriv2.hi = deriv2 + 2*sqrt(mse.deriv2))
+```
+
+
+```{r echo=FALSE}
+p1 = ggplot(df, aes(x=time, y=image)) +
+  geom_line() +
+  geom_line(aes(x=time, y = mu), col="green") +
+  geom_line(aes(x=time, y = mu.low), linetype = "dashed", col = "green") +
+  geom_line(aes(x=time, y = mu.hi), linetype = "dashed", col = "green") 
+
+p2 = ggplot(subset(df, time>5), aes(x=time, y = deriv1)) +
+  geom_line() +
+  geom_line(aes(x=time, y = deriv1.low), linetype = "dashed", col = "red") +
+  geom_line(aes(x=time, y = deriv1.hi), linetype = "dashed", col = "red") +
+  ylab("first derivative")
+
+p3 = ggplot(subset(df, time >5), aes(x=time, y = deriv2)) +
+  geom_line() +
+  geom_line(aes(x=time, y = deriv2.low), linetype = "dashed", col = "blue") +
+  geom_line(aes(x=time, y = deriv2.hi), linetype = "dashed", col = "blue") +
+  ylab("second deriv")
+
+
+
+grid.arrange(p1, p2, p3, nrow = 2)
+```
+
+
+
+In the above plots, the green solid line has predicted $\mu_t$s. All dotted lines are approximate 95% confidence bands (predicted value$\pm 2\sqrt{mse}$).
+
+
+The "first derivative" is $\mu_t-\mu_{t-1}- 0.5 d_t$ and the "second derivative" is $d_t$. 
+
+Note that for `image` the last few quarters, although the drift is negative, it has started to increase, possibly announcing that the downfall trend is decelerating and may be a period of growth in trend is coming.
+
+\pagebreak
+
+# Residual Analysis
+
+```{r echo=FALSE}
+ee = dkf.out.image$ee
+par(mfrow=c(2,2))
+plot(ee, type= "l")
+acf(ee)
+acf(ee, type = "partial")
+qqnorm(ee)
+```
+
+The plots above don't indicate that the model isn't fitting the data well.
+
+
+## Forecasting
+
+```{r}
+source("forecast")
+k=4
+forecast.out.image = forecast(dkf.out.image, k)
+
+```
+
+```{r}
+yy = image$image
+lyy = length(yy)
+yy_f = c(image$image, forecast.out.image$yhat)
+yy_f
+hi = forecast.out.image$yhat - 2 * sqrt(forecast.out.image$mse_yhat)
+lo = forecast.out.image$yhat + 2 * sqrt(forecast.out.image$mse_yhat)
+plot(yy_f, type="l", ylab = "Combustion", xlab = "Time", main = "1- to 4-step ahead forecasts (in red)")
+lines(seq(lyy+1, lyy+k, 1), hi, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), lo, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), forecast.out.image$yhat, lwd = 2, col= "red")
+
+```
+```{r}
+image$image
+```
+
+## Prediction accuracy
+
+We fit the model for the series except the last four observations and predict the next four observations.
+
+Let $\hat y_{n+i}$ be the predictor of $y_{n+i}$ using $y_1, \dots, y_n$, $i= 1, \dots, k$.
+
+
+
+```{r echo=FALSE}
+source("likelihoodLQMvard")
+source("dkfLQMvard")
+source("forecast")
+
+time_series_data = image$image
+ll = length(time_series_data)
+
+k = 4 #nr of steps-ahead prediction
+
+predictions = c(0, k)
+mse = matrix(0, k)
+err_div_obs = matrix(0, k)
+```
+
+
+  
+```{r echo=FALSE}
+YY = time_series_data[1 : (ll-k)]
+#Parameter estimation
+min.out.tsd = nlminb(c(1,1,0.6), lik.llm.vard)
+#Diffuse Kalman Filter
+dkf.out.tsd = dkf.llm.vard(min.out.tsd$par,YY)
+```
+
+```{r echo=FALSE}
+#forecasting
+source("forecast")
+forecast.out.tsd = forecast(dkf.out.tsd, k)
+aux = forecast.out.tsd$yhat
+predictions = aux 
+mse = ( time_series_data[(ll-k+1) : ll] - aux)^2
+err_div_obs = 1 -  aux / (time_series_data[(ll-k+1) : ll])
+```
+
+
+If $k = 4$, then
+
+
+```{r echo=FALSE}
+YY = image$image
+ll = length(YY)
+y = YY[(ll-4) : ll]
+yhat = c(YY[ll-4], predictions)
+kk = seq(0,4,1)
+tt = data.frame(kk, y, yhat)
+names(tt) = c("$i$", "$y_{n+i}$", "$\\hat y_{n+i}$")
+kable(tt, escape = F) 
+```
+We define $e_{n+i}= y_{n+i} - \hat y_{n+i}$, $i = 1,\dots,k$, the prediction errors.
+Then, the mean squared error of prediction is $\frac 1n \sum_{i=1}^k (e_{n+1})^2$ and the mean absolute percentage error is $\frac 1n \sum_{i=1}^k 100 |e_{n+i}|/|y_{n+i}|$.
+
+
+```{r echo=FALSE}
+MSE=sqrt(mean(mse))
+err = mean(abs(100*err_div_obs))
+```
+
+From the data:
+
+The square root of the Mean Squared Error is `r MSE`.
+
+The mean Absolute Percentage Error is `r err`.
+
+
+```{r echo=FALSE}
+k=4
+yy = image$image
+lyy = length(yy)-k
+hi = forecast.out.tsd$yhat - 2 * sqrt(forecast.out.tsd$mse_yhat)
+lo = forecast.out.tsd$yhat + 2 * sqrt(forecast.out.tsd$mse_yhat)
+plot(yy, type="l", ylab = "Image", xlab = "Time", main = "1- to 4-step ahead forecasts (in red)")
+lines(seq(lyy, lyy+k, 1), c(yy[lyy], predictions), lty = 1, col = "red")
+lines(seq(lyy+1, lyy+k, 1), hi, lty = 2, col = "red")
+lines(seq(lyy+1, lyy+k, 1), lo, lty = 2, col = "red")
+```
+
+Let us zoom-in
+
+
+```{r echo=FALSE}
+yy = image$image
+ll = length(yy)
+lyy = length(yy) - k
+hi = forecast.out.tsd$yhat - 2 * sqrt(forecast.out.tsd$mse_yhat)
+lo = forecast.out.tsd$yhat + 2 * sqrt(forecast.out.tsd$mse_yhat)
+plot(seq(35,ll,1), yy[35:ll], type="l", ylab = "Image", xlab = "Time", main = "1- to 4-step ahead forecasts (in red)", ylim = c(480, 700))
+lines(seq(lyy, lyy+k, 1), c(yy[lyy],predictions), lty = 1, col= "red")
+lines(seq(lyy+1, lyy+k, 1), hi, lty = 2, col= "red")
+lines(seq(lyy+1, lyy+k, 1), lo, lty = 2, col= "red")
+```
+
+
+# A function to predict k-steps ahead
+
+The function `predict` takes as arguments a file name with the data (a text file consisting of a single column with no column names)
+and the number of steps-ahead predictions wanted. It uses a locally quadratic trend model.
+
+For example, for the combustion data, 
+
+```{r}
+source("predict")
+predict.out = predict("combustion_engine_quarterly.csv",4)
+predict.out
+```
+
+```{r}
+print(forecast.out.combustion)
+```
+```{r}
+source("predict")
+predict.out = predict("image_data_quarterly.csv",4)
+predict.out
+```
+
+```{r}
+print(forecast.out.image)
+```
+
+
+
+
+
+
+
