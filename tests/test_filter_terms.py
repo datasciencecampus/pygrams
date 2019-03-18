@@ -16,8 +16,8 @@ class TestDocumentsFilter(unittest.TestCase):
         self.feature_names = tfidf_obj.feature_names
 
     def test_embeddings_filter_binary(self):
-        user_queries = 'pharmacy, health, chemist'
-        weights_vec_expected = [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        user_queries = ['pharmacy', 'health', 'chemist']
+        weights_vec_expected = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
                                 0.0, 0.0, 0.0]
         weights_vec_actual = FilterTerms(self.feature_names, user_queries, threshold=0.8).ngram_weights_vec[410:430]
 
@@ -25,30 +25,31 @@ class TestDocumentsFilter(unittest.TestCase):
         # assert what you like here. ie. first 20 or last 20 values, count of 1s or zeros, etc
 
     def test_embeddings_filter_cosine_dist(self):
-        user_queries = 'pharmacy,  health, chemist'
+        user_queries = ['pharmacy', 'health', 'chemist']
         weights_vec_actual = FilterTerms(self.feature_names, user_queries).ngram_weights_vec[410:430]
-        weights_vec_expected = [0.20709515901628847,
-                                0.20709515901628847,
-                                0.20709515901628847,
-                                0.0,
+        weights_vec_expected = [0.5728331683597565,
+                                0.5728331683597565,
+                                0.5728331683597565,
+                                0.023525821108745026,
                                 0.551300224350135,
                                 0.551300224350135,
                                 0.551300224350135,
                                 0.551300224350135,
                                 0.551300224350135,
-                                0.27164987710129196,
-                                0.27164987710129196,
-                                0.09792939071736236,
-                                0.10161789725328345,
-                                0.35670915168378176,
-                                0.06740994123419917,
-                                0.20015427221498908,
-                                0.14549011491283229,
-                                0.0,
-                                0.006259676100908145,
-                                0.1255539484346405]
+                                0.32695037912444064,
+                                0.3324986904828807,
+                                0.41004053511285365,
+                                0.6309494801963349,
+                                0.6397470276515971,
+                                0.2626750291615634,
+                                0.2626750291615634,
+                                0.47060086220739433,
+                                -0.10829696922978878,
+                                0.19429777744446344,
+                                0.19429777744446344]
 
         assert_list_almost_equal(self, weights_vec_expected, weights_vec_actual)
+
 
 if __name__ == '__main__':
     unittest.main()
