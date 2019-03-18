@@ -27,12 +27,11 @@ class FilterTerms(object):
 
     def __get_embeddings_vec(self, threshold):
         embeddings_vect = []
-        user_terms = self.__user_ngrams
         for term in tqdm(self.__tfidf_ngrams, desc='Evaluating terms distance with: ' + ' '.join(self.__user_ngrams), unit='term',
                          total=len(self.__tfidf_ngrams)):
             compare = []
             for ind_term in term.split():
-                for user_term in user_terms:
+                for user_term in self.__user_ngrams:
                     try:
                         similarity_score = self.__model.similarity(ind_term, user_term)
                         compare.append(similarity_score)

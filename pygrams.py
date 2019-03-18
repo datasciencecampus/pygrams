@@ -19,6 +19,7 @@ def get_args(command_line_arguments):
                                      conflict_handler='resolve')  # allows overridng of arguments
 
     # suppressed:________________________________________
+    parser.add_argument("-tc", "--term-counts", default=False,  action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-ih", "--id_header", default=None, help=argparse.SUPPRESS)
     parser.add_argument("-c", "--cite", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-pt", "--path", default='data', help=argparse.SUPPRESS)
@@ -34,6 +35,7 @@ def get_args(command_line_arguments):
     # tf-idf score mechanics
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help=argparse.SUPPRESS)
+    parser.add_argument("-tst", "--test", default=False, action="store_true", help=argparse.SUPPRESS)
     # end __________________________________________________
 
     # Input files
@@ -80,8 +82,8 @@ def get_args(command_line_arguments):
 
     # OUTPUT PARAMETERS
     # select outputs
-    parser.add_argument("-o", "--output", default=['report'], nargs='*',
-                        choices=['graph', 'wordcloud', 'report', 'termcounts'],  # suppress table output option
+    parser.add_argument("-o", "--output", default=[], nargs='*',
+                        choices=['graph', 'wordcloud'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. "
                              "termcounts represents the term frequency component of tfidf")
 
@@ -122,28 +124,12 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
                         help="analyse using curve or not")
-    parser.add_argument("-tst", "--test", default=False, action="store_true",
-                        help="analyse using test or not")
+
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
     parser.add_argument("-emr", "--emergence", default=['emergent'], choices=['emergent', 'stationary', 'declining'],
                         nargs='+',
                         help="analyse using emergence or not")
-    
-    # options_suppressed_in_help = [
-    #     "-ih", "--id_header",
-    #     "-c", "--cite",
-    #     "-f", "--focus",
-    #     "-pt", "--path",
-    #     "-ih", "--id_header",
-    #     "-fs", "--focus_source",
-    #     "-tn", "--table_name",
-    #     "-j", "--json",
-    #     "-p", "--pick"
-    # ]
-    #
-    # for options in options_suppressed_in_help:
-    #     parser.add_argument(options, help=argparse.SUPPRESS)
 
     args = parser.parse_args(command_line_arguments)
 
@@ -163,8 +149,10 @@ def main(supplied_args):
     argscheck.checkargs()
     outputs = args.output[:]
     outputs.append('json_config')
-    # if args.pick==None:
-    #     args.pick = 'sum'
+    outputs.append('report')
+    if args.term_counts:
+        outputs.append('termcounts')
+
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
 
@@ -178,7 +166,7 @@ def main(supplied_args):
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=('termcounts' in args.output), user_ngrams=args.search_terms,
+                        term_counts=args.term_counts, user_ngrams=args.search_terms,
                         pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
@@ -200,7 +188,7 @@ def main(supplied_args):
 
         term_counts_data = pipeline.term_counts_data
 
-        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curves, m_steps_ahead=args.steps_ahead,
+        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curve_fitting, m_steps_ahead=args.steps_ahead,
                             nterms=args.nterms,
                             minimum_patents_per_quarter=args.minimum_per_quarter)
 
