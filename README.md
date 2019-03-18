@@ -9,14 +9,19 @@
 
 ## Description of tool
 
-This python-based app (`pygrams.py`) is designed to extract popular n-grams, or terms (words or short phrases) from free text within a large (>1000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
+This python-based app (`pygrams.py`) is designed to extract popular or emergent n-grams/terms (words or short phrases) from free text within a large (>1,000) corpus of documents. Example corpora of granted patent document abstracts are included for testing purposes.
 
-The app operates in the following steps:
-
-- A file containing a corpus of documents is selected (defaulting to a 1000 abstract patent file), where each row or list element in a file corresponds to a document. The column for the text to be analysed is specified, and optionally the rows can be filtered by date and by binary entries in specified columns.
-- The core function of the app is to perform TFIDF on the document corpus, optionally specifying minimum and maximum ngrams, and maximum document frequency. The resulting TDIDF matrix (prior to any date filtering) is stored on file.
-- The TFIDF matrix may subsequently be post-processed using a 'mask' comprising document weight vectors and term weight vectors. Document weightings include document length normalisation and time weighting (more recent documents weighted more highly). Term weightings include stop words. The date filtering is also applied at this time.
-- The default 'report' output is a ranked and scored list of 'popular' ngrams. Optional outputs are a graph, word cloud, TFIDF matrix, and weekly terms counts.
+The app pipeline (more details in the user option section):
+1. **[Input Text Data](#input-text-data)** Text data can be input by several text document types (ie. csv, xls, pickled python dataframes, etc) 
+2. **[TFIDF Dictionary](#tfidf-dictionary)**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
+3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
+4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
+   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
+   2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
+5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
+6. **Emergence Calculations** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations or curve fitting. 
+7. **Emergence Forecasts** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
+8. **Outputs** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
 ## Installation guide
 
@@ -62,7 +67,7 @@ pyGrams is command line driven, and called in the following manner:
 python pygrams.py
 ```
 
-### Document Parameters
+### Input Text Data
 
 #### Selecting the document source (-ds, -pt)
 
@@ -91,55 +96,26 @@ To use your own document dataset, either place in the `./data` folder of pyGrams
 
 Datasets should contain the following columns:
 
-|Column			            |	    Required?  |
-| :------------------------ | -------------------:|
-|Unique ID                  |       Yes           |
-|Free text field            |       Yes           |
-|Date                       |       Optional      |
-|Boolean fields (Yes/No)    |       Optional      |
-
-The unique ID field should contain unique identifiers for each row of the dataset. The free text field can be any free text, for example an abstract. The date field should be in the format `YYYY-MM-DD HH:MM:SS`. The boolean fields can be any Yes/No data (there may be multiple)
+|Column			    |      Required?      |        Comments           |
+|:---------------- | ------------------- | -------------------------:|
+|Free text field   |       Yes           | Terms extracted from here |
+|Date              |       Optional      | Compulsory for emergence  |
+|Other headers     |       Optional      | Can filter by content     |
 
 #### Selecting the column header names (-nh, -th, -dh)
 
 When loading a document dataset, you will need to provide the column header names for each, using:
 
-- `-nh`: unique ID column (default is 'id')
 - `-th`: free text field column (default is 'text')
-- `-dh`: date column (default is 'date')
+- `-dh`: date column (default is 'date', format is 'YYYY-MM-DD')
 
 For example, for a corpus of book blurbs you could use:
 
 ```
-python pygrams.py -nh='book_name' -th='blurb' -dh='published_date'
+python pygrams.py -th='blurb' -dh='published_date'
 ```
 
-#### Word filters (-fh, -fb)
-
-If you want to filter results, such as for female, British, authors in the above example, you can specify the boolean (yes/no) column names you wish to filter by, and the type of filter you want to apply, using:
-
-- `-fh`: the list of boolean fields (default is None)
-- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
-
-```
-python pygrams.py -fh=['female','british'] -fb='union'
-```
-
-#### Time filters (-df, -dt)
-
-This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
-
-```
-python pygrams.py -df=2000/01/20
-```
-
-The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
-
-```
-python pygrams.py -df=2000/03/01 -dt=2016/07/31
-```
-
-### TF-IDF Parameters 
+### TFIDF Dictionary
 
 #### N-gram selection (-mn, -mx)
 
@@ -169,20 +145,44 @@ python pygrams.py -mdf 0.05
 
 By using a small (5% or less) maximum document frequency for unigrams, this may help remove generic words, or stop words.
 
-#### TFIDF score mechanics (-p)
 
-By default the TFIDF score will be calculated per n-gram as the sum of the TF-IDF values over all documents for the selected n-gram. However you can select:
+### Document Filters
 
-- `median`: the median value
-- `max`: the maximum value
-- `sum`: the sum of all values
-- `avg`: the average, over non zero values
 
-To choose an average scoring for example, use:
+
+### Term Filters
+
+
+
+
+
+#### Word filters (-fh, -fb)
+
+If you want to filter results, such as for female, British, authors in the above example, you can specify the boolean (yes/no) column names you wish to filter by, and the type of filter you want to apply, using:
+
+- `-fh`: the list of boolean fields (default is None)
+- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
 
 ```
-python pygrams.py -p='avg'
+python pygrams.py -fh=['female','british'] -fb='union'
 ```
+
+#### Time filters (-df, -dt)
+
+This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
+
+```
+python pygrams.py -df=2000/01/20
+```
+
+The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
+
+```
+python pygrams.py -df=2000/03/01 -dt=2016/07/31
+```
+
+### TF-IDF Parameters 
+
 
 #### Normalise by document length (-ndl)
 
