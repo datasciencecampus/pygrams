@@ -88,7 +88,7 @@ For example, to load the 10,000 pickled dataset for patents, use:
 python pygrams.py -ds=USPTO-random-10000.pkl.bz2
 ```
 
-To use your own document dataset, either place in the `./data` folder of pyGrams or change the path using `-pt`. File types currently supported are:
+To use your own document dataset, please place in the `./data` folder of pyGrams. File types currently supported are:
 
 - pkl.bz2: compressed pickle file containing a dataset
 - xlsx: new Microsoft excel format
@@ -103,7 +103,7 @@ Datasets should contain the following columns:
 |Date              |       Optional      | Compulsory for emergence  |
 |Other headers     |       Optional      | Can filter by content     |
 
-#### Selecting the column header names (-nh, -th, -dh)
+#### Selecting the column header names (-th, -dh)
 
 When loading a document dataset, you will need to provide the column header names for each, using:
 
@@ -144,7 +144,7 @@ For example, to set the maximum document frequency to 5% (the default), use:
 python pygrams.py -mdf 0.05
 ```
 
-By using a small (5% or less) maximum document frequency for unigrams, this may help remove generic words, or stop words.
+By using a small (5% or less) maximum document frequency may help remove generic words, or stop words.
 
 #### Config files
 
@@ -249,8 +249,6 @@ Various options are available to control how emergence is forecasted.
 Todo
 
 
-
-
 ### Outputs (-o)
 
 Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud or 'graph summary'.
@@ -292,6 +290,11 @@ A wordcloud, or tag cloud, is a novel visual representation of text data, where 
 #### Graph summary ('graph')
 
 This output provides an interactive HTML graph. The graph shows connections between terms that are generally found in the same documents.
+
+1. semiconductor substrate -> dielectric layer: 0.16, conductive layer: 0.14, insulating film: 0.14, semiconductor structure: 0.13, channel region: 0.13, gate dielectric layer: 0.12, gate electrode: 0.11, doped region: 0.11, gate stack: 0.10, isolation region: 0.09
+2. pharmaceutical composition -> pharmaceutically acceptable salt: 0.82, general formula: 0.22, pharmaceutically acceptable carrier: 0.16, novel compound: 0.16, as define : 0.15, treat disease: 0.15, active ingredient: 0.13, intermediate useful: 0.13, treatment and/or prevention: 0.13, inflammatory disease: 0.13
+3. mobile device -> mobile application: 0.12, mobile device base: 0.12, medium device: 0.08, communication device: 0.08, second mobile device: 0.07, optical imaging lens: 0.06, medium content: 0.06, base station: 0.06, digital content: 0.06, communication network: 0.05
+4. memory cell -> bit line  : 0.61, memory cell array: 0.45, memory device: 0.25, memory array: 0.14, memory block: 0.13, control gate: 0.12, word line : 0.11, flash memory device: 0.11, second memory cell: 0.11, memory cell arrange: 0.10
 
 
 ### Folder structure
