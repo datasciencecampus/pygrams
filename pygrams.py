@@ -6,6 +6,10 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
+predictor_names = ['All', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters',
+                   'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
+                   'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
+                   'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
 
 def get_args(command_line_arguments):
     parser = argparse.ArgumentParser(description="extract popular n-grams (words or short phrases)"
@@ -34,7 +38,8 @@ def get_args(command_line_arguments):
     # end __________________________________________________
 
     # Input files
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2', help="the document source to process")
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2',
+                        help="the document source to process")
     parser.add_argument("-it", "--input_tfidf", default=None,
                         help="Load a pickled TFIDF output instead of creating TFIDF by processing a document source")
 
@@ -56,7 +61,6 @@ def get_args(command_line_arguments):
                         help="The last date for the document cohort in YYYY/MM/DD format")
 
     # TF-IDF PARAMETERS
-
     # ngrams selection
     parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_ngrams", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
@@ -80,7 +84,7 @@ def get_args(command_line_arguments):
     # OUTPUT PARAMETERS
     # select outputs
     parser.add_argument("-o", "--output", default=['report'], nargs='*',
-                        choices=['graph', 'wordcloud', 'report', 'tfidf', 'termcounts'],  # suppress table output option
+                        choices=['graph', 'wordcloud', 'report', 'termcounts'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. "
                              "termcounts represents the term frequency component of tfidf")
 
@@ -102,8 +106,35 @@ def get_args(command_line_arguments):
     parser.add_argument("-cpc", "--cpc_classification", default=None,
                         help="the desired cpc classification (for patents only)")
 
+    # emtech options
+    parser.add_argument("-emt", "--emerging_technology", default=False, action="store_true",
+                        help="denote whether emerging technology should be forecast")
+
+    parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
+                        help="options for predictor algorithms, multiple inputs are allowed, default "
+                             "is to select Linear (2): \n"
+                             "\n".join([f"{index}. {value}\n" for index, value in enumerate(predictor_names)])
+                        )
+
+    parser.add_argument("-nts", "--nterms", type=int, default=25,
+                        help="number of terms to analyse")
+    parser.add_argument("-mpq", "--minimum-per-quarter", type=int, default=20,
+                        help="minimum number of patents per quarter referencing a term")
+    parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
+                        help="number of steps ahead to analyse for")
+
+    parser.add_argument("-cur", "--curves", default=False, action="store_true",
+                        help="analyse using curve or not")
+    parser.add_argument("-tst", "--test", default=False, action="store_true",
+                        help="analyse using test or not")
+    parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
+                        help="analyse using normalised patents counts or not")
+    parser.add_argument("-emr", "--emergence", default=['emergent'], choices=['emergent', 'stationary', 'declining'],
+                        nargs='+',
+                        help="analyse using emergence or not")
+    
     options_suppressed_in_help = [
-        "-ih", "--id_header"
+        "-ih", "--id_header",
         "-c", "--cite",
         "-f", "--focus",
         "-pt", "--path",
@@ -111,13 +142,13 @@ def get_args(command_line_arguments):
         "-fs", "--focus_source",
         "-tn", "--table_name",
         "-j", "--json"
-        ]
+    ]
 
     for options in options_suppressed_in_help:
         parser.add_argument(options, help=argparse.SUPPRESS)
 
     args = parser.parse_args(command_line_arguments)
-    # need to add non None defaults back in if they are required
+
     args.path = 'data'
     return args
 
@@ -138,19 +169,81 @@ def main(supplied_args):
     terms_mask_dict = argscheck.get_terms_mask_dict()
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
-    pickled_tf_idf_path = None if args.input_tfidf is None else os.path.join(args.path, args.input_tfidf)
+
+    if args.input_tfidf is None:
+        pickled_tf_idf_path = None
+    else:
+        pickled_tf_idf_path = os.path.join('outputs', 'tfidf', args.input_tfidf)
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=('termcounts' in args.output),
-                        pickled_tf_idf_file_name=pickled_tf_idf_path, tfidf_output='tfidf' in args.output,
-                        output_name=args.outputs_name)
-
-    if 'tfidf' in outputs:
-        outputs.remove('tfidf')
+                        pickled_tf_idf_file_name=pickled_tf_idf_path,
+                        output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
+
+    # emtech integration
+    if args.emerging_technology:
+        from scripts.pipeline import PipelineEmtech
+
+        if 0 in args.predictor_names:
+            algs_codes = list(range(1, len(predictor_names)))
+        else:
+            algs_codes = args.predictor_names
+
+        if isinstance(algs_codes, int):
+            predictors_to_run = [predictor_names[algs_codes]]
+        else:
+            predictors_to_run = [predictor_names[i] for i in algs_codes]
+
+        term_counts_data = pipeline.term_counts_data
+
+        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curves, m_steps_ahead=args.steps_ahead,
+                            nterms=args.nterms,
+                            minimum_patents_per_quarter=args.minimum_per_quarter)
+
+        for emergence in args.emergence:
+            print(f'Running pipeline for "{emergence}"')
+
+            if args.normalised:
+                title = 'Forecasts Evaluation: Normalised Counts' if args.test else 'Forecasts: Normalised Counts'
+            else:
+                title = 'Forecasts Evaluation' if args.test else 'Forecasts'
+
+            title += f' ({emergence})'
+
+            html_results = pipeline_emtech.run(predictors_to_run, normalized=args.normalised, train_test=args.test,
+                                        emergence=emergence)
+
+            html_doc = f'''<!DOCTYPE html>
+                <html lang="en">
+                  <head>
+                    <meta charset="utf-8">
+                    <title>{title}</title>
+                  </head>
+                  <body>
+                    <h1>{title}</h1>
+                {html_results}
+                  </body>
+                </html>
+                '''
+
+            output_str = 'prediction_results_test' if args.test else 'prediction_results'
+
+            base_file_name = os.path.join('outputs', 'emergence', args.doc_source )
+            base_file_name = base_file_name[:base_file_name.find('.')] + '_' + output_str
+
+            if args.normalised:
+                base_file_name += '_normalised'
+
+            html_filename = base_file_name + '.html'
+
+            with open(html_filename, 'w') as f:
+                f.write(html_doc)
+
+            print()
 
 
 if __name__ == '__main__':
