@@ -36,9 +36,8 @@ def map_prediction_to_emergence_label(results, training_values, test_values, pre
         predicted_emergence[predictor_name] = {}
 
         for test_term in tqdm(test_terms, unit='term', desc='Labelling prediction ' + predictor_name):
-            last_known_value = training_values[test_term][-1]
 
-            counts_to_trend = [last_known_value] + test_values[test_term]
+            counts_to_trend = test_values[test_term]
             max_training_value = max(training_values[test_term])
             normalised_counts_to_trend = [x / max_training_value for x in counts_to_trend]
 
@@ -51,9 +50,7 @@ def map_prediction_to_emergence_label(results, training_values, test_values, pre
         for test_term in tqdm(test_terms, unit='term', desc='Labelling prediction ' + predictor_name):
             (none, configuration, predicted_values, num_training_values) = results[predictor_name][test_term]
 
-            last_known_value = training_values[test_term][-1]
-
-            counts_to_trend = [last_known_value] + predicted_values.ravel().tolist()
+            counts_to_trend = predicted_values.ravel().tolist()
             max_training_value = max(training_values[test_term])
             normalised_counts_to_trend = [x / max_training_value for x in counts_to_trend]
 
