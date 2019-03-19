@@ -188,10 +188,9 @@ def main(supplied_args):
 
         term_counts_data = pipeline.term_counts_data
 
-        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curve_fitting,
-                                         m_steps_ahead=args.steps_ahead,
-                                         nterms=args.nterms,
-                                         minimum_patents_per_quarter=args.minimum_per_quarter, outname=args.outputs_name)
+        pipeline_emtech = PipelineEmtech(term_counts_data, m_steps_ahead=args.steps_ahead, curves=args.curve_fitting,
+                                         nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                                         outname=args.outputs_name)
 
         for emergence in args.emergence:
             print(f'Running pipeline for "{emergence}"')
