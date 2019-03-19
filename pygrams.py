@@ -117,7 +117,7 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-nts", "--nterms", type=int, default=25,
                         help="number of terms to analyse")
-    parser.add_argument("-mpq", "--minimum-per-quarter", type=int, default=20,
+    parser.add_argument("-mpq", "--minimum-per-quarter", type=int, default=15,
                         help="minimum number of patents per quarter referencing a term")
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
@@ -188,10 +188,9 @@ def main(supplied_args):
 
         term_counts_data = pipeline.term_counts_data
 
-        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curve_fitting,
-                                         m_steps_ahead=args.steps_ahead,
-                                         nterms=args.nterms,
-                                         minimum_patents_per_quarter=args.minimum_per_quarter, outname=args.outputs_name)
+        pipeline_emtech = PipelineEmtech(term_counts_data, m_steps_ahead=args.steps_ahead, curves=args.curve_fitting,
+                                         nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                                         outname=args.outputs_name)
 
         for emergence in args.emergence:
             print(f'Running pipeline for "{emergence}"')
@@ -219,7 +218,7 @@ def main(supplied_args):
                 </html>
                 '''
 
-            base_file_name = os.path.join('outputs', 'emergence', args.outputs_name)
+            base_file_name = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence)
 
             if args.normalised:
                 base_file_name += '_normalised'
