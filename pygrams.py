@@ -139,7 +139,7 @@ def get_args(command_line_arguments):
 
 def main(supplied_args):
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
-             os.path.join('outputs', 'table')]
+             os.path.join('outputs', 'table'), os.path.join('outputs', 'emergence')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
