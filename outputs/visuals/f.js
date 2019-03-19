@@ -9,7 +9,7 @@ var svg = d3.select("svg"),
 
 var graph = json_obj[0];
 
-d3.selectAll("g > *").remove()
+    d3.selectAll("g > *").remove();
 //TODO make svg responsive
 d3.select("div#chartId")
     .append("div")
@@ -34,7 +34,8 @@ var simulation = d3.forceSimulation()
     .force("charge", d3.forceManyBody().strength(-100))
     .force("center", d3.forceCenter(width / 2, height / 2))
     .force("collide", d3.forceCollide().radius(function(d) {
-        return 12*radius + padding; }).iterations(40))
+        return 12 * radius + padding;
+    }).iterations(40));
 
 d3.json(dataURL, function(error, graph) {
     if (error) throw error;
@@ -148,6 +149,6 @@ function dragended(d) {
     d.fx = null;
     d.fy = null;
 }
-}
+};
 
-refresh(data)
+refresh(data);

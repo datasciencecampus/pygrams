@@ -1,4 +1,4 @@
-from scripts.algorithms.tfidf import StemTokenizer
+from scripts.text_processing import StemTokenizer
 
 
 class Dice(object):

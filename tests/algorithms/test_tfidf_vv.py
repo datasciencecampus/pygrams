@@ -2,9 +2,11 @@ import statistics
 import unittest
 
 import pandas as pd
+import Levenshtein as Lev
 
 from scripts import FilePaths
-from scripts.algorithms.tfidf import StemTokenizer, TFIDF
+from scripts.text_processing import StemTokenizer
+from scripts.tfidf_wrapper import TFIDF
 from tests.utils.DiceScore import Dice
 from tests.vvcode.abstracts2pickle import us_vv_patents_pickle_name
 
@@ -12,7 +14,7 @@ from tests.vvcode.abstracts2pickle import us_vv_patents_pickle_name
 # Sample abstracts taken from the USPTO Bulk Download Service: https://bulkdata.uspto.gov
 # Data used was downloaded from "Patent Grant Full Text Data"
 
-
+@unittest.skip("these are not unit tests, but a means to optimize tf-idf parameters")
 class TestsSetup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -27,11 +29,14 @@ class TestsSetup(unittest.TestCase):
         cls.dice_u = []
         cls.dice_bi = []
 
-        df = pd.read_pickle(FilePaths.us_patents_random_10000_pickle_name)
+        df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
         test_dataframe = pd.read_pickle(us_vv_patents_pickle_name)
+        cls.test_dataframe = test_dataframe.append(df)
 
-        df.append(test_dataframe)
-        cls.tfidf = TFIDF(df, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer())
+        cls.tfidf = TFIDF(cls.test_dataframe, ngram_range=(2, 3), max_document_frequency=0.3, tokenizer=StemTokenizer())
+        #cls.terms, cls.ngrams_scores_tuple, _ = cls.tfidf.detect_popular_ngrams_in_docs_set()
+        #print()
+
 
 
 # noinspection PyPep8Naming
@@ -48,6 +53,11 @@ class VV_TF_IDF_Tests(TestsSetup):
         cls.dice_u = []
         cls.dice_bi = []
         cls.n_tests = 0
+    
+    def find_idx(self, textin):
+        for i, text in enumerate(self.test_dataframe['abstract']):
+            if Lev.distance(text, textin)/len(text) <0.1:
+                return i
 
     def assertGreaterOrEqualDiceScore(self, expected_terms, actual_termsin):
         dice = Dice(expected_terms, tokenizer=self.common_tokenizer)
@@ -123,7 +133,8 @@ class VV_TF_IDF_Tests(TestsSetup):
             in the refrigerating chamber.'''
 
         expected = ['refrigerator', 'freezing chamber', 'ice making chamber', 'guide channel', 'refrigerating chamber']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -134,7 +145,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         in combination, synergistically bestow sexual wellness upon a human when taken regularly as a dietary 
         supplement. '''
         expected = ['dietary', 'supplement', 'L-arginine', 'ginseng', 'ginkgo', 'biloba', 'nutritional', 'sexual']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         print(
             "test_patent_US07229649_20070612: We lost 'ginseng', 'ginkgo', 'biloba' | are we stopping non-english "
@@ -150,7 +162,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         detected that the secondary battery has been charged in a predetermined manner, 
         the computer forcibly sets the remaining capacity information to “no remaining capacity”.'''
         expected = ['battery', 'pack', 'computer', 'charging', 'secondary', 'capacity', 'secondary battery']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -163,7 +176,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         any such declarations are identified and a determination is made whether the current recipient set is consistent
         with them. If not, changes are made to the current recipient set to render it consistent.'''
         expected = ['message', 'recipients', 'reply', 'participants', 'thread', 'device']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -177,7 +191,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         between the first ESD and the DC link via the first and second DC-DC converters.'''
         expected = ['DC', 'architecture', 'electric', 'drive', 'energy', 'storage', 'device', 'coupled', 'converter',
                     'link', 'DC-DC', 'ESD', 'energy storage', 'electric drive', 'storage device']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -193,7 +208,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         to generate a combined encoded output stream, which is provided as combined video and audio output. '''
         expected = ['video', 'data', 'encoding', 'audio', 'streams', 'input', 'output', 'source', 'video data',
                     'audio input', 'audio source', 'encoded video', 'output stream', 'video output', 'audio output']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -203,7 +219,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         determining a second sequence of states corresponding to a non-surviving path associated with the decision, 
         and defining a possible error event based at least in part on the second sequence of states.'''
         expected = ['recovering', 'sequence', 'data', 'state']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -222,7 +239,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'frequency information', 'microprocessor',
                     'housing', 'lights', 'volume data', 'processor', 'calibrated', 'computer', 'computer program',
                     'peak frequency', 'characteristic frequency', 'video monitor']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -239,7 +257,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['bolted', 'flange', 'spool', 'nuts' 'claws', 'pipe', 'hydraulic', 'rams', 'gasket', 'studs',
                     'bolted flange', 'flange joints', 'flange alignment', 'hydraulic rams', 'indexed carousel']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -252,7 +271,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         abutting surface movable relative to the workpiece caused to abut against the fixed abutting surface of the 
         fixed abutting member. '''
         expected = ['clamping', 'jig', 'suction', 'baseplate', 'abutting member', 'clamping jig', 'abutting surface']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text)
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -267,7 +287,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         trailing-edge detection unit result, whether the aligning member is located at a position at which the end 
         face of the sheet bundle on the trailing-edge side is aligned. '''
         expected = ['detection', 'sheet', 'sheet feeding', 'detection unit']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -280,7 +301,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         In addition, the controller may smoothly reduce the power delivered to the load by the output circuit prior 
         to disabling it, for example to control output glitches. '''
         expected = ['phases', 'regulators', 'multiphase regulators']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -296,7 +318,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         behind the pivot member of the arm rest. '''
         expected = ['pivot', 'passenger seat', 'knee space', 'seat base', 'arm rest', 'pivotal movement',
                     'pivot member', 'seat frame']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -308,7 +331,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         to the inlet. '''
         expected = ['bag', 'closing devices', 'release', 'flow', 'filtering element', 'particles', 'coring phenomenon',
                     'spike', 'ruptures', 'plug', 'inlet', 'safety device', 'liquid flow']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -323,7 +347,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['x-ray tube', 'x-ray', 'tube', 'tube casing assembly', 'vertical mount', 'insulator plate',
                     'cathode', 'eccentric moment', 'semi-compressible element',
                     'incompressible', 'vertical expansion', 'eccentric moment']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -333,7 +358,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         monitoring or prognosing lung cancer are also disclosed. '''
         expected = ['organic compounds', 'butylated hydroxy', 'toluene' 'breath analysis', 'diagnosing', 'monitoring',
                     'prognosing', 'lung cancer', 'cancer']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -342,7 +368,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         associated pain include the administration to the patient of a therapeutically effective amount of a 
         neurotoxin selected from a group consisting of Botulinum toxin types A, B, C, D, E, F and G. '''
         expected = ['treating', 'disease', 'pain', 'administration', 'therapeutically', 'neurotoxin', 'Botulinum toxin']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -366,7 +393,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'triazine', 'sulfonic acid', 'bonds', 'substitude', 'unsubstitute']
 
         print("test_patent_US07862747_20110104: loads of keywords not-detected here. One to watch!")
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -382,7 +410,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         unit of each gear set moves integrally with the other one of the engagement units of an adjacent gear set. '''
         expected = ['transmission', 'rotating shafts', 'gear sets', 'gear', 'shaft', 'transmitting torque', 'torque',
                     'axially', 'engagement units', 'rotational directions', 'rotatable gear']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -394,7 +423,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         request. By such a scheme, shift shock is reduced and responsiveness is enhanced. '''
         expected = ['gear shifting', 'automatic transmission', 'transmission', 'transmission control unit',
                     'turbine speed', 'turbine', 'sport mode shifting', 'shift shock']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -412,7 +442,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['methylbutene', '3-methyl-1-butane', 'distillation', 'aqueous phase', 'organic phase',
                     'primary distillation', 'secondary distillation', 'overhead product', 'bottom product',
                     'monomer', 'comonomer', 'polymer', 'copolymer']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -426,7 +457,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         active member and the passive wax member. '''
         expected = ['thermally actuated valve', 'valve fitting', 'passive', 'movement control mechanism',
                     'valve body', 'wax member', 'active member']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -437,7 +469,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         restricted among a plurality of applications installed in the portable terminal, and restricting a running of 
         the selected at least one application. '''
         expected = ['portable terminal', 'application', 'control information']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -451,7 +484,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         negative voltage source is disconnected, and the coil discharges positive voltage into the capacitor. The 
         high voltage source tops off the capacitor with positive voltage to repeat the cycle. '''
         expected = ['constant current', 'energizing coil', 'magnetic detector', 'discharge', 'capacitor']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -467,7 +501,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         function at least moderately governed by resistance when the electrode is in the dental neck region. 
         Optionally, the first electrode inserted into the root canal is a dental file or reamer. '''
         expected = ['apical', 'root canal', 'electrode', 'dental neck', 'reamer', 'dental file', 'dental']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -476,7 +511,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         present invention particularly relates to the soybean variety WN1116094-1 and its progeny, and methods of 
         making WN1116094-1. '''
         expected = ['soybean', 'soybean variety WN1116094-1', 'WN1116094-1', 'breeding']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -490,7 +526,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         first list recipients, the sender, and the first group members comply with a set of communication rules. '''
         expected = ['recipients', 'recepients communication', 'communication rules', 'recommended recipients',
                     'communication']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -508,7 +545,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['enterprise resource planning', 'ERP', 'cooperative buying group', 'demand schedule',
                     'product demand', 'product availability', 'manufacturer/original source',
                     'procurement system', 'ordering products', 'shipping product']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -525,7 +563,8 @@ class VV_TF_IDF_Tests(TestsSetup):
             Porosity(%)={1−(volume of electrode material)/(apparent volume of electrode)}×100'''
         expected = ['electrode', 'slurry', 'slurry drying', 'aluminium porous body', 'continuous pores',
                     'electrochemical element', 'porosity', 'porous body']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -537,7 +576,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         face of the first recess and the surface of the substrate is rounded on a side of the drain region close to 
         the gate insulating film. '''
         expected = ['Electric-field concentration', 'gate insulating film', 'recess', 'drain region', 'insulating film']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -555,7 +595,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         monitoring of an application. '''
         expected = ['performance monitoring', 'mobile device', 'instrumentation tool', 'application file',
                     'instrumented application file', 'performance log', 'configuration file']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -568,7 +609,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         the rods ( 78 - 1, 2 ) push the back surface of the slide table against the vertical face of the support. 
         Therefore, the axis of the stem is held matched with the axis of the container. '''
         expected = ['stem slide device', 'extruder', 'billet', 'slide table', 'hydraulic cylinders']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -583,7 +625,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         data of the block, and a second arrangement data indicating arrangement of the whole optical information is 
         generated by combining the generated respective first arrangement data. '''
         expected = ['optical information', 'imaging device', 'pixel arrangement direction']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -598,7 +641,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         message is broadcast to the nodes to cause the nodes to commit to a failover and un-queue their I/O. '''
         expected = ['I/O', 'I/O path failure detection', 'distributed computer system', 'cluster', 'I/O failure',
                     'message broadcast', 'failover', 'plurality of nodes']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -613,7 +657,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         gas-purification system and the purified reformate supplied to the fuel cell unit. '''
         expected = ['fuel cell', 'gas-generating system', 'reforming unit', 'reforming', 'hydrogen-rich reformate',
                     'reformate', 'reforming reactor', 'mixing element', 'gas-purification system']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -626,7 +671,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         signal quality for the possible receive dipoles. '''
         expected = ['implantable medical device', 'medical device', 'receive dipoles', 'pair of electrodes',
                     'signal quality']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -639,7 +685,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         of vater so that digestive fluids from the papilla of vater enter the second channel. '''
         expected = ['inducing weight loss', 'duodenum', 'chyme', 'digestive fluids', 'papilla of vater',
                     'elongated element']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -656,7 +703,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         at a start of touch, the process corresponding to the selected item is not executed. '''
         expected = ['information processing', 'touch panel', 'menu selection', 'direction key', 'execution key',
                     'touch', 'execution', 'selected item']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -672,7 +720,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         heat-generating element. '''
         expected = ['heat', 'mounting', 'chamber', 'fluid', 'airtight', 'heat dissipation', 'airtight state',
                     'heat generating']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -684,7 +733,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['meter reading system', 'meter', 'head end controller', 'utility meter', 'RF communication',
                     'clock', 'clock countdown signal', 'clock countdown', 'sequence inversion keying',
                     'sequence inversion', 'inversion', 'utility', 'signal']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -698,7 +748,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['transceiver', 'memory', 'processing power', 'transmitter', 'receiver', 'latency paths', 'latency',
                     'interleaver/deinterleaver', 'BER', 'impulse', 'impulse noise protection', 'impulse',
                     'communications system']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -714,7 +765,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         management information ( 341 ) in place of the management computer ( 100 ). '''
         expected = ['I/O', 'management', 'virtualization app_bridge', 'monitoring', 'backup', 'control', 'transmitted',
                     'packets', 'I/O device', 'virtual', 'virtual functions', 'backup management information']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -731,7 +783,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['forward error', 'error', 'configurable latency', 'configurable', 'Bit Error Rate', 'latency',
                     'algorithm', 'utilization', 'configurable buffer locations', 'buffer', 'configurable buffer',
                     'locations', 'BER', 'target']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -747,7 +800,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['computer-implemented', 'process', 'computer program', 'apparatus', 'identifying', 'session',
                     'recording', 'operation', 'sequence', 'identification information', 'Responsive', 'determination',
                     'operation sequence', 'identfier', 'identified differences']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -760,7 +814,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         and the second end of the diagnostic cable is connected to the first port. '''
         expected = ['processor', 'communication', 'port', 'diagnostic cable', 'diagnostic', 'electronic control',
                     'electronic', 'vehicle', 'configured', 'selectively']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -771,7 +826,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         addresses. A bus unit communicates with the L2 cache and with the bus. '''
         expected = ['digital', 'bus', 'employs', 'physical', 'core', 'processing core', 'L1', 'cache', 'L2', 'indexed',
                     'virtual addresses', 'virtual', 'tagged', 'addresses']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -784,7 +840,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         disengaged from the implement so that the implement can be demounted from the body. '''
         expected = ['apparatus', 'prime mover', 'prime', 'body', 'mounted', 'implement', 'connection', 'locking member',
                     'locking', 'adapted', 'disengaged', 'demounted']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -794,7 +851,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         into a non-volatile memory providing availability during a boot process. '''
         expected = ['virtual', 'virtual EEPROM driver', 'EEPROM', 'driver', 'virtual switch', 'simulated', 'memory',
                     'memory device', 'duplicated', 'non-volatile', 'boot process']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -803,7 +861,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         administering a delayed-release dosage form of a glucocorticoid to a subject in need thereof. '''
         expected = ['treatment', 'rheumatic disease', 'rheumatic', 'osteoarthritis', 'delayed-release', 'dosage',
                     'glucocorticoid', 'subject']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -819,7 +878,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['Protective', 'barriers', 'ceilings', 'construction', 'roofs', 'protective barriers', 'material',
                     'seams', 'fail', 'temperatures', 'melting', 'destructive', 'access points', 'water', 'fire',
                     'fire suppression']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -835,7 +895,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['interchangeable', 'bearing', 'wheel', 'hub', 'tapered roller bearings', 'tapered', 'roller',
                     'outer ring', 'inner ring', 'ring', 'respective', 'assemble', 'tools', 'cylindrical extension',
                     'cylindrical', 'coaxially', 'retaining', 'retaining element', 'axially fixes']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -849,7 +910,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         element management system in SNMP messages. '''
         expected = ['controller', 'test', 'Signaling', 'SNMP', 'Network', 'customer gateway', 'customer', 'Local loop',
                     'Emulation', 'LES-EOC', 'subscriber', 'gateway', 'network', 'Service']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -861,7 +923,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         thus improving pullback of the line-ends of the strip pattern in the main pattern. '''
         expected = ['mask', 'pattern', 'substrate', 'strip', 'strip feature', 'optical transmission', 'optical',
                     'transmission', 'optimize', 'critical', 'dimension', 'line-ends']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -878,7 +941,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['phospher', 'wheel', 'rotating disk', 'wavelength', 'rotating', 'coating', 'non-coating',
                     'converting', 'light beam', 'projection device', 'phospher wheel', 'recess', 'temperature',
                     'dynamic balance', 'dynamic', 'heat dissipating', 'heat']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -895,7 +959,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         adaptable. '''
         expected = ['apparatus', 'driving', 'plasma display panel', 'plasma', 'gradation', 'pixels', 'subfields',
                     'sequentially', 'idle', 'sustain period', 'gradation weights', 'visual', 'adaptable']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -913,7 +978,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['portable', 'apparatus', 'oil', 'rotating', 'wheel', 'vehicle', 'sensor', 'transmitter', 'wireless',
                     'signals', 'receiver', 'mounting', 'magnet', 'rotating element', 'indicium', 'correlates',
                     'angular', 'reference position', 'oil port']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -928,7 +994,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         to the direction of the deflection of the actuating element ( 1 ). '''
         expected = ['valve', 'deflectable', 'actuating element', 'sealing', 'contour', 'elastic', 'deflection', 'force',
                     'piezoelectric', 'transducer', 'perpendicularly']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -942,7 +1009,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         ion beam. '''
         expected = ['ridge', 'cutting edge', 'intersecting', 'gas', 'gas cluster', 'ion', 'ion beam', 'irradiation',
                     'perpendicularly']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -955,7 +1023,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['Phytoceutical', 'treatment', 'circulatory disorders', 'feminine', 'endocrine', 'disorders',
                     'dermal disorders', 'extracts', 'plants', 'forumulations', 'categorizing', 'Energy',
                     'Bio-Intelligence', 'synergistic', 'side effects']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -972,7 +1041,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         timing information. '''
         expected = ['defect', 'semiconductor', 'semiconductor device', 'signature', 'radiation', 'circuitry',
                     'correlation', 'laser beam', 'laser', 'Asynchronous']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -985,7 +1055,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         and to decide the next combination in accordance with the results of the battle. Each client system  1  has its own character select function and chat function when watching games.'''
         expected = ['client', 'system', 'server', 'database', 'battle', 'battle group', 'chat', 'game', 'function',
                     'client system', 'server system', 'battle combination', 'chat function']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1001,7 +1072,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'interleav', 'assign', 'insert', 'signal', 'phase', 'subcarrier', 'carrier', 'continuous',
                     'communication system', 'null symbol', 'band assign', 'phase change', 'training symbol',
                     'pilot symbol', 'map', 'map data']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1010,7 +1082,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         of the input detected by the touch panel, and a pull manipulation judging unit which, when an input to an input detection surface which is a surface on which the touch panel 
         is placed, makes effective the Z coordinate in the direction perpendicular to the input detection surface among the input coordinates detected by the coordinates acquiring unit.'''
         expected = ['input', 'touch', 'panel', 'touch panel', 'coordinate', 'Z']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1023,7 +1096,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         In addition, to improve the efficiency at which containers may be stacked, the disclosure describes that containers and/or the picking of items for those containers may be 
         sequenced so that the containers, when packed and routed, arrive in a manner that allows efficient stacking.'''
         expected = ['stack', 'container', 'configur', 'sequenc', 'transportation unit', 'transportation']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1039,7 +1113,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         out manual focus control based on a rotation position, wherein the lens interchangeable type camera system further comprises a function restriction section that sets operation of the 
         second control section to valid or invalid.'''
         expected = ['lens', 'camera', 'interchangeable', 'focus', 'rotation', 'manual focus']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1050,7 +1125,8 @@ class VV_TF_IDF_Tests(TestsSetup):
          an up or down position, and can be switched between positions while the coupler is attached to the subject's head. The ear coupler advantageously conforms to the subject's head, thereby minimizing the likelihood that the ear coupler will become detached during testing. The coupler can be inexpensively manufactured, since its one-piece design allows the use of relatively low-cost processes such as injection molding and thermoforming.'''
         expected = ['ear', 'coupler', 'hear', 'evaluat', 'transducer', 'head', 'acoustic chamber', 'flange',
                     'transducer assembly', 'ear coupler']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1062,7 +1138,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         2 ; and a synthetic resin-made sliding bearing piece  5  disposed in a space  4  between the upper casing  2  and the lower casing  3.'''
         expected = ['synthetic', 'resin', 'thrust', 'slid', 'bearing', 'vehicle body', 'mounting member',
                     'circumferential direction']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1076,7 +1153,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         for each region. Neighboring regions are then iteratively merged to create progressively larger regions, until only a single region remains, wherein upon merging any neighboring regions 
         to form a larger merged region, the floorplans of the neighboring regions are merged and refined to create a floorplan for the merged region.'''
         expected = ['circuit', 'floorplan', 'module', 'integrated circuit']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1092,7 +1170,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['hCFTR', 'expression', 'cystic fibrosis', 'lung', 'therapy', 'lung therapy', 'mRNA', 'eukaryotic',
                     'cassette', 'prokaryotic', 'backbone', 'gene', 'transfer', 'transcript', 'codon', 'CpG', 'CTFR',
                     'CO-CTFR', 'vector', "BGH", 'UbC', 'promoter', 'sequence', 'modification']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1110,7 +1189,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['automatic', 'toy', 'gun', 'air', 'air stream', 'fan', 'rapid firing', 'toy gun', 'projectiles',
                     'barrel']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1124,7 +1204,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         modifying the at least one parameter in the reference system for modeling the second surface; and recording the second surface in a memory of the computer.'''
 
         expected = ['computer', 'memory', 'axis', 'surface', 'reconstruct', 'axisymmetrical surface', 'coordinate']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1139,7 +1220,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['impulse', 'event', 'separat', 'input', 'signal', 'input signal', 'frame', 'frequency', 'band',
                     'sub-band', 'power', 'variation', 'phase', 'onset', 'local', 'global']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1154,7 +1236,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['packet', 'communicat', 'address', 'in-band', 'signaling', 'circuit-switched', 'network', 'call',
                     'gateway', 'network gateway', 'network']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1166,7 +1249,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         second fastening part becomes broader than a distance between the first umbilical member-use first fastening part and the second umbilical member-use first fastening part.'''
 
         expected = ['umbilical', 'umbilical member', 'fastening part', 'reference posture']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1178,7 +1262,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         standalone apparatuses are networked to other standalone apparatuses. User workstations and central control panels resident on the watering apparatus network, or a third-party 
         network interfaced to the network, allow liquid consumption to be monitored, controlled, and quantified both locally and remotely.'''
         expected = ['liquids', 'monitoring', 'dispensing', 'drinking assembly', 'animals']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1188,7 +1273,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         implementations, and function table-based implementations, and can use a number of modes, such as nearest neighbor, bilinear and cubic convolution.'''
         expected = ['data resampling', 'samples', 'parallel implementations', 'matrix-based', 'nearest neighbour',
                     'bilinear', 'cubic convolution']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1201,7 +1287,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['elevator', 'elevator car', 'flat-belt-type', 'suspension', 'suspension devices',
                     'parallel vertical planes', 'horizontal axes', 'suspension-sheave', 'axles']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1214,7 +1301,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['recording device', 'optical', 'circumference', 'radial direction', 'recording light',
                     'reflected light', 'reference surface']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1224,7 +1312,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['dental', 'polymerizable', 'bisphosphonic', 'acid', 'bisphosphonic acid', 'adhesive', 'cement',
                     'composite']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1236,7 +1325,8 @@ class VV_TF_IDF_Tests(TestsSetup):
 
         expected = ['fiber', 'optic', 'fiber optic', 'seismic', 'sens', 'downhole', 'reservoir', 'imaging', 'survey',
                     'profil', 'micro-seismic', 'monitor', 'fluid', 'VSP']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1252,7 +1342,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'boresighting', 'lens', 'parallax', 'sighting accuracy', 'target acquisition', 'laser diode',
                     'reflective coating',
                     'parabolic lens', 'aim', 'color distortion', 'element', 'target', 'optical element']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1261,7 +1352,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         data from experts in an industry, combining the subjective data and determining from the combined subjective 
         data which market scenario will apply to the industry in the future. '''
         expected = ['industry', 'market', 'subjective data', 'data', 'market scenario']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1276,7 +1368,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'automatic transmissions', 'transmissions', 'shaft', 'transmission shaft', 'lever',
                     'flexible lever',
                     'wheel', 'cam', 'bi-directional motor', 'motor']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1287,7 +1380,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['computer', 'self-captured video', 'video', 'educational', 'job performance', 'job', 'employees',
                     'video optimizations',
                     'optimizations', 'compressions']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1305,7 +1399,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['surgical', 'apparatus', 'surgical apparatus', 'tissue', 'treating', 'effector', 'jaws',
                     'clip application mode',
                     'clip', 'coagulate tissue', 'coagulation mode', 'bipolar coagulator']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1322,7 +1417,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'Traffic Engineering', 'traffic', 'engineering', 'Label Switched Path', 'plurality', 'domains',
                     'network',
                     'constraint', 'algorithm', 'starting nodes', 'nodes', 'ending nodes']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1334,7 +1430,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['integrated circuit package', 'stack', 'integrated circuit', 'circuit', 'circuit package system',
                     'system',
                     'substrate', 'mechanically', 'electrically', 'passive component', 'passive', 'layer stack']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1347,7 +1444,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['array', 'current', 'reference cell', 'cell', 'temperature', 'element', 'inversion',
                     'spin transfer', 'plurality',
                     'program drivers', 'drivers', 'sense amplifier', 'amplifier']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1363,7 +1461,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'elastically flexible section', 'flexible section', 'introduction plates', 'recess', 'machine',
                     'machine parts', 'drum',
                     'plate', 'tool']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1378,7 +1477,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['clock', 'generator', 'clock generator', 'Phase Noise clocks', 'phase', 'noise', 'Radio Frequency',
                     'radio',
                     'frequency', 'mixer', 'system', 'generator units', 'unit', 'product']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1395,7 +1495,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'memory controller',
                     'controller', 'transmit', 'signal', 'circuit', 'locking delay', 'synchronization', 'read data',
                     'time']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1412,7 +1513,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['platforms', 'ports', 'mobile structure', 'formworks', 'piles', 'supporting device', 'coupling',
                     'lattice',
                     'supporting beam', 'latching bars', 'mobile']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1429,7 +1531,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'operating system', 'system', 'exposure component', 'exposure', 'component', 'applications',
                     'third parties',
                     'sensitive', 'local device', 'device user']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1447,7 +1550,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['inkjet', 'recording apparatus', 'apparatus', 'ink', 'images', 'viscosity', 'recording medium',
                     'medium',
                     'surface']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1462,7 +1566,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['fiber', 'fiber-coupled', 'optical', 'device', 'optical device', 'alignment housing', 'housing',
                     'retainer', 'segment', 'optical component', 'component', 'fiber groove', 'groove', 'connector',
                     'alignment']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1481,7 +1586,8 @@ class VV_TF_IDF_Tests(TestsSetup):
                     'monitoring', 'packet flows', 'operating system', 'operating', 'system', 'circular array', 'array',
                     'elements',
                     'time', 'pointers', 'computing', 'index', 'technique']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1495,7 +1601,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['apparatus', 'telephone calls', 'telephone', 'calls', 'operation', 'user preferences', 'user',
                     'incoming calls', 'incoming', 'database', 'telecommunications system', 'telecommunications',
                     'system', 'server', 'caller']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1509,7 +1616,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         “national road.” '''
         expected = ['guiding', 'display', 'display target', 'target', 'photograph', 'display', 'route', 'data', 'road',
                     'color', 'coordinates', 'points', 'region', 'route data']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
@@ -1522,7 +1630,8 @@ class VV_TF_IDF_Tests(TestsSetup):
         expected = ['ceramic', 'metal', 'composite', 'composite material', 'material', 'reacted', 'aluminium',
                     'silicon carbide',
                     'binding', 'agent', 'binding agent', 'silica', 'alloy']
-        actual = self.tfidf.extract_popular_ngrams(text)
+        idx = self.find_idx(text) 
+        actual = self.tfidf.detect_popular_ngrams_in_docs_set(docs_set=[idx])
 
         self.assertGreaterOrEqualDiceScore(expected, actual)
 
