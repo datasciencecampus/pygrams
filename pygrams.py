@@ -219,13 +219,13 @@ def main(supplied_args):
                 </html>
                 '''
 
-            output_str = 'prediction_results_test' if args.test else 'prediction_results'
-
-            base_file_name = os.path.join('outputs', 'emergence', args.doc_source )
-            base_file_name = base_file_name[:base_file_name.find('.')] + '_' + output_str
+            base_file_name = os.path.join('outputs', 'emergence', args.outputs_name)
 
             if args.normalised:
                 base_file_name += '_normalised'
+
+            if args.test:
+                base_file_name += '_test'
 
             html_filename = base_file_name + '.html'
 
