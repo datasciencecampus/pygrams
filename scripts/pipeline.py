@@ -168,7 +168,7 @@ class Pipeline(object):
 # 'USPTO-granted-full-random-500000-term_counts.pkl.bz2'
 class PipelineEmtech(object):
     def __init__(self, doc_source_file_name, term_counts_data, m_steps_ahead=5, curves=True, nterms=50,
-                 minimum_patents_per_quarter=20):
+                 minimum_patents_per_quarter=20, outname=None):
         self.__M = m_steps_ahead
 
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
@@ -224,23 +224,31 @@ class PipelineEmtech(object):
         stationary_start_index = zero_pivot_emergence - nterms // 2
         stationary_end_index = zero_pivot_emergence + nterms // 2
         self.__stationary = [x[0] for x in self.__emergence_list[stationary_start_index:stationary_end_index]]
+        filename_and_path = path.join('outputs', 'reports', outname + '_emergence.txt')
+        with open(filename_and_path, 'w') as file:
+            print()
+            print('Emergent')
+            file.write('Emergent\n')
+            for tup in self.__emergence_list[:nterms]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1])+ '\n')
+            print()
+            file.write('\n')
+            print('Stationary')
+            file.write('Stationary\n')
+            for tup in self.__emergence_list[stationary_start_index:stationary_end_index]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]) + '\n')
+            print()
+            file.write('\n')
 
-        print()
-        print('Emergent')
-        for tup in self.__emergence_list[:nterms]:
-            print(tup[0] + ": " + str(tup[1]))
-        print()
-
-        print('Stationary')
-        for tup in self.__emergence_list[stationary_start_index:stationary_end_index]:
-            print(tup[0] + ": " + str(tup[1]))
-        print()
-
-        print('Declining')
-        for tup in self.__emergence_list[-nterms:]:
-            print(tup[0] + ": " + str(tup[1]))
-        print()
-
+            print('Declining')
+            file.write('Declining'+ '\n')
+            for tup in self.__emergence_list[-nterms:]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1])+ '\n')
+            print()
+            file.write('\n')
         # construct a terms list for n emergent n stationary? n declining
 
     def run(self, predictors_to_run, emergence, normalized=False, train_test=False):

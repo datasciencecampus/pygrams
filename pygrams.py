@@ -139,7 +139,7 @@ def get_args(command_line_arguments):
 
 def main(supplied_args):
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
-             os.path.join('outputs', 'table')]
+             os.path.join('outputs', 'table'), os.path.join('outputs', 'emergence')]
     for path in paths:
         os.makedirs(path, exist_ok=True)
 
@@ -188,9 +188,10 @@ def main(supplied_args):
 
         term_counts_data = pipeline.term_counts_data
 
-        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curve_fitting, m_steps_ahead=args.steps_ahead,
-                            nterms=args.nterms,
-                            minimum_patents_per_quarter=args.minimum_per_quarter)
+        pipeline_emtech = PipelineEmtech(doc_source_file_name, term_counts_data, curves=args.curve_fitting,
+                                         m_steps_ahead=args.steps_ahead,
+                                         nterms=args.nterms,
+                                         minimum_patents_per_quarter=args.minimum_per_quarter, outname=args.outputs_name)
 
         for emergence in args.emergence:
             print(f'Running pipeline for "{emergence}"')
