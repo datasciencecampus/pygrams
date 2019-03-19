@@ -16,10 +16,25 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import TFIDF
 from scripts.utils import utils
-from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
+
+
+def checkdf( df, emtec, docs_mask_dict, text_header):
+    app_exit = False
+
+    if emtec or docs_mask_dict['time'] or docs_mask_dict['date'] is not None:
+        if docs_mask_dict['date_header'] not in df.columns:
+            print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
+            app_exit = True
+
+    if text_header not in df.columns:
+        print(f"text_header '{text_header}' not in dataframe")
+        app_exit = True
+
+    if app_exit:
+        exit(0)
 
 
 def remove_empty_documents(data_frame, text_header):
@@ -46,6 +61,8 @@ class Pipeline(object):
         if pickled_tf_idf_file_name is None:
 
             self.__dataframe = datafactory.get(data_filename)
+            checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header)
+
             remove_empty_documents(self.__dataframe, text_header)
             self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
                                      max_document_frequency=max_df, tokenizer=LemmaTokenizer())
