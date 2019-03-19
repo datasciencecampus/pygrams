@@ -117,7 +117,7 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-nts", "--nterms", type=int, default=25,
                         help="number of terms to analyse")
-    parser.add_argument("-mpq", "--minimum-per-quarter", type=int, default=20,
+    parser.add_argument("-mpq", "--minimum-per-quarter", type=int, default=15,
                         help="minimum number of patents per quarter referencing a term")
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
