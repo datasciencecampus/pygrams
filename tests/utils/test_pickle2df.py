@@ -52,8 +52,8 @@ class TestPatentsPickle2DataFrame(unittest.TestCase):
 
         self.assertEqual(1, data_frame.shape[0])
         self.assertEqual('patent 2', data_frame.loc[0].invention_title)
-        self.assertEqual('Sifting patents between 01-Jan-1999 and 07-Jul-2007\n'
-                         '1 patents available after publication date sift\n', self.print_output)
+        self.assertEqual('Sifting documents between 01-Jan-1999 and 07-Jul-2007\n'
+                         '1 documents available after date sift\n', self.print_output)
 
     def test_filters_by_from_date_if_not_None(self):
         date_from = '2003-01-22'
@@ -70,5 +70,5 @@ class TestPatentsPickle2DataFrame(unittest.TestCase):
         self.assertEqual(2, data_frame.shape[0])
         self.assertEqual('patent 1', data_frame.loc[0].invention_title)
         self.assertEqual('patent 3', data_frame.loc[1].invention_title)
-        self.assertEqual('Sifting patents between 22-Jan-2003 and 01-Feb-2020\n'
-                         '2 patents available after publication date sift\n', self.print_output)
+        self.assertEqual('Sifting documents between 22-Jan-2003 and 01-Feb-2020\n'
+                         '2 documents available after date sift\n', self.print_output)

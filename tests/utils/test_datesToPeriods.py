@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 
-from scripts.utils.datesToPeriods import tfidf_with_dates_to_weekly_term_counts
+from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
 
 
 class test_usptoDatesToPeriods(unittest.TestCase):
