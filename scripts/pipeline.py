@@ -24,7 +24,7 @@ from scripts.vandv.predictor import evaluate_prediction
 def checkdf( df, emtec, docs_mask_dict, text_header):
     app_exit = False
 
-    if emtec or docs_mask_dict['time'] or docs_mask_dict['date']:
+    if emtec or docs_mask_dict['time'] or docs_mask_dict['date'] is not None:
         if docs_mask_dict['date_header'] not in df.columns:
             print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
             app_exit = True
@@ -61,7 +61,7 @@ class Pipeline(object):
         if pickled_tf_idf_file_name is None:
 
             self.__dataframe = datafactory.get(data_filename)
-            checkdf(self.__dataframe, emerging_technology, docs_mask_dict['date_header'], text_header)
+            checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header)
 
             remove_empty_documents(self.__dataframe, text_header)
             self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
