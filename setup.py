@@ -55,7 +55,7 @@ def setup_package():
         ],
         install_requires=['matplotlib', 'numpy', 'scipy', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn', 'xlrd',
                           'python-Levenshtein', 'gensim', 'pyramid-arima>=0.9.0', 'keras', 'tensorflow', 'keras_tqdm',
-                          'patsy', 'humanfriendly'],
+                          'patsy', 'humanfriendly', 'psutil'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
         python_requires='>=3.6',
     )
