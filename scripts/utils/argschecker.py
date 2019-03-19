@@ -95,39 +95,10 @@ class ArgsChecker:
             print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
             app_exit = True
 
-        if app_exit:
-            exit(0)
-
-    def checkdf(self, df):
-        app_exit = False
-
-        if self.args.id_header is None:
-            print(f"id_header not provided, will construct an id column")
-            df.insert(0, 'id', range(0, 0 + len(df)))
-            self.args.id_header = 'id'
-            app_exit = False
-
-        if self.args.id_header not in df.columns:
-            print(f"id_header '{self.args.id_header}' not in dataframe")
-            app_exit = True
-
-        if self.args.text_header not in df.columns:
-            print(f"text_header '{self.args.text_header}' not in dataframe")
-            app_exit = True
-
-        if isinstance(self.args.year_from, str):
-            if self.args.date_header not in df.columns:
-                print(f"date_header '{self.args.date_header}' not in dataframe")
-                app_exit = True
-
-        if isinstance(self.args.year_to, str):
-            if self.args.date_header not in df.columns:
-                print(f"date_header '{self.args.date_header}' not in dataframe")
-                app_exit = True
-
-        if 'termcounts' in self.args.output:
-            if self.args.date_header not in df.columns:
-                print(f"Cannot output termcounts without a specifying a date column")
+        if self.args.emerging_technology:
+            if self.args.date_header is None:
+                print(f"date_header is None")
+                print(f"Cannot calculate emergence without a specifying a date column")
                 app_exit = True
 
         if app_exit:
