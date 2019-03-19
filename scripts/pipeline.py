@@ -21,13 +21,12 @@ from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
 
 
-def checkdf( df, emtec, date_header, text_header):
+def checkdf( df, emtec, docs_mask_dict, text_header):
     app_exit = False
 
-    if emtec:
-        if date_header not in df.columns:
-            print(f"date_header '{date_header}' not in dataframe")
-            print(f"Cannot calculate emergence without a specifying a date column")
+    if emtec or docs_mask_dict['time'] or docs_mask_dict['date']:
+        if docs_mask_dict['date_header'] not in df.columns:
+            print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
             app_exit = True
 
     if text_header not in df.columns:
