@@ -207,9 +207,9 @@ def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
     last_patent_date = iso_to_gregorian(weekly_iso_dates[-1])
     html_string += f'Patents from {first_patent_date:%d %B %Y} to {last_patent_date:%d %B %Y}.<p/>\n'
 
-    html_string += 'Note that any NaN results will be ignored when calculating standard deviation<p/>\n'
-
     if test_forecasts:
+        html_string += 'Note that any NaN results will be ignored when calculating standard deviation<p/>\n'
+
         rmse_html_string, rmse_df = create_html_table(predictor_names, results, test_terms, test_values,
                                                       training_values,
                                                       'Relative RMSE', extract_relative_rmse,
