@@ -167,14 +167,12 @@ class Pipeline(object):
 
 # 'USPTO-granted-full-random-500000-term_counts.pkl.bz2'
 class PipelineEmtech(object):
-    def __init__(self, doc_source_file_name, term_counts_data, m_steps_ahead=5, curves=True, nterms=50,
-                 minimum_patents_per_quarter=20, outname=None):
+    def __init__(self, term_counts_data, m_steps_ahead=5, curves=True, nterms=50, minimum_patents_per_quarter=20,
+                 outname=None):
         self.__M = m_steps_ahead
 
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
          self.__weekly_iso_dates] = term_counts_data
-        self.__output_folder = path.join('outputs', 'emtech')
-        self.__base_file_name = path.basename(doc_source_file_name + '-term_counts.pkl.bz2')
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
 
@@ -269,15 +267,11 @@ class PipelineEmtech(object):
         html_results = ''
 
         results, training_values, test_values = evaluate_prediction(self.__term_counts_per_week, self.__term_ngrams,
-                                                                    predictors_to_run,
-                                                                    self.__weekly_iso_dates,
-                                                                    self.__output_folder, test_terms=terms,
-                                                                    prefix=self.__base_file_name,
-                                                                    suffix=emergence,
-                                                                    number_of_patents_per_week=self.__number_of_patents_per_week,
-                                                                    num_prediction_periods=self.__M,
+                                                                    predictors_to_run, self.__weekly_iso_dates,
+                                                                    test_terms=terms, test_forecasts=train_test,
                                                                     normalised=normalized,
-                                                                    test_forecasts=train_test)
+                                                                    number_of_patents_per_week=self.__number_of_patents_per_week,
+                                                                    num_prediction_periods=self.__M)
 
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
                                                                 predictors_to_run, test_terms=terms)
