@@ -1,6 +1,3 @@
-import os
-import pickle
-
 from tqdm import tqdm
 
 from scripts.algorithms.predictor_factory import PredictorFactory as factory
@@ -8,31 +5,13 @@ from scripts.utils.utils import timeseries_weekly_to_quarterly
 from scripts.vandv.graphs import trim_leading_zero_counts
 
 
-def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, weekly_iso_dates, output_folder, test_terms,
-                        prefix=None, suffix=None,
+def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, weekly_iso_dates, test_terms,
                         test_forecasts=False, normalised=False, number_of_patents_per_week=None,
                         num_prediction_periods=5):
     # TODO: maybe do that before pickling if this is the only place it is used!
     term_counts_per_week_csc = term_counts_per_week.tocsc()
-    output_str = 'prediction_results_test' if test_forecasts else 'prediction_results'
 
-    if prefix:
-        output_str = prefix + '=' + output_str
-
-    if suffix:
-        output_str = output_str + '=' + suffix
-
-    base_file_name = os.path.join(output_folder, output_str)
-
-    if normalised:
-        base_file_name += '_normalised'
-    pickle_file_name = base_file_name + '_cache.pkl'
-
-    if os.path.isfile(pickle_file_name):
-        with open(pickle_file_name, 'rb') as f:
-            results = pickle.load(f)
-    else:
-        results = {}
+    results = {}
 
     training_values = {}
     test_values = {}
@@ -68,12 +47,9 @@ def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, week
             test_values[term] = [float(x) for x in quarterly_patent_counts[-num_prediction_periods - 1:-1]]
 
     for predictor_name in predictor_names:
-        if predictor_name not in results:
-            results[predictor_name] = {}
+        results[predictor_name] = {}
 
         for test_term in tqdm(test_terms, unit='term', desc='Validating prediction with ' + predictor_name):
-            if test_term in results[predictor_name]:
-                continue
 
             model = factory.predictor_factory(predictor_name, test_term, training_values[test_term],
                                               num_prediction_periods)
@@ -81,10 +57,5 @@ def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, week
 
             results[predictor_name][test_term] = (
                 None, model.configuration, predicted_values, len(training_values))
-
-        # Save after each iteration in case we abort - its very slow!
-        os.makedirs(output_folder, exist_ok=True)
-        with open(pickle_file_name, 'wb') as f:
-            pickle.dump(results, f)
 
     return results, training_values, test_values
