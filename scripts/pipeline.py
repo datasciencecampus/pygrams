@@ -207,22 +207,29 @@ class PipelineEmtech(object):
         stationary_start_index = zero_pivot_emergence - nterms // 2
         stationary_end_index = zero_pivot_emergence + nterms // 2
         self.__stationary = [x[0] for x in self.__emergence_list[stationary_start_index:stationary_end_index]]
+        filename_and_path = path.join('outputs', 'reports', doc_source_file_name + '_emergence.txt')
+        with open(filename_and_path, 'w') as file:
+            print()
+            print('Emergent')
+            file.write('Emergent')
+            for tup in self.__emergence_list[:nterms]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]))
+            print()
 
-        print()
-        print('Emergent')
-        for tup in self.__emergence_list[:nterms]:
-            print(tup[0] + ": " + str(tup[1]))
-        print()
+            print('Stationary')
+            file.write('Stationary')
+            for tup in self.__emergence_list[stationary_start_index:stationary_end_index]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]))
+            print()
 
-        print('Stationary')
-        for tup in self.__emergence_list[stationary_start_index:stationary_end_index]:
-            print(tup[0] + ": " + str(tup[1]))
-        print()
-
-        print('Declining')
-        for tup in self.__emergence_list[-nterms:]:
-            print(tup[0] + ": " + str(tup[1]))
-        print()
+            print('Declining')
+            file.write('Declining')
+            for tup in self.__emergence_list[-nterms:]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]))
+            print()
 
         # construct a terms list for n emergent n stationary? n declining
 
