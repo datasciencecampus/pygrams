@@ -116,13 +116,21 @@ For example, for a corpus of book blurbs you could use:
 python pygrams.py -th='blurb' -dh='published_date'
 ```
 
+#### Using a pre-pickled TFIDF file (-it)
+
+In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source:
+
+```
+python pygrams.py -it -out-tfidf.pkl_1.bz2
+```
+
 ### TFIDF Dictionary
 
 #### N-gram selection (-mn, -mx)
 
 An n-gram is a contiguous sequence of n items ([source](https://en.wikipedia.org/wiki/N-gram)). N-grams can be unigrams (single words, e.g., vehicle), bigrams (sequences of two words, e.g., aerial vehicle), trigrams (sequences of three words, e.g., unmanned aerial vehicle) or any n number of continuous terms. 
 
-The following arguments will set the n-gram limit to be unigrams, bigrams or trigrams (the default).
+The following arguments will set the n-gram limit to be, e.g. unigrams, bigrams, and trigrams (the default):
 
 ```
 python pygrams.py -mn=1 -mx=3
@@ -136,7 +144,7 @@ python pygrams.py -mn=1 -mx=1
 
 #### Maximum document frequency (-mdf)
 
-Terms identified are filtered by the maximum number of documents that use this term; the default is 0.3, representing an upper limit of 30% of documents containing this term. If a term occurs in more that 30% of documents it is rejected.
+Terms identified are filtered by the maximum number of documents that use this term; the default is 0.05, representing an upper limit of 5% of documents containing this term. If a term occurs in more that 5% of documents it is rejected.
 
 For example, to set the maximum document frequency to 5% (the default), use:
 
@@ -144,7 +152,7 @@ For example, to set the maximum document frequency to 5% (the default), use:
 python pygrams.py -mdf 0.05
 ```
 
-By using a small (5% or less) maximum document frequency may help remove generic words, or stop words.
+Using a small (5% or less) maximum document frequency may help remove generic words, or stop words.
 
 #### Stopwords
 
@@ -164,7 +172,7 @@ The first file (stopwords_glob.txt) contains stopwords that are applied to all n
 This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
 
 ```
-python pygrams.py -df=2000/01/20
+python pygrams.py -df=2000/02/20
 ```
 
 The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
@@ -204,8 +212,7 @@ python pygrams.py -t
 
 #### Choosing CPC classification (Patent specific) (-cpc)
 
-This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". 
-An example script is:
+This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". An example script is:
 
 ```
 python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
@@ -271,28 +278,22 @@ The full list of options is included below, with multiple inputs are allowed.
 
 #### Other options
 
-number of terms
+number of terms to analyse (default: 25)
 
 ```
 Python pygrams.py -nts=25
 ```
 
-minimum number of patents per quarter referencing a term (default: 20)
+minimum number of patents per quarter referencing a term (default: 15)
 
 ```
-Python pygrams.py -nts=25
+Python pygrams.py -mpq=15
 ```
 
 number of steps ahead to analyse for (default: 5) 
 
 ```
 Python pygrams.py -stp=5
-```
-
-analyse using curve or not (default: False)
-
-```
-Python pygrams.py -cur=True
 ```
 
 analyse using test or not (default: False)
@@ -304,7 +305,7 @@ Python pygrams.py -tst=False
 analyse using normalised patents counts or not (default: False)
 
 ```
-Python pygrams.py -nrm=Fslse
+Python pygrams.py -nrm=False
 ```
 
 ### Outputs (-o)
@@ -392,8 +393,7 @@ usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-pns PREDICTOR_NAMES [PREDICTOR_NAMES ...]] [-nts NTERMS]
                   [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cur] [-tst]
                   [-nrm]
-                  [-emr {emergent,stationary,declining} [{emergent,stationary,declining} ...]]
-
+                  
 extract popular n-grams (words or short phrases) from a corpus of documents
 ```
 It continues with a detailed description of the arguments:
@@ -491,16 +491,14 @@ It continues with a detailed description of the arguments:
                         12. LSTM-multiM-1LA-stateless (default: [2])
   -nts NTERMS, --nterms NTERMS
                         number of terms to analyse (default: 25)
-  -mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
+ mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
                         minimum number of patents per quarter referencing a
-                        term (default: 20)
+                        term (default: 15)
   -stp STEPS_AHEAD, --steps_ahead STEPS_AHEAD
                         number of steps ahead to analyse for (default: 5)
   -cf, --curve-fitting  analyse using curve or not (default: False)
   -nrm, --normalised    analyse using normalised patents counts or not
                         (default: False)
-  -emr {emergent,stationary,declining} [{emergent,stationary,declining} ...], --emergence {emergent,stationary,declining} [{emergent,stationary,declining} ...]
-                        analyse using emergence or not (default: ['emergent'])
 ```
 
 ## Acknowledgements

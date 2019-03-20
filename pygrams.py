@@ -110,10 +110,8 @@ def get_args(command_line_arguments):
                         help="denote whether emerging technology should be forecast")
 
     parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
-                        help="options for predictor algorithms, multiple inputs are allowed, default "
-                             "is to select Linear (2): \n"
-                             "\n".join([f"{index}. {value}\n" for index, value in enumerate(predictor_names)])
-                        )
+                        help=(", ".join([f"{index}. {value}" for index, value in enumerate(predictor_names)]))
+                             + "; multiple inputs are allowed.\n")
 
     parser.add_argument("-nts", "--nterms", type=int, default=25,
                         help="number of terms to analyse")
@@ -127,9 +125,6 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
-    parser.add_argument("-emr", "--emergence", default=['emergent'], choices=['emergent', 'stationary', 'declining'],
-                        nargs='+',
-                        help="analyse using emergence or not")
 
     args = parser.parse_args(command_line_arguments)
 
@@ -192,7 +187,7 @@ def main(supplied_args):
                                          nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
                                          outname=args.outputs_name)
 
-        for emergence in args.emergence:
+        for emergence in ['emergent', 'stationary', 'declining']:
             print(f'Running pipeline for "{emergence}"')
 
             if args.normalised:
