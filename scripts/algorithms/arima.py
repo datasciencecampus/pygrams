@@ -1,5 +1,5 @@
 from numpy import clip, inf
-from pyramid.arima import auto_arima
+from pmdarima.arima import auto_arima
 
 
 class ARIMAForecast(object):
