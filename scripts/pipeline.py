@@ -70,7 +70,7 @@ class Pipeline(object):
             self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
             self.__dataframe.drop(columns=[text_header], inplace=True)
 
-            tfidf_filename = path.join('outputs', 'tfidf', output_name + '-tfidf.pkl.bz2')
+            tfidf_filename = path.join('outputs', 'tfidf', output_name + '-tfidf-mdf-'+str(max_df)+'.pkl.bz2')
             makedirs(path.dirname(tfidf_filename), exist_ok=True)
             with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
                 pickle.dump(
