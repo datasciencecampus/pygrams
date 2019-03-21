@@ -39,4 +39,4 @@ class ArimaTests(unittest.TestCase):
 
         actual_prediction = arima.predict_counts()
 
-        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=1)
+        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
