@@ -17,8 +17,6 @@ class ARIMAForecast(object):
             error_action='ignore', suppress_warnings=True, stepwise=True
         )
 
-        #self.__stepwise_model.fit(data_in)
-
     @property
     def configuration(self):
         return self.__stepwise_model.order
