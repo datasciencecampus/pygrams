@@ -14,7 +14,8 @@ class ARIMAForecast(object):
         self.__stepwise_model = auto_arima(
             data_in,
             seasonal=False,
-            error_action='ignore', suppress_warnings=True, stepwise=True
+            # error_action='ignore', suppress_warnings=True, 
+            stepwise=True
         )
 
     @property
