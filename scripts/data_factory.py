@@ -10,7 +10,7 @@ def get(doc_source_file_name):
     if not os.path.isfile(doc_source_file_name):
         raise PygramsException('file: ' + doc_source_file_name + ' does not exist in data folder')
 
-    if doc_source_file_name.endswith('.pkl.bz2'):
+    if doc_source_file_name.endswith('.pkl.bz2') or doc_source_file_name.endswith('.pkl'):
         return read_pickle(doc_source_file_name)
     elif doc_source_file_name.endswith('.xls'):
         return read_excel(doc_source_file_name)
