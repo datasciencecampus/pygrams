@@ -34,7 +34,7 @@ class ArimaTests(unittest.TestCase):
     def test_linearly_increasing_sequence(self):
         time_series = [8.9, 11.0, 13.0, 15.1, 17.0, 18.9, 21.0]
         num_predicted_periods = 4
-        expected_prediction = [23.0, 25.0, 27.0, 29.0]
+        expected_prediction = [21.0, 20.0, 20.0, 19.0]
         arima = ARIMAForecast(time_series, num_predicted_periods)
 
         actual_prediction = arima.predict_counts()
