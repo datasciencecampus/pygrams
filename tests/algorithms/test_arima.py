@@ -9,6 +9,14 @@ import numpy.testing as np_test
 
 from scripts.algorithms.arima import ARIMAForecast
 
+import platform; print(platform.platform())
+import sys; print("Python", sys.version)
+import pmdarima; print("pmdarima", pmdarima.__version__)
+import numpy; print("NumPy", numpy.__version__)
+import scipy; print("SciPy", scipy.__version__)
+import sklearn; print("Scikit-Learn", sklearn.__version__)
+import statsmodels; print("Statsmodels", statsmodels.__version__)
+
 
 class ArimaTests(unittest.TestCase):
 
