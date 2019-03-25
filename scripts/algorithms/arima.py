@@ -1,5 +1,5 @@
 from numpy import clip, inf
-from pyramid.arima import auto_arima
+from pmdarima.arima import auto_arima
 
 
 class ARIMAForecast(object):
@@ -14,10 +14,9 @@ class ARIMAForecast(object):
         self.__stepwise_model = auto_arima(
             data_in,
             seasonal=False,
-            error_action='ignore', suppress_warnings=True, stepwise=True
+            # error_action='ignore', suppress_warnings=True, 
+            stepwise=True
         )
-
-        self.__stepwise_model.fit(data_in)
 
     @property
     def configuration(self):
