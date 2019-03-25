@@ -112,28 +112,20 @@ class WordAnalyzer(object):
     def analyzer(doc):
         """based on VectorizerMixin._word_ngrams in sklearn/feature_extraction/text.py,
         from scikit-learn; extended to prevent generation of n-grams containing stop words"""
-        tokens = WordAnalyzer.tokenizer(WordAnalyzer.preprocess(doc))
+        min_n, max_n = WordAnalyzer.ngram_range
+        original_tokens = WordAnalyzer.tokenizer(WordAnalyzer.preprocess(doc))
+        tokens = original_tokens if min_n == 1 else []
 
         # handle token n-grams
-        min_n, max_n = WordAnalyzer.ngram_range
-        if max_n != 1:
-            original_tokens = tokens
-            if min_n == 1:
-                # no need to do any slicing for unigrams
-                # just iterate through the original tokens
-                tokens = [w for w in tokens if not w.isdigit()]
-                # tokens = list(original_tokens)
-                min_n += 1
-            else:
-                tokens = []
-
+        if max_n > 1:
+            min_phrase = max(min_n, 2)
             n_original_tokens = len(original_tokens)
 
             # bind method outside of loop to reduce overhead
             tokens_append = tokens.append
             space_join = " ".join
 
-            for n in range(min_n, min(max_n + 1, n_original_tokens + 1)):
+            for n in range(min_phrase, min(max_n + 1, n_original_tokens + 1)):
                 for i in range(n_original_tokens - n + 1):
                     candidate_ngram = original_tokens[i: i + n]
                     tokens_append(space_join(candidate_ngram))

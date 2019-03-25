@@ -135,7 +135,7 @@ def stop(tokensin, unigrams, ngrams, digits=True):
     for token in tokensin:
         ngram = token.split()
         if len(ngram)==1:
-            if ngram[0] not in unigrams:
+            if ngram[0] not in unigrams and not ngram[0].isdigit():
                 new_tokens.append(token)
         else:
             word_in_ngrams=False
@@ -146,3 +146,22 @@ def stop(tokensin, unigrams, ngrams, digits=True):
             if not word_in_ngrams:
                 new_tokens.append(token)
     return new_tokens
+
+
+def stop_tup(tuples, unigrams, ngrams, digits=True):
+    new_tuples=[]
+    for tuple in tuples:
+        token = tuple[1]
+        ngram = token.split()
+        if len(ngram)==1:
+            if ngram[0] not in unigrams and not ngram[0].isdigit():
+                new_tuples.append(tuple)
+        else:
+            word_in_ngrams=False
+            for word in ngram:
+                if word in ngrams or (digits and word.isdigit()):
+                    word_in_ngrams=True
+                    break
+            if not word_in_ngrams:
+                new_tuples.append(tuple)
+    return new_tuples
