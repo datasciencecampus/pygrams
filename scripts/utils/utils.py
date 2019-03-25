@@ -130,7 +130,7 @@ def normalize(ydata):
     return np.asarray([(_y - miny) / diff for _y in ydata])
 
 
-def stop(tokensin, unigrams, ngrams):
+def stop(tokensin, unigrams, ngrams, digits=True):
     new_tokens=[]
     for token in tokensin:
         ngram = token.split()
@@ -140,7 +140,9 @@ def stop(tokensin, unigrams, ngrams):
         else:
             word_in_ngrams=False
             for word in ngram:
-                if word in ngrams:
+                if word in ngrams or (digits and word.isdigit()):
                     word_in_ngrams=True
+                    break
             if not word_in_ngrams:
                 new_tokens.append(token)
+    return new_tokens
