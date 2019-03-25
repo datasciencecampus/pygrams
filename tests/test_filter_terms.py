@@ -17,8 +17,26 @@ class TestDocumentsFilter(unittest.TestCase):
 
     def test_embeddings_filter_binary(self):
         user_queries = ['pharmacy', 'health', 'chemist']
-        weights_vec_expected = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
-                                0.0, 0.0, 0.0]
+        weights_vec_expected = [1.0,
+                                1.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0,
+                                1.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0]
         weights_vec_actual = FilterTerms(self.feature_names, user_queries, threshold=0.8).ngram_weights_vec[410:430]
 
         self.assertListEqual(weights_vec_expected, weights_vec_actual)
@@ -28,7 +46,6 @@ class TestDocumentsFilter(unittest.TestCase):
         user_queries = ['pharmacy', 'health', 'chemist']
         weights_vec_actual = FilterTerms(self.feature_names, user_queries).ngram_weights_vec[410:430]
         weights_vec_expected = [0.5728331683597565,
-                                0.5728331683597565,
                                 0.5728331683597565,
                                 0.023525821108745026,
                                 0.551300224350135,
@@ -46,7 +63,8 @@ class TestDocumentsFilter(unittest.TestCase):
                                 0.47060086220739433,
                                 -0.10829696922978878,
                                 0.19429777744446344,
-                                0.19429777744446344]
+                                0.19429777744446344,
+                                0.47456806019549364]
 
         assert_list_almost_equal(self, weights_vec_expected, weights_vec_actual)
 
