@@ -31,6 +31,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 """
+import scripts.utils.utils as ut
 import string
 
 from nltk import word_tokenize, PorterStemmer, pos_tag
@@ -86,6 +87,7 @@ class WordAnalyzer(object):
     stemmed_stop_word_set_n = None
     stemmed_stop_word_set_uni = None
 
+
     @staticmethod
     def init(tokenizer, preprocess, ngram_range):
         WordAnalyzer.tokenizer = tokenizer
@@ -119,7 +121,7 @@ class WordAnalyzer(object):
             if min_n == 1:
                 # no need to do any slicing for unigrams
                 # just iterate through the original tokens
-                tokens = [w for w in tokens if w not in WordAnalyzer.stemmed_stop_word_set_uni and not w.isdigit()]
+                tokens = [w for w in tokens if not w.isdigit()]
                 # tokens = list(original_tokens)
                 min_n += 1
             else:
@@ -134,15 +136,7 @@ class WordAnalyzer(object):
             for n in range(min_n, min(max_n + 1, n_original_tokens + 1)):
                 for i in range(n_original_tokens - n + 1):
                     candidate_ngram = original_tokens[i: i + n]
-                    hasdigit = False
-                    for ngram in candidate_ngram:
-                        if ngram.isdigit():
-                            hasdigit = True
+                    tokens_append(space_join(candidate_ngram))
 
-                    ngram_stop_word_set = set(candidate_ngram) & WordAnalyzer.stemmed_stop_word_set_n
-                    if len(ngram_stop_word_set) == 0 and not hasdigit:
-                        tokens_append(space_join(candidate_ngram))
+        return ut.stop(tokens,WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
 
-            return tokens
-        else:
-            return [w for w in tokens if w not in WordAnalyzer.stemmed_stop_word_set_uni]

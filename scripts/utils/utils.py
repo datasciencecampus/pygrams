@@ -129,3 +129,18 @@ def normalize(ydata):
 
     return np.asarray([(_y - miny) / diff for _y in ydata])
 
+
+def stop(tokensin, unigrams, ngrams):
+    new_tokens=[]
+    for token in tokensin:
+        ngram = token.split()
+        if len(ngram)==1:
+            if ngram[0] not in unigrams:
+                new_tokens.append(token)
+        else:
+            word_in_ngrams=False
+            for word in ngram:
+                if word in ngrams:
+                    word_in_ngrams=True
+            if not word_in_ngrams:
+                new_tokens.append(token)
