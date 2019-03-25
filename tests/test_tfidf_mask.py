@@ -64,7 +64,7 @@ class TestTfidfMask(unittest.TestCase):
 
     def test_num_non_zeros_no_clean_rows(self):
         self.init_mask('Y02', 2)
-        self.assertEqual(2059, len(self.__tfidf_mask.data))
+        self.assertEqual(2024, len(self.__tfidf_mask.data))
 
     def test_terms(self):
         self.init_mask('Y02', 2)

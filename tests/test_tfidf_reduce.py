@@ -48,7 +48,8 @@ class TestTfidfReduce(unittest.TestCase):
     def test_terms(self):
         term_score_tuples = self.__term_score_tuples
         actual_terms = [x for _, x in term_score_tuples]
-        expected_terms = ['transmit path',
+        expected_terms = ['mount surfac',
+                          'transmit path',
                           'electron element',
                           'link document',
                           'amid deriv',
@@ -60,14 +61,13 @@ class TestTfidfReduce(unittest.TestCase):
                           'contact beam',
                           'angular veloc',
                           'shorter tuft',
+                          'conduct materi',
                           'endodont instrument',
                           'mass offset',
                           'section bend',
-                          'termin channel',
-                          'stationari household applianc',
-                          'fault point',
-                          'adhes strip',
-                          'handheld electron devic'
+                          'compon materi',
+                          'connect portion',
+                          'termin channel'
                           ]
 
         self.assertListEqual(actual_terms[:20], expected_terms)
@@ -75,7 +75,8 @@ class TestTfidfReduce(unittest.TestCase):
     def test_scores(self):
         term_score_tuples = self.__term_score_tuples
         actual_scores = [x for x, _ in term_score_tuples]
-        expected_scores = [0.8259734063804905,
+        expected_scores = [0.9449111825230679,
+                           0.8259734063804905,
                            0.7754588414852185,
                            0.7276068751089988,
                            0.7071067811865476,
@@ -83,17 +84,16 @@ class TestTfidfReduce(unittest.TestCase):
                            0.7071067811865475,
                            0.6666666666666666,
                            0.6396021490668312,
-                           0.6172133998483675,
+                           0.6246950475544241,
                            0.6031800939323297,
                            0.6000595413031171,
                            0.5834599659915781,
+                           0.5806718350868961,
                            0.5773502691896257,
                            0.5773502691896257,
                            0.5773502691896257,
-                           0.5597177778726654,
-                           0.5570860145311556,
-                           0.5568900989230109,
-                           0.547722557505166,
-                           0.5265695940793358]
+                           0.5669467095138407,
+                           0.5611088299627696,
+                           0.5597177778726654]
 
         support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)
