@@ -34,8 +34,8 @@ class TFIDF:
         return self.__tfidf_matrix
 
     @property
-    def vectorizer(self):
-        return self.__vectorizer
+    def vocabulary(self):
+        return self.__vectorizer.vocabulary_
 
     @property
     def feature_names(self):
