@@ -55,25 +55,25 @@ class TestGraph(unittest.TestCase):
         self.assertEquals(50, len(self.__nodes))
 
     def test_num_links(self):
-        self.assertEquals(447, len(self.__links))
+        self.assertEquals(454, len(self.__links))
 
     def test_terms_in_nodes(self):
         texts = [x['text'] for x in self.__nodes]
 
         self.assertIn('central portion', texts)
         self.assertIn('fluid commun', texts)
-        self.assertIn('provid seed', texts)
+        self.assertIn('phenyl ring', texts)
         self.assertIn('gate line', texts)
 
         idx_1 = texts.index("central portion")
         idx_2 = texts.index("fluid commun")
-        idx_3 = texts.index("provid seed")
+        idx_3 = texts.index("phenyl ring")
         idx_4 = texts.index("gate line")
 
-        self.assertAlmostEqual(0.05478826302293826,  self.__nodes[idx_1]['freq'])
-        self.assertAlmostEqual(0.022815124444693337,   self.__nodes[idx_2]['freq'])
-        self.assertAlmostEqual(0.01193531394736373, self.__nodes[idx_3]['freq'])
-        self.assertAlmostEqual(0.07963623423011947,  self.__nodes[idx_4]['freq'])
+        self.assertAlmostEqual(0.024110680522099224,  self.__nodes[idx_1]['freq'])
+        self.assertAlmostEqual(0.004707609539032177,   self.__nodes[idx_2]['freq'])
+        self.assertAlmostEqual(0.09743319564023586, self.__nodes[idx_3]['freq'])
+        self.assertAlmostEqual(0.07346334072037178,  self.__nodes[idx_4]['freq'])
 
     def test_terms_in_links(self):
 
