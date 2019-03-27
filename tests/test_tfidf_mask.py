@@ -119,14 +119,14 @@ class TestTfidfMask(unittest.TestCase):
     def test_non_zeros_clean_rows(self):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
-        vectorizer = self.__tfidf_obj.vectorizer
+        vocabulary = self.__tfidf_obj.vocabulary
         expected_term1_val = 0.25
         expected_term2_val = 0.2962962962962961
 
         term1 = 'exhaust ga'  # 0.25
         term2 = 'drive region'  # 0.2962962962962961
-        idx_term1 = vectorizer.vocabulary_.get(term1)
-        idx_term2 = vectorizer.vocabulary_.get(term2)
+        idx_term1 = vocabulary.get(term1)
+        idx_term2 = vocabulary.get(term2)
 
         indexof_idx_term1 = tfidf_mask_nozero_rows.indices.tolist().index(idx_term1)
         indexof_idx_term2 = tfidf_mask_nozero_rows.indices.tolist().index(idx_term2)

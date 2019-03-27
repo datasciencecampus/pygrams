@@ -7,7 +7,7 @@ class TfidfMask(object):
         self.__feature_names = tfidf_obj.feature_names
         self.__tfidf_mask = self.__tfidf_matrix.copy()
         self.__tfidf_mask.data = np.ones(len(self.__tfidf_matrix.data))
-        self.__vectorizer = tfidf_obj.vectorizer
+        self.__vocabulary = tfidf_obj.vocabulary
         self.__uni_factor = uni_factor
         self.__idf = tfidf_obj.idf
 
@@ -88,8 +88,8 @@ class TfidfMask(object):
                     ngram_minus_front = ' '.join(big_ngram_terms[1:])
                     ngram_minus_back = ' '.join(big_ngram_terms[:len(big_ngram_terms) - 1])
 
-                    idx_ngram_minus_front = self.__vectorizer.vocabulary_.get(ngram_minus_front)
-                    idx_ngram_minus_back = self.__vectorizer.vocabulary_.get(ngram_minus_back)
+                    idx_ngram_minus_front = self.__vocabulary.get(ngram_minus_front)
+                    idx_ngram_minus_back = self.__vocabulary.get(ngram_minus_back)
 
                     indices_slice = self.__tfidf_matrix.indices[start_idx_ptr:end_idx_ptr]
                     ngram_counts = self.__tfidf_matrix.data[j] / self.__idf[col_idx]
