@@ -8,6 +8,7 @@ import pandas as pd
 
 import pygrams
 from scripts import FilePaths
+from scripts.text_processing import WordAnalyzer
 from scripts.utils.pygrams_exception import PygramsException
 
 
@@ -226,6 +227,13 @@ class TestPyGrams(unittest.TestCase):
         self.preparePyGrams(fake_df_data, mock_factory_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
         pygrams.main(args)
+
+        # reset static object
+        WordAnalyzer.tokenizer = None
+        WordAnalyzer.preprocess = None
+        WordAnalyzer.ngram_range = None
+        WordAnalyzer.stemmed_stop_word_set_n = None
+        WordAnalyzer.stemmed_stop_word_set_uni = None
 
         # Fail if original data frame is requested from disc
         def factory_read_pickle_fake(pickle_file_name):
