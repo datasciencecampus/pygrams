@@ -12,7 +12,6 @@ from scripts.algorithms.arima import ARIMAForecast
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
 import os
-import pmdarima; print("pmdarima", pmdarima.__version__)
 import pandas as pd
 import numpy as np; print("NumPy", np.__version__)
 import scipy; print("SciPy", scipy.__version__)
@@ -52,22 +51,11 @@ class ArimaTests(unittest.TestCase):
 
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
 
-    def test_linearly_increasing_sequence_combustion_engine(self):
-        time_series = pd.read_csv(os.path.join('tests','data', 'combustion_engine_quarterly.csv')).values.tolist()
-        time_series = [item for sublist in time_series for item in sublist]
-        num_predicted_periods = 4
-        expected_prediction = [333., 333., 334., 335.]
-        arima = ARIMAForecast(np.array(time_series).astype(float), num_predicted_periods)
-
-        actual_prediction = arima.predict_counts()
-
-        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
-
-    def test_linearly_increasing_sequence_image_data(self):
+    def test_linearly_decreasing_sequence_image_data(self):
         time_series = pd.read_csv(os.path.join('tests','data', 'image_data_quarterly.csv')).values.tolist()
         time_series = [item for sublist in time_series for item in sublist]
         num_predicted_periods = 4
-        expected_prediction = [577., 583., 590., 597.]
+        expected_prediction = [562., 561., 558., 556.]
         arima = ARIMAForecast(np.array(time_series).astype(float), num_predicted_periods)
 
         actual_prediction = arima.predict_counts()
