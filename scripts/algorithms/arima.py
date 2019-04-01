@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 from numpy import clip, inf
 from sklearn.metrics import mean_squared_error
@@ -21,7 +22,9 @@ class ARIMAForecast(object):
                             best_score = mse
                             best_cfg = order
                     except:
+                        print('Except ARIMA%s MSE=%.3f' % (order, mse))
                         continue
+                    print('ARIMA%s MSE=%.3f' % (order, mse))
         return best_cfg, best_score
 
     def __evaluate_arima_model(self, X, arima_order, ground_truth_in_history=False):
