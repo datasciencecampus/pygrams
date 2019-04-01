@@ -54,7 +54,7 @@ script:
   # for codecov support
   - pip install pytest pytest-cov
   # to report installed packages
-  pip freeze
+  - pip freeze
   # command to run tests
   - pytest --cov-config .coveragerc --cov=./ tests/
 
