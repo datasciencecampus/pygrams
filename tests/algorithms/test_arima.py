@@ -52,17 +52,6 @@ class ArimaTests(unittest.TestCase):
 
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
 
-    def test_linearly_increasing_sequence_combustion_engine(self):
-        time_series = pd.read_csv(os.path.join('tests','data', 'combustion_engine_quarterly.csv')).values.tolist()
-        time_series = [item for sublist in time_series for item in sublist]
-        num_predicted_periods = 4
-        expected_prediction = [333., 333., 334., 335.]
-        arima = ARIMAForecast(np.array(time_series).astype(float), num_predicted_periods)
-
-        actual_prediction = arima.predict_counts()
-
-        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
-
     def test_linearly_increasing_sequence_image_data(self):
         time_series = pd.read_csv(os.path.join('tests','data', 'image_data_quarterly.csv')).values.tolist()
         time_series = [item for sublist in time_series for item in sublist]
