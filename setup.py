@@ -53,7 +53,7 @@ def setup_package():
             'License ::  MIT License',
             'Programming Language :: Python :: 3.6',
         ],
-        install_requires=['matplotlib', 'numpy>=1.16.0', 'scipy', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn', 'xlrd',
+        install_requires=['matplotlib', 'numpy', 'scipy>=1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn', 'xlrd',
                           'python-Levenshtein', 'gensim', 'statsmodels', 'keras', 'tensorflow', 'keras_tqdm',
                           'patsy', 'humanfriendly', 'psutil', 'jinja2'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},

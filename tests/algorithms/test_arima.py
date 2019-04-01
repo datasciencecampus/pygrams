@@ -51,11 +51,11 @@ class ArimaTests(unittest.TestCase):
 
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
 
-    def test_linearly_increasing_sequence_image_data(self):
+    def test_linearly_decreasing_sequence_image_data(self):
         time_series = pd.read_csv(os.path.join('tests','data', 'image_data_quarterly.csv')).values.tolist()
         time_series = [item for sublist in time_series for item in sublist]
         num_predicted_periods = 4
-        expected_prediction = [577., 583., 590., 597.]
+        expected_prediction = [562., 561., 558., 556.]
         arima = ARIMAForecast(np.array(time_series).astype(float), num_predicted_periods)
 
         actual_prediction = arima.predict_counts()
