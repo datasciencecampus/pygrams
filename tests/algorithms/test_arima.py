@@ -12,7 +12,6 @@ from scripts.algorithms.arima import ARIMAForecast
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
 import os
-import pmdarima; print("pmdarima", pmdarima.__version__)
 import pandas as pd
 import numpy as np; print("NumPy", np.__version__)
 import scipy; print("SciPy", scipy.__version__)
