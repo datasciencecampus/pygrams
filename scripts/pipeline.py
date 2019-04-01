@@ -11,7 +11,7 @@ from scripts.algorithms.emergence import Emergence
 from scripts.documents_filter import DocumentsFilter
 from scripts.documents_weights import DocumentsWeights
 from scripts.filter_terms import FilterTerms
-from scripts.text_processing import LemmaTokenizer, WordAnalyzer
+from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import TFIDF
@@ -140,6 +140,11 @@ class Pipeline(object):
                                                                                  docs_mask_dict['date_header'])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+
+        WordAnalyzer.init(
+            tokenizer=LemmaTokenizer(),
+            preprocess=lowercase_strip_accents_and_ownership,
+            ngram_range=ngram_range)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
 
         # todo: no output method; just if statements to call output functions...?
