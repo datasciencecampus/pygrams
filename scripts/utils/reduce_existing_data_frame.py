@@ -92,7 +92,7 @@ def main():
                                       subset_size=args.size, fraction=args.fraction, date_range=date_range,
                                       date_column_name=args.date_column_name)
 
-    print(f'After filtering: {data_frame.shape[0]} rows in data frame')
+    print(f'After filtering: {data_frame.shape[0]:,} rows in data frame')
     print(f'Writing sub-sampled data frame in pickle {pickle_file_name}...')
     data_frame.to_pickle(pickle_file_name)
     print(f'...written sub-sampled data frame in pickle {pickle_file_name}')

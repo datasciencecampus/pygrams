@@ -14,7 +14,8 @@ class ArgsChecker:
     def checkargs(self):
         app_exit = False
 
-        if path.isfile(path.join(self.args.path, self.args.doc_source)) is False:
+        doc_path = path.join(self.args.path, self.args.doc_source)
+        if path.isfile(doc_path) is False:
             print(f"File {self.args.doc_source} in path {self.args.path} not found")
             app_exit = True
 
