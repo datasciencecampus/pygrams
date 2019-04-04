@@ -157,11 +157,6 @@ class Pipeline(object):
                                                                                  docs_mask_dict['date_header'])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-
-        WordAnalyzer.init(
-            tokenizer=LemmaTokenizer(),
-            preprocess=lowercase_strip_accents_and_ownership,
-            ngram_range=ngram_range)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
 
         # todo: no output method; just if statements to call output functions...?
