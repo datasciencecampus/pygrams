@@ -2,7 +2,7 @@ import bz2
 import pickle
 from os import makedirs, path
 
-from pandas import read_pickle
+from pandas import read_pickle, to_datetime
 from tqdm import tqdm
 
 import scripts.data_factory as datafactory
@@ -61,6 +61,11 @@ class Pipeline(object):
         if pickled_tf_idf_file_name is None:
 
             self.__dataframe = datafactory.get(data_filename)
+            # dates check
+            if docs_mask_dict['date'] is not None:
+                dates = self.__dataframe[docs_mask_dict['date_header']]
+                if type(dates[0]) is str:
+                    self.__dataframe = self.__dataframe.replace({docs_mask_dict['date_header']: dates})
             checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header)
 
             remove_empty_documents(self.__dataframe, text_header)
@@ -81,6 +86,13 @@ class Pipeline(object):
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')
             self.__tfidf_obj, self.__dataframe, self.__text_lengths = read_pickle(pickled_tf_idf_file_name)
+
+        # dates check
+        if docs_mask_dict['date'] is not None:
+            dates = self.__dataframe[docs_mask_dict['date_header']]
+            if type(dates[0]) is str:
+                dates = to_datetime(dates).tolist()
+                self.__dataframe[docs_mask_dict['date_header']] = dates
 
         # todo: pipeline is now a one-way trip of data, slowly collapsing / shrinking it as we don't need to keep
         #  the original. We're really just filtering down.
