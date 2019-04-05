@@ -1,8 +1,8 @@
 import unittest
-
+import os
 import numpy as np
 import pandas as pd
-
+import scripts.data_factory as factory
 from scripts import FilePaths
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import StemTokenizer
@@ -21,11 +21,12 @@ class TestTfidfReduce(unittest.TestCase):
         max_n = 3
         max_df = 0.3
         ngram_range = (min_n, max_n)
-        df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        tfidf_obj = TFIDF(df['abstract'], ngram_range=ngram_range, max_document_frequency=max_df,
+        filename = os.path.join('tests', 'data', 'USPTO-random-100.csv')
+        cls.__df = factory.get(filename)
+        tfidf_obj = TFIDF(cls.__df['abstract'], ngram_range=ngram_range, max_document_frequency=max_df,
                           tokenizer=StemTokenizer())
 
-        doc_weights = list(np.ones(len(df)))
+        doc_weights = list(np.ones(len(cls.__df)))
 
         # term weights - embeddings
         filter_output_obj = FilterTerms(tfidf_obj.feature_names, None, None)
@@ -42,8 +43,8 @@ class TestTfidfReduce(unittest.TestCase):
 
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
 
-        tfidf_reduce_obj = TfidfReduce(tfidf_masked, tfidf_obj.feature_names)
-        cls.__term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_docset('sum')
+        cls.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, tfidf_obj.feature_names)
+        cls.__term_score_tuples = cls.__tfidf_reduce_obj.extract_ngrams_from_docset('sum')
 
     def test_terms(self):
         term_score_tuples = self.__term_score_tuples
@@ -97,3 +98,7 @@ class TestTfidfReduce(unittest.TestCase):
                            0.5597177778726654]
 
         support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)
+
+    def test_timeseries_mat(self):
+        timeseries_mat = self.__tfidf_reduce_obj.create_terms_count(self.__df, 'publication_date')
+        self.assertEqual(sum(timeseries_mat[2]), 100)
