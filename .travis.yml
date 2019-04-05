@@ -1,5 +1,3 @@
-dist: xenial
-
 language: python
 
 matrix:
@@ -7,8 +5,8 @@ matrix:
     # Use the built in venv for linux builds
     - os: linux
       sudo: required
-      python: "3.7"
-      dist: trusty
+      python: "3.7.3"
+      dist: xenial
 
     # Use generic language for osx; taken from https://pythonhosted.org/CodeChat/.travis.yml.html
 #        - os: osx

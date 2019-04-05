@@ -5,7 +5,7 @@ build: none
 environment:
   matrix:
     - PYTHON: "C:\\Python36-x64"
-      PYTHON_VERSION: 3.7
+      PYTHON_VERSION: 3.7.3
       PYTHON_ARCH: 64
 init:
   - ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%
