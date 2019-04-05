@@ -29,9 +29,10 @@ def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
         if docs_mask_dict['date_header'] not in df.columns:
             print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
             app_exit = True
-        else:
-            if is_string_dtype(df[docs_mask_dict['date_header']]):
-                df[docs_mask_dict['date_header']] = to_datetime(df[docs_mask_dict['date_header']])
+
+    if docs_mask_dict['date_header'] is not None:
+        if is_string_dtype(df[docs_mask_dict['date_header']]):
+            df[docs_mask_dict['date_header']] = to_datetime(df[docs_mask_dict['date_header']])
 
     if text_header not in df.columns:
         print(f"text_header '{text_header}' not in dataframe")
