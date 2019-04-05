@@ -1,4 +1,5 @@
 import warnings
+
 import numpy as np
 from numpy import clip, inf
 from sklearn.metrics import mean_squared_error
@@ -44,12 +45,15 @@ class ARIMAForecast(object):
     def __arima_model_predict(self, X, arima_order, steps_ahead):
         # make predictions
         predictions = list()
-        for t in range(steps_ahead):
-            model = ARIMA(X, order=arima_order)
-            model_fit = model.fit(disp=0)
-            yhat = model_fit.forecast()[0][0]
-            predictions.append(yhat)
-            X= np.append(X, yhat)
+        try:
+            for t in range(steps_ahead):
+                model = ARIMA(X, order=arima_order)
+                model_fit = model.fit(disp=0)
+                yhat = model_fit.forecast()[0][0]
+                predictions.append(yhat)
+                X = np.append(X, yhat)
+        except:
+            predictions.extend([np.nan] * (steps_ahead - len(predictions)))
 
         return predictions
 

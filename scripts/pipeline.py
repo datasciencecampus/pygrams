@@ -33,6 +33,12 @@ def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
             if is_string_dtype(df[docs_mask_dict['date_header']]):
                 df[docs_mask_dict['date_header']] = to_datetime(df[docs_mask_dict['date_header']])
 
+            min_date = min(df[docs_mask_dict['date_header']])
+            max_date = max(df[docs_mask_dict['date_header']])
+            print(f'Document dates range from {min_date:%Y-%m-%d} to {max_date:%Y-%m-%d}')
+    else:
+        print('Document dates not specified')
+
     if text_header not in df.columns:
         print(f"text_header '{text_header}' not in dataframe")
         app_exit = True
@@ -85,6 +91,17 @@ class Pipeline(object):
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')
             self.__tfidf_obj, self.__dataframe, self.__text_lengths = read_pickle(pickled_tf_idf_file_name)
+            if docs_mask_dict['date_header'] is None:
+                print('Document dates not specified')
+            else:
+                min_date = min(self.__dataframe[docs_mask_dict['date_header']])
+                max_date = max(self.__dataframe[docs_mask_dict['date_header']])
+                print(f'Document dates range from {min_date:%Y-%m-%d} to {max_date:%Y-%m-%d}')
+
+            WordAnalyzer.init(
+                tokenizer=LemmaTokenizer(),
+                preprocess=lowercase_strip_accents_and_ownership,
+                ngram_range=ngram_range)
 
         # todo: pipeline is now a one-way trip of data, slowly collapsing / shrinking it as we don't need to keep
         #  the original. We're really just filtering down.
@@ -144,11 +161,6 @@ class Pipeline(object):
                                                                                  docs_mask_dict['date_header'])
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-
-        WordAnalyzer.init(
-            tokenizer=LemmaTokenizer(),
-            preprocess=lowercase_strip_accents_and_ownership,
-            ngram_range=ngram_range)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
 
         # todo: no output method; just if statements to call output functions...?
