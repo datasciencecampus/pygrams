@@ -70,8 +70,10 @@ class Pipeline(object):
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
         if pickled_tf_idf_file_name is None:
+                  
             self.__dataframe = datafactory.get(data_filename)
             checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
+                  
             remove_empty_documents(self.__dataframe, text_header)
             self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
                                      max_document_frequency=max_df, tokenizer=LemmaTokenizer())
