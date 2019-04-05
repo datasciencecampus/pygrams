@@ -128,7 +128,6 @@ def get_args(command_line_arguments):
 
     args = parser.parse_args(command_line_arguments)
 
-    args.path = 'data'
     return args
 
 
