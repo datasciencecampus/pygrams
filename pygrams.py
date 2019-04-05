@@ -128,7 +128,6 @@ def get_args(command_line_arguments):
 
     args = parser.parse_args(command_line_arguments)
 
-    args.path = 'data'
     return args
 
 
@@ -165,7 +164,7 @@ def main(supplied_args):
                         pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
-    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=50)
+    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=args.num_ngrams_report)
 
     # emtech integration
     if args.emerging_technology:

@@ -9,6 +9,15 @@ import numpy.testing as np_test
 
 from scripts.algorithms.arima import ARIMAForecast
 
+import platform; print(platform.platform())
+import sys; print("Python", sys.version)
+import os
+import pandas as pd
+import numpy as np; print("NumPy", np.__version__)
+import scipy; print("SciPy", scipy.__version__)
+import sklearn; print("Scikit-Learn", sklearn.__version__)
+import statsmodels; print("Statsmodels", statsmodels.__version__)
+
 
 class ArimaTests(unittest.TestCase):
 
@@ -31,12 +40,44 @@ class ArimaTests(unittest.TestCase):
 
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=4)
 
-    def test_linearly_increasing_sequence(self):
-        time_series = [8.9, 11.0, 13.0, 15.1, 17.0, 18.9, 21.0]
-        num_predicted_periods = 4
-        expected_prediction = [23.0, 25.0, 27.0, 29.0]
+    def test_linear_sequence(self):
+        time_series = [1.0, 2.0, 3.0, 4.0, 5.0]
+        num_predicted_periods = 3
+        expected_prediction = [6.0, 7.0, 8.0]
+        arima = ARIMAForecast(time_series, num_predicted_periods)
+
+        actual_prediction = arima.predict_counts()
+
+        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=4)
+
+    def test_flakey_sequence(self):
+        time_series = [20.0, -20.0]
+        num_predicted_periods = 3
+        expected_prediction = [np.nan] * 3
         arima = ARIMAForecast(time_series, num_predicted_periods)
 
         actual_prediction = arima.predict_counts()
 
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=1)
+
+    def test_linearly_increasing_sequence_fuel_cell(self):
+        time_series = pd.read_csv(os.path.join('tests','data', 'fuel_cell_quarterly.csv')).values.tolist()
+        time_series = [item for sublist in time_series for item in sublist]
+        num_predicted_periods = 4
+        expected_prediction = [333., 333., 334., 335.]
+        arima = ARIMAForecast(np.array(time_series).astype(float), num_predicted_periods)
+
+        actual_prediction = arima.predict_counts()
+
+        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
+
+    def test_linearly_decreasing_sequence_image_data(self):
+        time_series = pd.read_csv(os.path.join('tests','data', 'image_data_quarterly.csv')).values.tolist()
+        time_series = [item for sublist in time_series for item in sublist]
+        num_predicted_periods = 4
+        expected_prediction = [562., 561., 558., 556.]
+        arima = ARIMAForecast(np.array(time_series).astype(float), num_predicted_periods)
+
+        actual_prediction = arima.predict_counts()
+
+        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)

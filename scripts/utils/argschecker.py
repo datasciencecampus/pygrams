@@ -14,7 +14,8 @@ class ArgsChecker:
     def checkargs(self):
         app_exit = False
 
-        if path.isfile(path.join(self.args.path, self.args.doc_source)) is False:
+        doc_path = path.join(self.args.path, self.args.doc_source)
+        if path.isfile(doc_path) is False:
             print(f"File {self.args.doc_source} in path {self.args.path} not found")
             app_exit = True
 
@@ -69,11 +70,6 @@ class ArgsChecker:
                 print(self.args.wordcloud_title)
                 print('arguments [-wt] [-nd] can only be used when output includes wordcloud '
                       '[-o] "wordcloud"')
-                app_exit = True
-
-        if self.args.num_ngrams_report != self.args_default.num_ngrams_report:
-            if 'report' not in self.args.output:
-                print('arguments [-np] can only be used when output includes report [-o] "report"')
                 app_exit = True
 
         if self.args.num_ngrams_fdg != self.args_default.num_ngrams_fdg:

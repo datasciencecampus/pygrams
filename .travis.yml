@@ -2,17 +2,17 @@ language: python
 
 matrix:
   include:
-        # Use the built in venv for linux builds
-        - os: linux
-          sudo: required
-          python: "3.6.6"
-          dist: trusty
+    # Use the built in venv for linux builds
+    - os: linux
+      sudo: required
+      python: "3.7.3"
+      dist: xenial
 
-        # Use generic language for osx; taken from https://pythonhosted.org/CodeChat/.travis.yml.html
+    # Use generic language for osx; taken from https://pythonhosted.org/CodeChat/.travis.yml.html
 #        - os: osx
 #          language: generic
 #          env: PYTHON=3.6.6
-  
+
 before_install: |
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     brew update
@@ -21,12 +21,12 @@ before_install: |
     # See https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages.
     # I didn't do this above because it works and I'm lazy.
     brew outdated pyenv || brew upgrade pyenv
-    
+
     # virtualenv doesn't work without pyenv knowledge. venv in Python 3.3
     # doesn't provide Pip by default. So, use `pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv/blob/master/README.md>`_.
     brew install pyenv-virtualenv
     pyenv install $PYTHON
-    
+
     # I would expect something like ``pyenv init; pyenv local $PYTHON`` or
     # ``pyenv shell $PYTHON`` would work, but ``pyenv init`` doesn't seem to
     # modify the Bash environment. ??? So, I hand-set the variables instead.
@@ -34,13 +34,13 @@ before_install: |
     export PATH="/Users/travis/.pyenv/shims:${PATH}"
     pyenv-virtualenv venv
     source venv/bin/activate
-    
+
     # A manual check that the correct version of Python is running.
     python --version
   fi
 
   export BOTO_CONFIG=/dev/null
-  
+
 install:
   - python --version
   - python -m pip install -U pip
@@ -53,6 +53,8 @@ install:
 script:
   # for codecov support
   - pip install pytest pytest-cov
+  # to report installed packages
+  - pip freeze
   # command to run tests
   - pytest --cov-config .coveragerc --cov=./ tests/
 

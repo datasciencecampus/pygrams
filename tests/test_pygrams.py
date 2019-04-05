@@ -8,6 +8,7 @@ import pandas as pd
 
 import pygrams
 from scripts import FilePaths
+from scripts.text_processing import WordAnalyzer
 from scripts.utils.pygrams_exception import PygramsException
 
 
@@ -55,8 +56,9 @@ class TestPyGrams(unittest.TestCase):
                                                 in range(self.number_of_rows)]
 
         if self.publication_date_auto_tested:
-            fake_df_data['publication_date'] = [pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(weeks=row) for row
-                                                in range(self.number_of_rows)]
+            fake_df_data['publication_date'] = [
+                f"{pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(weeks=row):%Y-%m-%d}" for row
+                in range(self.number_of_rows)]
 
         if self.invention_title_auto_tested:
             fake_df_data['invention_title'] = [f'invention_title-{pid}' for pid in range(self.number_of_rows)]
@@ -126,14 +128,14 @@ class TestPyGrams(unittest.TestCase):
 
         mock_path_isfile.side_effect = isfile_fake
 
-    def assertTfidfOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
+    def assertTfidfOutputs(self, assert_func, mock_pickle_dump, mock_makedirs, max_df):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
 
         mock_makedirs.assert_called_with(self.tfidfOutputFolder(), exist_ok=True)
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
-            if dump_args[0][1] == self.tfidfFileName(self.out_name):
+            if dump_args[0][1] == self.tfidfFileName(self.out_name, max_df):
                 tfidf_pickle = dump_args[0][0]
                 tfidf_obj = tfidf_pickle[0]
 
@@ -168,8 +170,8 @@ class TestPyGrams(unittest.TestCase):
         return os.path.join('outputs', 'tfidf')
 
     @staticmethod
-    def tfidfFileName(data_source_name):
-        return os.path.join(TestPyGrams.tfidfOutputFolder(), data_source_name + '-tfidf.pkl.bz2')
+    def tfidfFileName(data_source_name, max_df):
+        return os.path.join(TestPyGrams.tfidfOutputFolder(), data_source_name + f'-tfidf-mdf-{max_df}.pkl.bz2')
 
     @staticmethod
     def termCountsOutputFolder():
@@ -192,9 +194,9 @@ class TestPyGrams(unittest.TestCase):
                 'abstract'
             ]
         }
-
+        max_df = 1.0
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
+        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', str(max_df)]
 
         pygrams.main(args)
 
@@ -202,7 +204,7 @@ class TestPyGrams(unittest.TestCase):
             self.assertEqual(tfidf_matrix.todense(), np.ones(shape=(1, 1)), 'TFIDF should be 1x1 matrix of 1')
             self.assertListEqual(feature_names, ['abstract'])
 
-        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs, max_df)
 
     @mock.patch("scripts.pipeline.read_pickle", create=True)
     @mock.patch("scripts.data_factory.read_pickle", create=True)
@@ -226,6 +228,13 @@ class TestPyGrams(unittest.TestCase):
         self.preparePyGrams(fake_df_data, mock_factory_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', '1.0']
         pygrams.main(args)
+
+        # reset static object
+        WordAnalyzer.tokenizer = None
+        WordAnalyzer.preprocess = None
+        WordAnalyzer.ngram_range = None
+        WordAnalyzer.stemmed_stop_word_set_n = None
+        WordAnalyzer.stemmed_stop_word_set_uni = None
 
         # Fail if original data frame is requested from disc
         def factory_read_pickle_fake(pickle_file_name):
@@ -271,10 +280,10 @@ class TestPyGrams(unittest.TestCase):
                 'abstract two'
             ]
         }
-
+        max_df=1.0
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-ds', self.data_source_name, '--date_header',
-                'publication_date', '--max_document_frequency', '1.0', '--max_ngrams', '1']
+                'publication_date', '--max_document_frequency', str(max_df), '--max_ngrams', '1']
 
         pygrams.main(args)
 
@@ -301,7 +310,7 @@ class TestPyGrams(unittest.TestCase):
             self.assertListAlmostEqual(tfidf_as_lists[0], [l2norm_tfidf_abstract, l2norm_tfidf_one, 0], places=4)
             self.assertListAlmostEqual(tfidf_as_lists[1], [l2norm_tfidf_abstract, 0, l2norm_tfidf_one], places=4)
 
-        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs, max_df)
 
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
