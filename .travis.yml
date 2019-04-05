@@ -7,7 +7,7 @@ matrix:
     # Use the built in venv for linux builds
     - os: linux
       sudo: required
-      python: "3.7.3"
+      python: "3.7"
       dist: trusty
 
     # Use generic language for osx; taken from https://pythonhosted.org/CodeChat/.travis.yml.html
