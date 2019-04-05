@@ -2,7 +2,8 @@ import bz2
 import pickle
 from os import makedirs, path
 
-from pandas import read_pickle
+from pandas import read_pickle, to_datetime
+from pandas.api.types import is_string_dtype
 from tqdm import tqdm
 
 import scripts.data_factory as datafactory
@@ -21,13 +22,16 @@ from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
 
 
-def checkdf( df, emtec, docs_mask_dict, text_header):
+def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
     app_exit = False
 
-    if emtec or docs_mask_dict['time'] or docs_mask_dict['date'] is not None:
+    if emtec or docs_mask_dict['time'] or docs_mask_dict['date'] is not None or term_counts:
         if docs_mask_dict['date_header'] not in df.columns:
             print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
             app_exit = True
+        else:
+            if is_string_dtype(df[docs_mask_dict['date_header']]):
+                df[docs_mask_dict['date_header']] = to_datetime(df[docs_mask_dict['date_header']])
 
     if text_header not in df.columns:
         print(f"text_header '{text_header}' not in dataframe")
@@ -61,7 +65,7 @@ class Pipeline(object):
         if pickled_tf_idf_file_name is None:
 
             self.__dataframe = datafactory.get(data_filename)
-            checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header)
+            checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
 
             remove_empty_documents(self.__dataframe, text_header)
             self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
