@@ -40,6 +40,26 @@ class ArimaTests(unittest.TestCase):
 
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=4)
 
+    def test_linear_sequence(self):
+        time_series = [1.0, 2.0, 3.0, 4.0, 5.0]
+        num_predicted_periods = 3
+        expected_prediction = [6.0, 7.0, 8.0]
+        arima = ARIMAForecast(time_series, num_predicted_periods)
+
+        actual_prediction = arima.predict_counts()
+
+        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=4)
+
+    def test_flakey_sequence(self):
+        time_series = [20.0, -20.0]
+        num_predicted_periods = 3
+        expected_prediction = [np.nan] * 3
+        arima = ARIMAForecast(time_series, num_predicted_periods)
+
+        actual_prediction = arima.predict_counts()
+
+        np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=1)
+
     def test_linearly_increasing_sequence_fuel_cell(self):
         time_series = pd.read_csv(os.path.join('tests','data', 'fuel_cell_quarterly.csv')).values.tolist()
         time_series = [item for sublist in time_series for item in sublist]

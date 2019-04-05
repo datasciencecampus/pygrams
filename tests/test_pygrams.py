@@ -56,8 +56,9 @@ class TestPyGrams(unittest.TestCase):
                                                 in range(self.number_of_rows)]
 
         if self.publication_date_auto_tested:
-            fake_df_data['publication_date'] = [pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(weeks=row) for row
-                                                in range(self.number_of_rows)]
+            fake_df_data['publication_date'] = [
+                f"{pd.Timestamp('2000-12-28 00:00:00') - pd.DateOffset(weeks=row):%Y-%m-%d}" for row
+                in range(self.number_of_rows)]
 
         if self.invention_title_auto_tested:
             fake_df_data['invention_title'] = [f'invention_title-{pid}' for pid in range(self.number_of_rows)]
