@@ -51,9 +51,9 @@ class ArimaTests(unittest.TestCase):
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=4)
 
     def test_flakey_sequence(self):
-        time_series = [1.0, -2.0, 3.0, -4.0, 5.0]
+        time_series = [20.0, -20.0]
         num_predicted_periods = 3
-        expected_prediction = [0, 4.8, np.nan]
+        expected_prediction = [np.nan] * 3
         arima = ARIMAForecast(time_series, num_predicted_periods)
 
         actual_prediction = arima.predict_counts()
