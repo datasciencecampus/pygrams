@@ -74,7 +74,7 @@ class TfidfReduce(object):
 
     def create_terms_count(self, df, dates_header):
         dates = df[dates_header]
-            dates = pd.to_datetime(dates).tolist()
+        dates = pd.to_datetime(dates).tolist()
         document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                                [d.isocalendar() for d in dates]]
 
