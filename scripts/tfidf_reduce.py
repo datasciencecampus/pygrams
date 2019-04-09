@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 
 from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
+import pandas as pd
 
 
 class TfidfReduce(object):
@@ -72,7 +73,7 @@ class TfidfReduce(object):
         return ngrams_scores_tuple
 
     def create_terms_count(self, df, dates_header):
-        dates = df[dates_header]
+        dates = df[dates_header].tolist()
         document_week_dates = [iso_date[0] * 100 + iso_date[1] for iso_date in
                                [d.isocalendar() for d in dates]]
 

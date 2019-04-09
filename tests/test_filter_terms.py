@@ -7,7 +7,7 @@ from scripts.tfidf_wrapper import TFIDF
 from tests.support import assert_list_almost_equal
 
 
-class TestDocumentsFilter(unittest.TestCase):
+class TestTermsFilter(unittest.TestCase):
 
     def setUp(self):
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)

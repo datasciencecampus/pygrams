@@ -6,6 +6,9 @@ from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
 from gensim.test.utils import datapath, get_tmpfile
 
+from pandas import to_datetime
+from pandas.api.types import is_string_dtype
+
 
 def bisearch_csr(array, target, start, end):
     while start <= end:
@@ -165,3 +168,36 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
             if not word_in_ngrams:
                 new_tuples.append(tuple)
     return new_tuples
+
+def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
+    app_exit = False
+
+    if emtec or docs_mask_dict['time'] or docs_mask_dict['date'] is not None or term_counts:
+        if docs_mask_dict['date_header'] not in df.columns:
+            print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
+            app_exit = True
+
+    if docs_mask_dict['date_header'] is not None:
+        if is_string_dtype(df[docs_mask_dict['date_header']]):
+            df[docs_mask_dict['date_header']] = to_datetime(df[docs_mask_dict['date_header']])
+
+            min_date = min(df[docs_mask_dict['date_header']])
+            max_date = max(df[docs_mask_dict['date_header']])
+            print(f'Document dates range from {min_date:%Y-%m-%d} to {max_date:%Y-%m-%d}')
+    else:
+        print('Document dates not specified')
+
+    if text_header not in df.columns:
+        print(f"text_header '{text_header}' not in dataframe")
+        app_exit = True
+
+    if app_exit:
+        exit(0)
+
+
+def remove_empty_documents(data_frame, text_header):
+    num_docs_before_sift = data_frame.shape[0]
+    data_frame.dropna(subset=[text_header], inplace=True)
+    num_docs_after_sift = data_frame.shape[0]
+    num_docs_sifted = num_docs_before_sift - num_docs_after_sift
+    print(f'Dropped {num_docs_sifted:,} from {num_docs_before_sift:,} docs due to empty text field')

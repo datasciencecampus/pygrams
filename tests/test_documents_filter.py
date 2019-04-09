@@ -7,16 +7,14 @@ from scripts.documents_filter import DocumentsFilter
 class TestDocumentsFilter(unittest.TestCase):
 
     def setUp(self):
-
         self.__docs_mask_dict = {}
-        # doc_weights
         self.__docs_mask_dict['filter_by'] = 'union'
         self.__docs_mask_dict['cpc'] = None
         self.__docs_mask_dict['time'] = None
         self.__docs_mask_dict['cite'] = []
         self.__docs_mask_dict['columns'] = None
         self.__docs_mask_dict['date'] = None
-        self.__docs_mask_dict['date_header'] = None
+        self.__docs_mask_dict['date_header'] = 'publication_date'
         # [self.args.year_from, year_to, self.args.month_from, month_to, self.args.date_header]
 
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
