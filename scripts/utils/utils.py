@@ -191,13 +191,6 @@ def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
         print(f"text_header '{text_header}' not in dataframe")
         app_exit = True
 
-    # dates check
-    if docs_mask_dict['date'] is not None:
-        dates = df[docs_mask_dict['date_header']]
-        if type(dates[0]) is str:
-            dates = to_datetime(dates).tolist()
-            df[docs_mask_dict['date_header']] = dates
-
     if app_exit:
         exit(0)
 
