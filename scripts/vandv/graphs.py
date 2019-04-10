@@ -18,19 +18,6 @@ from tqdm import tqdm
 from scripts.utils.utils import iso_to_gregorian
 
 
-def trim_leading_zero_counts(dates, values):
-    first_non_zero_index = None
-    for index, value in enumerate(values):
-        if value != 0.0:
-            first_non_zero_index = index
-            break
-
-    if first_non_zero_index is None:
-        return [], []
-
-    return dates[first_non_zero_index:], values[first_non_zero_index:]
-
-
 def plot_to_html_image(plt):
     img = BytesIO()
     plt.savefig(img, transparent=True, bbox_inches='tight')

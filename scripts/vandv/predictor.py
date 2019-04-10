@@ -2,7 +2,6 @@ from tqdm import tqdm
 
 from scripts.algorithms.predictor_factory import PredictorFactory as factory
 from scripts.utils.utils import timeseries_weekly_to_quarterly
-from scripts.vandv.graphs import trim_leading_zero_counts
 
 
 def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, weekly_iso_dates, test_terms,
@@ -30,14 +29,12 @@ def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, week
         if normalised:
             quarterly_values = [v / c for v, c in zip(quarterly_values, quarterly_patent_counts)]
 
-        trimmed_quarterly_dates, trimmed_quarterly_int_values = trim_leading_zero_counts(quarterly_dates,
-                                                                                         quarterly_values)
-        trimmed_quarterly_values = [float(v) for v in trimmed_quarterly_int_values]
+        quarterly_float_values = [float(v) for v in quarterly_values]
 
         term = term_ngrams[term_index]
-        training_values[term] = trimmed_quarterly_values[:-test_offset - 1]
+        training_values[term] = quarterly_float_values[:-test_offset - 1]
         if test_forecasts:
-            test_values[term] = trimmed_quarterly_values[-test_offset - 1:-1]
+            test_values[term] = quarterly_float_values[-test_offset - 1:-1]
 
     if normalised:
         term = '__ number of patents'
