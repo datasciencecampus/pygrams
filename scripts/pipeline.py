@@ -45,6 +45,7 @@ class Pipeline(object):
 
             self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
             self.__dataframe.drop(columns=[text_header], inplace=True)
+            self.__dataframe = self.__dataframe.reset_index(drop=True)
 
             tfidf_filename = path.join('outputs', 'tfidf', output_name + f'-tfidf-mdf-{max_df}.pkl.bz2')
             makedirs(path.dirname(tfidf_filename), exist_ok=True)
@@ -84,15 +85,17 @@ class Pipeline(object):
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
 
         # docs weights( column, dates subset + time, citations etc.)
-        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_weights
+        doc_filter_obj=DocumentsFilter(self.__dataframe, docs_mask_dict)
+        doc_filters = doc_filter_obj.doc_filters
+
 
         # todo: build up list of weight functions (left with single remaining arg etc via partialfunc)
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
 
-        doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['date_header'], self.__text_lengths,
-                                       norm_rows=normalize_rows).weights
-        doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
+        # doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
+        #                                docs_mask_dict['date_header'], self.__text_lengths,
+        #                                norm_rows=normalize_rows).weights
+        # doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # todo: this is another weight function...
 
@@ -104,9 +107,13 @@ class Pipeline(object):
         #  these operate directly on tfidf
         #  Hence return nothing - operate in place on tfidf.
 
+        # self.__dataframe = self.__dataframe.reset_index(drop=True)
+        # self.__dataframe = self.__dataframe.ix[doc_filter_obj.doc_indices]
+        # self.__dataframe = self.__dataframe.reset_index(drop=True)
+
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
-        tfidf_mask_obj.update_mask(doc_weights, term_weights)
+        tfidf_mask_obj.update_mask(doc_filters, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
         # todo: this mutiply and remove null will disappear - maybe put weight combiner last so it can remove 0 weights
@@ -114,7 +121,7 @@ class Pipeline(object):
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
         tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
 
-        tfidf_masked = utils.remove_all_null_rows(tfidf_masked)
+        tfidf_masked, self.__dataframe = utils.remove_all_null_rows_global(tfidf_masked, self.__dataframe)
 
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
 
@@ -162,6 +169,10 @@ class PipelineEmtech(object):
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
          self.__weekly_iso_dates] = term_counts_data
 
+
+        # get all quarterly dates. We need them all :)
+        # quarterly_dates, zeros = utils.timeseries_weekly_to_quarterly(self.__weekly_iso_dates, [0]*len(self.__weekly_iso_dates))
+
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
 
         em = Emergence(self.__number_of_patents_per_week)
@@ -169,18 +180,13 @@ class PipelineEmtech(object):
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
-            row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
+            weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
 
-            if len(row_values) == 0:
-                continue
-
-            weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
-
-            _, quarterly_values = utils.timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
+            quarterly_dates, quarterly_values = utils.timeseries_weekly_to_quarterly(self.__weekly_iso_dates, weekly_values)
             if max(quarterly_values) < minimum_patents_per_quarter:
                 continue
 
-            if em.init_vars(row_indices, row_values):
+            if em.init_vars(self.__weekly_iso_dates, weekly_values):
                 escore = em.calculate_escore() if not curves else em.escore2()
                 self.__emergence_list.append((term_ngram, escore))
 
@@ -190,15 +196,16 @@ class PipelineEmtech(object):
             self.__stationary = []
             return
 
+        nterms = min(nterms, len(self.__emergence_list)//3)
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
 
-        # for tup in self.__emergence_list:
-        #     print(tup[0] + ": " + str(tup[1]))
+        for tup in self.__emergence_list:
+            print(tup[0] + ": " + str(tup[1]))
 
         self.__emergent = [x[0] for x in self.__emergence_list[:nterms]]
         self.__declining = [x[0] for x in self.__emergence_list[-nterms:]]
 
-        zero_pivot_emergence = None
+        zero_pivot_emergence = nterms // 2
         last_emergence = self.__emergence_list[0][1]
 
         for index, value in enumerate(self.__emergence_list[1:]):

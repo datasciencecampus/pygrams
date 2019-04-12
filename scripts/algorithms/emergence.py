@@ -15,7 +15,7 @@ class Emergence(object):
     def __init__(self, number_of_patents_per_week):
         self.TERM_BASE_RECS_THRESHOLD = 5000
         self.BASE_TERM2ALL_RATIO_THRESHOLD = 0.15
-        self.MIN_DOCS_FOR_EMERGENCE = 7
+        self.MIN_DOCS_FOR_EMERGENCE = 1
 
         self.NUM_PERIODS_BASE = 3
         self.NUM_PERIODS_ACTIVE = 7
@@ -31,12 +31,12 @@ class Emergence(object):
         self.__per_period_counts_term = arr.array('i', [0] * self.NUM_PERIODS)
 
     def __check_records(self, num_term_records, term_start_week, term_end_week):
-        if num_term_records < self.MIN_DOCS_FOR_EMERGENCE:
+        if num_term_records < 2:
             return False
 
         diff_periods = (term_end_week - term_start_week + 1) / self.NUM_WEEKS_PER_PERIOD
 
-        if ceil(diff_periods) < self.NUM_PERIODS:
+        if ceil(diff_periods) < 2:
             return False
 
         return True
@@ -129,22 +129,18 @@ class Emergence(object):
 
     def escore2(self, show=False, term = None):
 
-        xdata = np.linspace(0, self.NUM_PERIODS - 1, self.NUM_PERIODS)
+        num_samples = len(self.__per_period_counts_term)
+        xdata = np.linspace(0, num_samples-1, num_samples)
 
-        normalized_all = normalize(self.__per_period_counts_all)
-        normalized_term = self.__per_period_counts_term
-        normalized_y = normalized_term - normalized_all
-
-        trend = np.polyfit(xdata, normalized_term, 2)
+        trend = np.polyfit(xdata, self.__per_period_counts_term, 2)
         y_fit = trend[2] + (trend[1] * xdata) + (trend[0] * xdata * xdata)
         y_der = (trend[0] * xdata * 2) + trend[1]
 
         if show:
-            plt.plot(xdata, normalized_term, 'o')
+            plt.plot(xdata, self.__per_period_counts_term, 'o')
             plt.plot(xdata, y_fit)
             plt.plot(xdata, y_der)
-            plt.legend(('term trend', 'fit curve', 'fit curve gradient'),
-                       loc='upper left')
+            plt.legend(('term trend', 'fit curve', 'fit curve gradient'), loc='upper left')
             if term is not None:
                 plt.title('Term ' + term + " trend")
 
@@ -154,8 +150,8 @@ class Emergence(object):
 
             plt.show()
 
-            print("quadratic: " + str(fit_score(normalized_term, y_fit)))
-            score = fit_score(normalized_term, y_fit)
+            print("quadratic: " + str(fit_score(self.__per_period_counts_term, y_fit)))
+            score = fit_score(self.__per_period_counts_term, y_fit)
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
     def escore_sigm(self, show=False, term=None):

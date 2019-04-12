@@ -28,6 +28,15 @@ def remove_all_null_rows(sparse_mat):
     unique_nonzero_indices = np.unique(nonzero_row_indices)
     return sparse_mat[unique_nonzero_indices]
 
+def remove_all_null_rows_global(sparse_mat, df):
+    nonzero_row_indices, _ = sparse_mat.nonzero()
+    unique_nonzero_indices = np.unique(nonzero_row_indices)
+
+    df = df.reset_index(drop=True)
+    df = df.ix[unique_nonzero_indices]
+    df = df.reset_index(drop=True)
+    return sparse_mat[unique_nonzero_indices], df
+
 
 def normalize_array(X, min_val=0.2, return_list=False):
     min_x, max_x = min(X), max(X)
@@ -76,8 +85,7 @@ def get_row_indices_and_values(term_counts_matrix_csc, term_index):
     start_index = term_counts_matrix_csc.indptr[term_index]
     end_index = term_counts_matrix_csc.indptr[term_index + 1]
 
-    return arr.array('i', (term_counts_matrix_csc.indices[start_index:end_index])), \
-           arr.array('i', (term_counts_matrix_csc.data[start_index:end_index]))
+    return term_counts_matrix_csc.indices[start_index:end_index], term_counts_matrix_csc.data[start_index:end_index]
 
 
 def timeseries_weekly_to_quarterly(weekly_dates, weekly_values):

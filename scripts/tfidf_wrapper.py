@@ -2,6 +2,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
 from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
+from scripts.tfidf_reduce import TfidfReduce
 
 
 class TFIDF:
@@ -25,18 +26,30 @@ class TFIDF:
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
 
+        self.__tfidf_reduce_obj = TfidfReduce(self.__tfidf_matrix, self.__feature_names)
+        self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset('sum')
+        features = sorted([x[1] for x in self.__term_score_tuples[:len(self.__term_score_tuples)//20]])
+        indices = sorted([self.__vectorizer.vocabulary_.get(x) for x in features])
+
+        self.__new_tfidf = self.__tfidf_matrix[:, indices]
+        self.__new_idf   = self.__tfidf_transformer.idf_[indices]
+        self.__new_vocab = {}
+        for i in range (len(features)):
+            self.__new_vocab.setdefault(features[i], i)
+        self.__new_features = features
+
     @property
     def idf(self):
-        return self.__tfidf_transformer.idf_
+        return self.__new_idf
 
     @property
     def tfidf_matrix(self):
-        return self.__tfidf_matrix
+        return self.__new_tfidf
 
     @property
     def vocabulary(self):
-        return self.__vectorizer.vocabulary_
+        return self.__new_vocab
 
     @property
     def feature_names(self):
-        return self.__feature_names
+        return self.__new_features

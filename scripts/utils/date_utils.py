@@ -32,12 +32,12 @@ def year2pandas_earliest_date(year_in, month_in):
     return Timestamp(year_string)
 
 
-def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
-    number_of_rows, number_of_terms = term_value_array.shape
+def tfidf_with_dates_to_weekly_term_counts(term_value_csr, uspto_week_dates):
+    number_of_rows, number_of_terms = term_value_csr.shape
     week_counts_csr = None
 
-    if not isspmatrix_csr(term_value_array):
-        term_value_array = csr_matrix(term_value_array)
+    if not isspmatrix_csr(term_value_csr):
+        term_value_csr = csr_matrix(term_value_csr)
 
     current_week = int(uspto_week_dates[0])
     current_week_counts_csr = csr_matrix((1, number_of_terms), dtype=np.int32)
@@ -62,7 +62,7 @@ def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
                     current_week += 100 - 53  # next year, so add 100 but remove the "used" weeks
                 week_total = 0
 
-        current_row_as_counts = term_value_array[current_row_index, :] > 0
+        current_row_as_counts = term_value_csr[current_row_index, :] > 0
         current_week_counts_csr += current_row_as_counts
         week_total += 1
 
