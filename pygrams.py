@@ -27,7 +27,7 @@ def get_args(command_line_arguments):
     # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help=argparse.SUPPRESS)
-    parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2', help=argparse.SUPPRESS)
+    parser.add_argument("-fs", "--focus_source", default='USPTO-random-10000.pkl.bz2', help=argparse.SUPPRESS)
     parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'), help=argparse.SUPPRESS)
 
     parser.add_argument("-j", "--json", default=True, action="store_true",

@@ -8,7 +8,7 @@ import zipfile
 
 
 class FilterTerms(object):
-    def __init__(self, tfidf_ngrams, user_ngrams, file_name='models/glove/glove2vec.6B.50d.txt', threshold=None):
+    def __init__(self, tfidf_ngrams, user_ngrams, file_name='models/glove/glove2vec.6B.50d.txt', threshold=0.8):
 
         self.__user_ngrams = user_ngrams
         self.__tfidf_ngrams = tfidf_ngrams
@@ -41,8 +41,10 @@ class FilterTerms(object):
 
             max_similarity_score = max(similarity_score for similarity_score in compare)
             embeddings_vect.append(max_similarity_score)
-        embeddings_vect_norm = ut.normalize_array(embeddings_vect, return_list=True)
+        #embeddings_vect_norm = ut.normalize_array(embeddings_vect, return_list=True)
         if threshold is not None:
-            return [float(x>threshold) for x in embeddings_vect_norm]
+            return [float(x>threshold) for x in embeddings_vect]
         return embeddings_vect
+
+
 
