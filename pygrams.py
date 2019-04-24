@@ -57,7 +57,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-st", "--search_terms", type=str, nargs='+', default=[],
                         help="Search terms filter: search terms to restrict the tfidf dictionary. "
                              "Outputs will be related to search terms")
-
+    parser.add_argument("-thres", "--search_terms_threshold", type=float, nargs='+', default=0.75,
+                        help="Provides the threshold of how related you want search terms to be "
+                             "Values between 0 and 1: 0.8 is considered high")
     # Time filters
     parser.add_argument("-df", "--date_from", default=None,
                         help="The first date for the document cohort in YYYY/MM/DD format")
@@ -160,7 +162,7 @@ def main(supplied_args):
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=args.term_counts, user_ngrams=args.search_terms,
+                        term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
                         pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
