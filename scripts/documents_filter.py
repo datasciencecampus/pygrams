@@ -1,8 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
 
-from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
-
 
 class DocumentsFilter(object):
     def __init__(self, df, docs_mask_dict):
