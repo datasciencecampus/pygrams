@@ -19,9 +19,9 @@ class DocumentsFilter(object):
             doc_set = self.__filter_dates(df, docs_mask_dict['date'], docs_mask_dict['date_header'])
             self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
-        self.__doc_weights = [0.0] * len(df) if len(self.__doc_indices) > 0 else [1.0] * len(df)
+        self.__doc_filters = [0.0] * len(df) if len(self.__doc_indices) > 0 else [1.0] * len(df)
         for i in self.__doc_indices:
-            self.__doc_weights[i] = 1.0
+            self.__doc_filters[i] = 1.0
 
     def __add_set(self, doc_set, filter_by):
         if filter_by == 'intersection':
@@ -33,8 +33,8 @@ class DocumentsFilter(object):
             self.__doc_indices = self.__doc_indices.union(set(doc_set))
 
     @property
-    def doc_weights(self):
-        return self.__doc_weights
+    def doc_filters(self):
+        return self.__doc_filters
 
     @property
     def doc_indices(self):

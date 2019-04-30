@@ -84,7 +84,7 @@ class Pipeline(object):
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
 
         # docs weights( column, dates subset + time, citations etc.)
-        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_weights
+        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_filters
 
         # todo: build up list of weight functions (left with single remaining arg etc via partialfunc)
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
