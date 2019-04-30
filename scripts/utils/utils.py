@@ -179,6 +179,7 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
                 new_tuples.append(tuple)
     return new_tuples
 
+
 def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
     app_exit = False
 
