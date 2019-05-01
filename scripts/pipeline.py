@@ -24,7 +24,7 @@ from scripts.vandv.predictor import evaluate_prediction
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None,
+                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, terms_threshold=None,
                  output_name=None, emerging_technology=None):
 
         # load data
@@ -97,7 +97,7 @@ class Pipeline(object):
         # todo: this is another weight function...
 
         # term weights - embeddings
-        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, threshold=0.75)
+        filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, threshold=terms_threshold)
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # todo: replace tfidf_mask with isolated functions: clean_unigrams, unbias_ngrams;
