@@ -84,7 +84,7 @@ class Pipeline(object):
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
 
         # docs weights( column, dates subset + time, citations etc.)
-        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_weights
+        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_filters
 
         # todo: build up list of weight functions (left with single remaining arg etc via partialfunc)
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
@@ -114,8 +114,7 @@ class Pipeline(object):
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
         tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
 
-        tfidf_masked = utils.remove_all_null_rows(tfidf_masked)
-
+        tfidf_masked= utils.remove_all_null_rows(tfidf_masked)
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
