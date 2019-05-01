@@ -116,7 +116,7 @@ class Pipeline(object):
 
         # tfidf_masked, self.__dataframe = utils.remove_all_null_rows_global(tfidf_masked, self.__dataframe)
 
-        tfidf_masked= utils.remove_all_null_rows(tfidf_masked)
+        tfidf_masked = utils.remove_all_null_rows(tfidf_masked)
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
