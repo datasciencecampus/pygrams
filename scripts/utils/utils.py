@@ -10,6 +10,16 @@ from pandas import to_datetime
 from pandas.api.types import is_string_dtype
 
 
+def remove_all_null_rows_global(sparse_mat, df):
+    nonzero_row_indices, _ = sparse_mat.nonzero()
+    unique_nonzero_indices = np.unique(nonzero_row_indices)
+
+    df = df.reset_index(drop=True)
+    df = df.ix[unique_nonzero_indices]
+    df = df.reset_index(drop=True)
+    return sparse_mat[unique_nonzero_indices], df
+
+
 def bisearch_csr(array, target, start, end):
     while start <= end:
         middle = (start + end) // 2
@@ -168,6 +178,7 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
             if not word_in_ngrams:
                 new_tuples.append(tuple)
     return new_tuples
+
 
 def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
     app_exit = False
