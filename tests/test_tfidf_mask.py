@@ -105,10 +105,22 @@ class TestTfidfMask(unittest.TestCase):
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
         self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
 
+    def test_num_non_zeros_clean_rows_clean_unigrams_and_df(self):
+        self.init_mask('Y02', 1, uni_factor=0.4)
+        tfidf_mask_nozero_rows, self.__df = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__df)
+        self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(1, len(self.__df.index))
+
     def test_num_non_zeros_clean_rows(self):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
         self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
+
+    def test_num_non_zeros_clean_rows_and_df(self):
+        self.init_mask('Y02', 2)
+        tfidf_mask_nozero_rows, self.__df = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__df)
+        self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(1, len(self.__df.index))
 
     def test_no_negative_weights(self):
         self.init_mask(None, 2)
