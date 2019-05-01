@@ -3,8 +3,8 @@ import unittest
 import pandas as pd
 from pandas.io.excel import register_writer
 
-from scripts.tfidf_wrapper import TFIDF
 from scripts.text_processing import LemmaTokenizer
+from scripts.tfidf_wrapper import tfidf_from_text
 from scripts.utils.table_output import table_output
 from tests.utils import ReferenceData
 
@@ -58,8 +58,8 @@ class TestTableOutput(unittest.TestCase):
 
         num_ngrams = max(num_ngrams_report, num_ngrams_wordcloud)
 
-        tfidf_cold = TFIDF(ReferenceData.cold_df, tokenizer=LemmaTokenizer(), ngram_range=(min_n, max_n))
-        tfidf_random = TFIDF(ReferenceData.random_df, tokenizer=LemmaTokenizer(), ngram_range=(min_n, max_n))
+        tfidf_cold = tfidf_from_text(ReferenceData.cold_df, tokenizer=LemmaTokenizer(), ngram_range=(min_n, max_n))
+        tfidf_random = tfidf_from_text(ReferenceData.random_df, tokenizer=LemmaTokenizer(), ngram_range=(min_n, max_n))
 
         citation_count_dict = {1: 10, 2: 3, 101: 2, 102: 0, 103: 5, 104: 4, 105: 10}
 
