@@ -57,7 +57,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-st", "--search_terms", type=str, nargs='+', default=[],
                         help="Search terms filter: search terms to restrict the tfidf dictionary. "
                              "Outputs will be related to search terms")
-    parser.add_argument("-thres", "--search_terms_threshold", type=float, nargs='+', default=0.75,
+    parser.add_argument("-stthresh", "--search_terms_threshold", type=float, nargs='+', default=0.75,
                         help="Provides the threshold of how related you want search terms to be "
                              "Values between 0 and 1: 0.8 is considered high")
     # Time filters
