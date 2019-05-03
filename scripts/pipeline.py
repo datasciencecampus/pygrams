@@ -52,7 +52,11 @@ class Pipeline(object):
 
                 feature_subset = sorted([x[1] for x in term_score_tuples[:num_tuples_to_retain]])
 
+                number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+                number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
+                print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
+                      f'to {number_of_ngrams_after:,}')
 
             self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
             self.__dataframe.drop(columns=[text_header], inplace=True)
