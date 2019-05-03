@@ -164,6 +164,23 @@ There are three configuration files available inside the config directory:
 
 The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
 
+#### Pre-filter Terms
+
+Given that many of the terms will actually be very rare, they will not be of use when looking for popular terms.
+The total number of terms can easily exceed 1,000,000 and slow down pygrams with
+irrelevant terms. To circumvent this, a prefilter is applied as soon as the TFIDF matrix is created
+which will retain the highest scoring terms by TFIDF (as is calculated and reported at the end of the main pipeline).
+The default is to retain the top 100,000 terms; setting it to 0 will disable it, viz:
+```
+python pygrams.py -pt 0
+```
+Or changed to a different threshold such as 10,000 terms (using the longer argument name for comparison):
+```
+python pygrams.py -prefilter_terms 10000
+```
+Note that the prefilter will change TFIDF results as it will remove rare n-grams - which will
+result in bi-grams & tri-grams having increased scores when rare uni-grams and bi-grams are removed, as we
+unbias results to avoid double or triple counting contained n-grams.
 
 ### Document Filters
 
@@ -380,25 +397,25 @@ python pygrams.py -h
 The help output is included below. This starts with a summary of arguments:
 
 ```
-python pygrams.py -h
 usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-dh DATE_HEADER] [-fc FILTER_COLUMNS]
-                  [-fb {union,intersection}] [-df DATE_FROM] [-dt DATE_TO]
-                  [-mn {1,2,3}] [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
-                  [-p {median,max,sum,avg}] [-ndl] [-t]
-                  [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
+                  [-fb {union,intersection}]
+                  [-st SEARCH_TERMS [SEARCH_TERMS ...]]
+                  [-stthresh SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...]]
+                  [-df DATE_FROM] [-dt DATE_TO] [-mn {1,2,3}] [-mx {1,2,3}]
+                  [-mdf MAX_DOCUMENT_FREQUENCY] [-ndl] [-pt PREFILTER_TERMS]
+                  [-t] [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
                   [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-emt]
                   [-pns PREDICTOR_NAMES [PREDICTOR_NAMES ...]] [-nts NTERMS]
-                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cur] [-tst]
-                  [-nrm]
-                  
+                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cf] [-nrm]
+
 extract popular n-grams (words or short phrases) from a corpus of documents
 ```
 It continues with a detailed description of the arguments:
 ```
--h, --help            show this help message and exit
+  -h, --help            show this help message and exit
   -ds DOC_SOURCE, --doc_source DOC_SOURCE
                         the document source to process (default: USPTO-
                         random-1000.pkl.bz2)
@@ -420,6 +437,10 @@ It continues with a detailed description of the arguments:
                         Search terms filter: search terms to restrict the
                         tfidf dictionary. Outputs will be related to search
                         terms (default: [])
+  -stthresh SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...], --search_terms_threshold SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...]
+                        Provides the threshold of how related you want search
+                        terms to be Values between 0 and 1: 0.8 is considered
+                        high (default: 0.75)
   -df DATE_FROM, --date_from DATE_FROM
                         The first date for the document cohort in YYYY/MM/DD
                         format (default: None)
@@ -436,11 +457,15 @@ It continues with a detailed description of the arguments:
   -ndl, --normalize_doc_length
                         normalize tf-idf scores by document length (default:
                         False)
+  -pt PREFILTER_TERMS, --prefilter_terms PREFILTER_TERMS
+                        Initially remove all but the top N terms by TFIDF
+                        score before pickling initial TFIDF (removes 'noise'
+                        terms before main processing pipeline starts)
+                        (default: 100000)
   -t, --time            weight terms by time (default: False)
   -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
                         Note that this can be defined multiple times to get
-                        more than one output. termcounts represents the term
-                        frequency component of tfidf (default: [])
+                        more than one output. (default: [])
   -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
                         outputs filename (default: out)
   -wt WORDCLOUD_TITLE, --wordcloud_title WORDCLOUD_TITLE
@@ -462,36 +487,15 @@ It continues with a detailed description of the arguments:
                         denote whether emerging technology should be forecast
                         (default: False)
   -pns PREDICTOR_NAMES [PREDICTOR_NAMES ...], --predictor_names PREDICTOR_NAMES [PREDICTOR_NAMES ...]
-                        0. All options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        1. Naive options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        2. Linear options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        3. Quadratic options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 4. Cubic options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 5. ARIMA options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 6. Holt-Winters options for predictor
-                        algorithms, multiple inputs are allowed, default is to
-                        select Linear (2): 7. LSTM-multiLA-stateful options
-                        for predictor algorithms, multiple inputs are allowed,
-                        default is to select Linear (2): 8. LSTM-multiLA-
-                        stateless options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        9. LSTM-1LA-stateful options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 10. LSTM-1LA-stateless options for
-                        predictor algorithms, multiple inputs are allowed,
-                        default is to select Linear (2): 11. LSTM-multiM-1LA-
-                        stateful options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        12. LSTM-multiM-1LA-stateless (default: [2])
+                        0. All, 1. Naive, 2. Linear, 3. Quadratic, 4. Cubic,
+                        5. ARIMA, 6. Holt-Winters, 7. LSTM-multiLA-stateful,
+                        8. LSTM-multiLA-stateless, 9. LSTM-1LA-stateful, 10.
+                        LSTM-1LA-stateless, 11. LSTM-multiM-1LA-stateful, 12.
+                        LSTM-multiM-1LA-stateless; multiple inputs are
+                        allowed. (default: [2])
   -nts NTERMS, --nterms NTERMS
                         number of terms to analyse (default: 25)
- mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
+  -mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
                         minimum number of patents per quarter referencing a
                         term (default: 15)
   -stp STEPS_AHEAD, --steps_ahead STEPS_AHEAD
