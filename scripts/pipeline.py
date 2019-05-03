@@ -14,7 +14,7 @@ from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import TFIDF
+from scripts.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
 from scripts.utils import utils
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
@@ -24,7 +24,7 @@ from scripts.vandv.predictor import evaluate_prediction
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, terms_threshold=None,
+                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0, terms_threshold=None,
                  output_name=None, emerging_technology=None):
 
         # load data
@@ -40,8 +40,23 @@ class Pipeline(object):
             utils.checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
             utils.remove_empty_documents(self.__dataframe, text_header)
 
-            self.__tfidf_obj = TFIDF(text_series=self.__dataframe[text_header], ngram_range=ngram_range,
-                                     max_document_frequency=max_df, tokenizer=LemmaTokenizer())
+            self.__tfidf_obj = tfidf_from_text(text_series=self.__dataframe[text_header],
+                                               ngram_range=ngram_range,
+                                               max_document_frequency=max_df,
+                                               tokenizer=LemmaTokenizer())
+
+            if prefilter_terms != 0:
+                tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
+                term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+                num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples))
+
+                feature_subset = sorted([x[1] for x in term_score_tuples[:num_tuples_to_retain]])
+
+                number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
+                self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+                number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
+                print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
+                      f'to {number_of_ngrams_after:,}')
 
             self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
             self.__dataframe.drop(columns=[text_header], inplace=True)

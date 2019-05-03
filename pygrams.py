@@ -79,6 +79,11 @@ def get_args(command_line_arguments):
     parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
                         help="normalize tf-idf scores by document length")
 
+    # Remove noise terms before further processing
+    parser.add_argument("-pt", "--prefilter_terms", type=int, default=100000,
+                        help="Initially remove all but the top N terms by TFIDF score before pickling initial TFIDF"
+                             " (removes 'noise' terms before main processing pipeline starts)")
+
     # Time weighting
     parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
 
@@ -163,7 +168,7 @@ def main(supplied_args):
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
-                        pickled_tf_idf_file_name=pickled_tf_idf_path,
+                        prefilter_terms=args.prefilter_terms, pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=args.num_ngrams_report)

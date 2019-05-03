@@ -1,9 +1,11 @@
-import pandas as pd
 import unittest
+
+import pandas as pd
+
 from scripts import FilePaths
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wrapper import TFIDF
+from scripts.tfidf_wrapper import tfidf_from_text
 from tests.support import assert_list_almost_equal
 
 
@@ -11,8 +13,8 @@ class TestTermsFilter(unittest.TestCase):
 
     def setUp(self):
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        tfidf_obj = TFIDF(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
-                          tokenizer=LemmaTokenizer())
+        tfidf_obj = tfidf_from_text(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
+                                    tokenizer=LemmaTokenizer())
         self.feature_names = tfidf_obj.feature_names
 
     def test_embeddings_filter_binary(self):

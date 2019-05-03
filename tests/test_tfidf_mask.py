@@ -9,7 +9,7 @@ from scripts.filter_terms import FilterTerms
 from scripts.text_processing import StemTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import TFIDF
+from scripts.tfidf_wrapper import tfidf_from_text
 from scripts.utils import utils
 
 
@@ -46,8 +46,8 @@ class TestTfidfMask(unittest.TestCase):
             'date_header': ''
         }
 
-        self.__tfidf_obj = TFIDF(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
-                                 max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
+        self.__tfidf_obj = tfidf_from_text(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
+                                           max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
 
         doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_filters
         doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],
