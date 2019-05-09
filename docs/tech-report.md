@@ -1,15 +1,23 @@
+# Style guide
+
+Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored in GitHub.
+
+Write up all commands against the results to show how it worked!
+
+
 ![img](img/pygrams-logo-3.png)
 
 ## Team:
 
 - Thanasis Anthopoulos: thanasis.anthopoulos@ons.gov.uk
+- Fatima Chiroma
 - Ian Grimstead: ian.grimstead@ons.gov.uk
 - Michael Hodge: michael.hodge@ons.gov.uk
+- Sonia Mazi sonia.mazi@ons.gov.uk
 - Bernard Peat: bernard.peat@ons.gov.uk
 - Emily Tew: emily.tew@ons.gov.uk
-- Fatima Chiroma
 
-# Objectives and scope 1-2
+# Objectives and scope 1-2 T
 ## Customers
 ### Ipo
 ### Dirac
@@ -40,14 +48,14 @@ database.
 
 Suggest this is folded into s/w engineering section.
 
-# Key terms extraction 7
+# Objective 1: Popular Terminology 7 ETF
 
 When you type text into a computer it can't understand the words in the way that humans can. Everytime a character is typed that character is converted into a binary number that the computer can read but doesn't assign any meaning to. That said, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data.
 
 
 
 ## Previous and related work
-## TFIDF
+## Tfidf 2 E
 
 **PyGrams** uses a tool called Term Frequency - Inverse Document Frequency or **TF-IDF** for short.
 
@@ -79,16 +87,27 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 |  2 |  0.22 |  0.02 |  0.12 |
 |  3 |  0.17 |  0.04 |  0.13 |
 |  **Final_Weight**  |   **0.58**    | **0.17**  | **0.35**  |
+
 ## Filtering 2
-### CPC
-### Stop words
-#### Manual list
-#### Fatima work
-### Word embedding 1 E
+
+### Dictionary Reduction
+TFIDF matrix is huge - needed to reduce number of columns (terms)... --prefilter_terms
+
+### Document filtering 0.5-1 B
+#### CPC
+#### Dates
+#### 
+
+### Term filtering 2 B
+#### Stop words
+##### Manual list
+##### Fatima work TF
+
+#### Word embedding 1 E
 
 The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this, it uses a GloVe pre-trained word embedding.
 
-#### What is a GloVe pre-trained word embedding?
+##### What is a GloVe pre-trained word embedding?
 
 **GloVe is an unsupervised learning algorithm for obtaining vector representations for words.** For a model to be 'pre-trained' the algorithm needs to be trained on a corpus of text where it learns to produce word vectors that are meaningful given the word's co-occurance with other words. Once the word vectors have been learnt the Euclidean distance between them can be used to measure semantic similarity of the words.
 
@@ -100,18 +119,18 @@ The model used for PyGrams has been trained on a vocabulary of 400,000 words fro
 
 All GloVe word vectors can be downloaded [here](https://nlp.stanford.edu/projects/glove/).
 
-#### How does it learn word vectors?
+##### How does it learn word vectors?
 
 Unlike other embedding models, GloVe is a count-based model meaning it is a based on a counts matrix of co-occuring words where the rows are words and the columns are context words. The rows are then factorized to a lower dimensionality (in our case 50) to yield a vector representation that is able to explain the variance in the high dimensionality vector.
 
 The steps go as follows:
 
-##### Step 1: Counts matrix
+###### Step 1: Counts matrix
 
 - Collect counts of co-occuring words and record them in matrix $X$.
 - Each cell, $X_{ij}$, refers to how often word $i$ occurs with word $j$ using a pre-defined window size before and after the word.
 
-##### Step 2: Soft Constraints
+###### Step 2: Soft Constraints
 
 - For each word pair define soft contraints as follows:
 </b>
@@ -122,7 +141,7 @@ where:
 - $w_j$ is the vector for the context word.
 - $b_i$ and $b_j$ are biases for the main and context words respectively.
 
-##### Step 3: Cost Function
+###### Step 3: Cost Function
 
 $ J = \sum_{i=1}^V\sum_{j=1}^V f(X_{ij})(w_{i}^Tw_j + b_i + b_j = \text{log}(X_{ij})^2$
 
@@ -130,7 +149,7 @@ where:
 - $V$ is the size of the vocabulary.
 - $f$ is a weighting function to prevent overweighting the common word pairs.
 
-#### How does it work in PyGrams?
+##### How does it work in PyGrams?
 
 Given a distance threshold between user inputted words and words in the corpus, words that are within the threshold distance are included in the output and those which are not are excluded.
 
@@ -161,7 +180,7 @@ The above functionality is acheived using the following piece of code:
         return embeddings_vect
 
 
-#### What is the output?
+##### What is the output?
 
 Using a random selection of 1,000 patents from USPTO and running the following code:
 
@@ -201,21 +220,27 @@ the following terms came out as top:
 
 
 To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
-## Tfidf 2 E
-### Weightings E
-#### Citations M
-## Outputs 2 IT
-### Fog
-### Word cloud
-# Time series 4
+
+# Objective 2: Emerging Terminology 4
 ## Previous and related work
 ## Escores 2 IT
 ### Porter
 ### Curves
+### State space (Sonia)
+
 ## Prediction 2 IB
 ### LSTM
 ### Arima
 ### Holt winters
 ### Quad cubic etc
+
+
+# Outputs 2 IT
+## FDG
+## Word cloud
+## Graph summary
+
+
 # Conclusion 1
+
 # References
