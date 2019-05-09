@@ -41,7 +41,7 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
 2. To install pyGrams packages and dependencies, from the root directory (./pyGrams) run:
 
    ``` 
-   pip install -e
+   pip install -e .
    ```
 
    This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
