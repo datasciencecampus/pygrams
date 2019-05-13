@@ -81,7 +81,7 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 
  Eventually this produces a matrix of TF-IDF weights which are summed to create the final TFIDF weight:
 
- | Document_no  | 'nuclear'  | 'electric'  | 'people'  |
+| Document_no  | 'nuclear'  | 'electric'  | 'people'  |
 |:---:|:---:|:---:|:---:|
 |  1 | 0.19  | 0.11  |  0.10 |
 |  2 |  0.22 |  0.02 |  0.12 |
@@ -171,7 +171,7 @@ The above functionality is acheived using the following piece of code:
                     except:
                         compare.append(0.0)
                         continue
-
+    
             max_similarity_score = max(similarity_score for similarity_score in compare)
             embeddings_vect.append(max_similarity_score)
         #embeddings_vect_norm = ut.normalize_array(embeddings_vect, return_list=True)
@@ -230,8 +230,30 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 
 ## Prediction 2 IB
 ### LSTM
-### Arima
-### Holt winters
+### ARIMA
+
+- ARIMA (p, d, q) (autoregressive integrated moving average)
+
+- - from statsmodels.tsa.arima_model
+
+  - grid search parameter optimisation
+
+  - - p = [0, 1, 2, 4, 6]
+    - d = [0, 1, 2]
+    - q = [0, 1, 2]
+
+### Holt Winters
+
+- Holt-Winters (damped exponential smoothing)
+
+- - from statsmodels.tsa.holtwinters
+
+  - automatically optimised model parameters
+
+  - - alpha = smoothing_level
+    - beta = smoothing_slope
+    - phi = damping_slope
+
 ### Quad cubic etc
 
 
