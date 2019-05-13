@@ -236,7 +236,14 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 
 - - from statsmodels.tsa.arima_model
 
-  - grid search parameter optimisation
+  - ```
+    from statsmodels.tsa.arima_model import ARIMA
+    model = ARIMA(history, order=arima_order)
+    model_fit = model.fit(disp=0, maxiter=200)
+    yhat = model_fit.forecast()[0][0]
+    ```
+
+  - grid search parameter optimisation, training on the first 80% of the data, testing on the remaining 20% of data by forecasting each data point within this 20% (sequential one step ahead forecasting, building on previous forecasts after the first prediction).
 
   - - p = [0, 1, 2, 4, 6]
     - d = [0, 1, 2]
@@ -247,6 +254,12 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 - Holt-Winters (damped exponential smoothing)
 
 - - from statsmodels.tsa.holtwinters
+
+  - ```
+    from statsmodels.tsa.holtwinters import Holt
+    self.__model = Holt(y, exponential=True, damped=True)
+    self.__results = self.__model.fit(optimized=True)
+    ```
 
   - automatically optimised model parameters
 
