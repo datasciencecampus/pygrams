@@ -94,14 +94,72 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 TFIDF matrix is huge - needed to reduce number of columns (terms)... --prefilter_terms
 
 ### Document filtering 0.5-1 B
-#### CPC
-#### Dates
-#### 
+#### Time filters (-df, -dt)
+
+This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
+
+```
+python pygrams.py -df=2000/02/20
+```
+
+The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
+
+```
+python pygrams.py -df=2000/03/01 -dt=2016/07/31
+```
+
+#### Column features filters (-fh, -fb)
+
+If you want to filter results, such as for female, British in the example below, you can specify the column names you wish to filter by, and the type of filter you want to apply, using:
+
+- `-fh`: the list of column names (default is None)
+- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
+
+```
+python pygrams.py -fh=['female','british'] -fb='union'
+```
+
+This filter assumes that values are '0'/'1', or 'Yes'/'No'.
+
+#### Normalise by document length filter (-ndl)
+
+This option normalises the TFIDF scores by document length.
+
+```
+python pygrams.py -ndl
+```
+
+#### Time-weighting filter (-t)
+
+This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
+
+```
+python pygrams.py -t
+```
+
+#### Choosing CPC classification (Patent specific) (-cpc)
+
+This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". An example script is:
+
+```
+python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
+```
+
+In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
 
 ### Term filtering 2 B
-#### Stop words
-##### Manual list
-##### Fatima work TF
+
+#### Stopwords
+
+There are three configuration files available inside the config directory:
+
+- stopwords_glob.txt
+- stopwords_n.txt
+- stopwords_uni.txt
+
+The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+
+#### Fatima work TF
 
 #### Word embedding 1 E
 
