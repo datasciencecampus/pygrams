@@ -232,42 +232,24 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 ### LSTM
 ### ARIMA
 
-ARIMA (autoregressive integrated moving average) was applied as a common time series method
+ARIMA (autoregressive integrated moving average) was applied as a common time series method. The ARIMA parameters (p, d, q) were optimised for each time series using a grid search with values p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2]. The optimisation was based on training on the earliest 80% of the data and testing on the remaining 20% of data. Each data point within the 20% test set was compared with an ARIMA forecast using sequential one step ahead forecasting, building on previous forecasts after the first prediction (CHECK THIS?). Code snips:
 
-- ARIMA (p, d, q) (autoregressive integrated moving average)
+```
+from statsmodels.tsa.arima_model import ARIMA
+model = ARIMA(history, order=arima_order)
+model_fit = model.fit(disp=0, maxiter=200)
+yhat = model_fit.forecast()[0][0]
+```
 
-- - from statsmodels.tsa.arima_model
+### Holt-Winters
 
-  - ```
-    from statsmodels.tsa.arima_model import ARIMA
-    model = ARIMA(history, order=arima_order)
-    model_fit = model.fit(disp=0, maxiter=200)
-    yhat = model_fit.forecast()[0][0]
-    ```
+A common method to predict trend for univariate time series is the Holt-Winters method with damped exponential smoothing. For this application, the automated option for parameter optimisation was used for each time series. This is believed to optimise the parameters: alpha (smoothing_level), beta (smoothing_slope), and phi (damping_slope). Code snips:
 
-  - grid search parameter optimisation, training on the first 80% of the data, testing on the remaining 20% of data by forecasting each data point within this 20% (sequential one step ahead forecasting, building on previous forecasts after the first prediction).
-
-  - - p = [0, 1, 2, 4, 6]
-    - d = [0, 1, 2]
-    - q = [0, 1, 2]
-
-### Holt Winters
-
-- Holt-Winters (damped exponential smoothing)
-
-- - from statsmodels.tsa.holtwinters
-
-  - ```
-    from statsmodels.tsa.holtwinters import Holt
-    self.__model = Holt(y, exponential=True, damped=True)
-    self.__results = self.__model.fit(optimized=True)
-    ```
-
-  - automatically optimised model parameters
-
-  - - alpha = smoothing_level
-    - beta = smoothing_slope
-    - phi = damping_slope
+```
+from statsmodels.tsa.holtwinters import Holt
+model = Holt(y, exponential=True, damped=True)
+results = model.fit(optimized=True)
+```
 
 ### Quad cubic etc
 
