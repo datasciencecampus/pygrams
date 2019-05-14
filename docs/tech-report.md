@@ -232,6 +232,8 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 ### LSTM
 ### ARIMA
 
+ARIMA (autoregressive integrated moving average) was applied as a common time series method
+
 - ARIMA (p, d, q) (autoregressive integrated moving average)
 
 - - from statsmodels.tsa.arima_model
