@@ -94,70 +94,17 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 TFIDF matrix is huge - needed to reduce number of columns (terms)... --prefilter_terms
 
 ### Document filtering 0.5-1 B
-#### Time filters (-df, -dt)
 
-This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
+Document filtering comprises:
 
-```
-python pygrams.py -df=2000/02/20
-```
-
-The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
-
-```
-python pygrams.py -df=2000/03/01 -dt=2016/07/31
-```
-
-#### Column features filters (-fh, -fb)
-
-If you want to filter results, such as for female, British in the example below, you can specify the column names you wish to filter by, and the type of filter you want to apply, using:
-
-- `-fh`: the list of column names (default is None)
-- `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
-
-```
-python pygrams.py -fh=['female','british'] -fb='union'
-```
-
-This filter assumes that values are '0'/'1', or 'Yes'/'No'.
-
-#### Normalise by document length filter (-ndl)
-
-This option normalises the TFIDF scores by document length.
-
-```
-python pygrams.py -ndl
-```
-
-#### Time-weighting filter (-t)
-
-This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
-
-```
-python pygrams.py -t
-```
-
-#### Choosing CPC classification (Patent specific) (-cpc)
-
-This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". An example script is:
-
-```
-python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
-```
-
-In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
+- Time filters, restricting the corpus to documents with publication dates within a specified range.
+- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria. For patent data specifically, documents can be restricted to those with a specified Cooperative Patent Classification (CPC) value.
 
 ### Term filtering 2 B
 
 #### Stopwords
 
-There are three configuration files available inside the config directory:
-
-- stopwords_glob.txt
-- stopwords_n.txt
-- stopwords_uni.txt
-
-The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
+Stopwords are handled using three user configurable files. One contains global stopwords, including a list of standard English stopwords; one contains unigram stop words; and the third bi-gram or tri-gram stopwords.
 
 #### Fatima work TF
 
@@ -290,24 +237,13 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 ### LSTM
 ### ARIMA
 
-ARIMA (autoregressive integrated moving average) was applied as a common time series method. The ARIMA parameters (p, d, q) were optimised for each time series using a grid search with values p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2]. The optimisation was based on training on the earliest 80% of the data and testing on the remaining 20% of data. Each data point within the 20% test set was compared with an ARIMA forecast using sequential one step ahead forecasting, building on previous forecasts after the first prediction (CHECK THIS?). Code snips:
+**NOTE: Probably don't need ARIMA and Holt-Winters sub-section headers, e.g. after providing an initial list of techniques at the beginning of the prediction section.**
 
-```
-from statsmodels.tsa.arima_model import ARIMA
-model = ARIMA(history, order=arima_order)
-model_fit = model.fit(disp=0, maxiter=200)
-yhat = model_fit.forecast()[0][0]
-```
+ARIMA (autoregressive integrated moving average) was applied using a grid search optimisation of its (p, d, q) parameters for each time series, based on training on the earliest 80% of the data and testing on the remaining 20% of data.  The grid search parameters were: p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2].
 
 ### Holt-Winters
 
-A common method to predict trend for univariate time series is the Holt-Winters method with damped exponential smoothing. For this application, the automated option for parameter optimisation was used for each time series. This is believed to optimise the parameters: alpha (smoothing_level), beta (smoothing_slope), and phi (damping_slope). Code snips:
-
-```
-from statsmodels.tsa.holtwinters import Holt
-model = Holt(y, exponential=True, damped=True)
-results = model.fit(optimized=True)
-```
+Holt-Winters was applied in its damped exponential smoothing form using an automated option for parameter optimisation for each time series. Holt-Winters' parameters include: alpha (smoothing level), beta (smoothing slope), and phi (damping slope).
 
 ### Quad cubic etc
 
