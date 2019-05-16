@@ -68,7 +68,7 @@ def get_args(command_line_arguments):
 
     # TF-IDF PARAMETERS
     # ngrams selection
-    parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
+    parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=2, help="the minimum ngram value")
     parser.add_argument("-mx", "--max_ngrams", type=int, choices=[1, 2, 3], default=3, help="the maximum ngram value")
 
     # maximum document frequency
