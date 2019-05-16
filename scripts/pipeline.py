@@ -1,5 +1,6 @@
 import bz2
 import pickle
+import csv
 from os import makedirs, path
 
 from pandas import read_pickle
@@ -277,6 +278,19 @@ class PipelineEmtech(object):
 
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
                                                                 predictors_to_run, test_terms=terms)
+
+        # save training_values to csv file
+        #
+        # training_values:                                  csv file:
+        # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
+        #                                                   'term2', 2, 4, 1, 3
+        #
+        filename = 'outputs/emergence/' + emergence + '_time_series.csv'
+        with open(filename, 'w') as f:
+            w = csv.writer(f)
+            for key, values in training_values.items():
+                my_list = ["'" + str(key) + "'"] + values
+                w.writerow(my_list)
 
         html_results += report_predicted_emergence_labels_html(predicted_emergence)
 
