@@ -54,6 +54,7 @@ class Pipeline(object):
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
@@ -129,7 +130,7 @@ class Pipeline(object):
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
         tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
 
-        tfidf_masked= utils.remove_all_null_rows(tfidf_masked)
+        tfidf_masked, self.__dataframe = utils.remove_all_null_rows_global(tfidf_masked, self.__dataframe)
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
