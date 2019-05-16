@@ -48,9 +48,9 @@ class DocumentsFilter(object):
         for index, row in tqdm(df.iterrows(), desc='Sifting documents for ' + cpc, unit='document',
                                total=df.shape[0]):
             cpc_list = row['classifications_cpc']
+            if not isinstance(cpc_list, list):
+                continue
             for cpc_item in cpc_list:
-                if not isinstance(cpc_list, list):
-                    continue
                 if cpc_item.startswith(cpc):
                     cpc_index_list.append(index)
                     break
