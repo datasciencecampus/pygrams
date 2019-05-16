@@ -24,7 +24,7 @@ def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3,
     count_matrix = vectorizer.fit_transform(text_series)
     feature_names = vectorizer.get_feature_names()
 
-    return _TFIDF( count_matrix, vectorizer.vocabulary_, feature_names)
+    return _TFIDF(count_matrix, vectorizer.vocabulary_, feature_names)
 
 
 def tfidf_subset_from_features(tfidf_obj, feature_subset):
