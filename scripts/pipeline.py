@@ -1,11 +1,9 @@
 import bz2
 import pickle
 from os import makedirs, path
-import pandas as pd
 
 from pandas import read_pickle
 from tqdm import tqdm
-from sklearn.decomposition import NMF
 
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
@@ -28,7 +26,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
                  pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0, terms_threshold=None,
-                 output_name=None, emerging_technology=None, n_nmf_topics=0):
+                 output_name=None, emerging_technology=None):
 
         # load data
         self.__data_filename = data_filename
@@ -129,15 +127,11 @@ class Pipeline(object):
 
         # todo: this mutiply and remove null will disappear - maybe put weight combiner last so it can remove 0 weights
         # mask the tfidf matrix
-        tfidf_matrix = self.__tfidf_obj.tfidf_matrix
-        tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
+
+        tfidf_masked = tfidf_mask.multiply(self.__tfidf_obj.tfidf_matrix)
 
         tfidf_masked, self.__dataframe = utils.remove_all_null_rows_global(tfidf_masked, self.__dataframe)
-        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
-
-        # topic modelling
-        if n_nmf_topics != 0:
-            self.nmf_topic_modelling(n_nmf_topics)
+        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {self.__tfidf_obj.tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
 
@@ -155,60 +149,19 @@ class Pipeline(object):
 
         # todo: hence Pipeline then becomes a single function
 
-    def nmf_topic_modelling(self, n_nmf_topics):  # Experimental only
-        # parameters
-        topic_terms_to_print = 10
-
-        calculate_term_weights = False
-        term_weights_to_sum = 10  # 0 to sum all weights
-        term_weights_to_print = 50
-
-        # run NMF on TFIDF
-        nmf = NMF(n_components=n_nmf_topics, random_state=1, alpha=.1, l1_ratio=.5, init='nndsvd').\
-            fit(self.__tfidf_obj.tfidf_matrix)
-
-        # print topics
-        print()
-        print('*** NMF topic modelling (experimental only) ***')
-        print('Topics:')
-        feature_names = self.__tfidf_obj.feature_names
-        for topic_idx, term_weights in enumerate(nmf.components_):
-            print("%d:" % (topic_idx), end='')
-            print(", ".join([feature_names[i] for i in term_weights.argsort()[:-topic_terms_to_print - 1:-1]]))
-        print()
-
-        # calculate feature/term 'scores'
-        if calculate_term_weights:
-            # create list of all or of top n terms & weights for every topic
-            top_features = []
-            if term_weights_to_sum == 0:
-                term_weights = nmf.components_.sum(axis=0)
-                top_features = zip(feature_names, term_weights)
-            else:
-                for topic_idx, term_weights in enumerate(nmf.components_):
-                    for idx in term_weights.argsort()[:-term_weights_to_sum-1:-1]:
-                        top_features.append((feature_names[idx], term_weights[idx]))
-
-            # sum term weights over topics and print
-            top_features_df = pd.DataFrame(top_features, columns=['feature', 'score'])
-            top_features_df = top_features_df.groupby(top_features_df.feature).sum().\
-                sort_values(by='score', ascending=False).reset_index()
-            print("Term weights extracted from topics (sum over all topics of term weights associated with each topic):")
-            print(top_features_df[0:term_weights_to_print])
-            print()
 
     @property
     def term_counts_data(self):
         return self.__term_counts_data
 
-    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
+    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
 
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time)
+                                  doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
 
 
     @property

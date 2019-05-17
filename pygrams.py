@@ -155,6 +155,8 @@ def main(supplied_args):
     outputs.append('report')
     if args.term_counts:
         outputs.append('termcounts')
+    if args.n_nmf_topics >0:
+        outputs.append('nmf')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
@@ -171,10 +173,10 @@ def main(supplied_args):
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
                         prefilter_terms=args.prefilter_terms, pickled_tf_idf_file_name=pickled_tf_idf_path,
-                        output_name=args.outputs_name, emerging_technology=args.emerging_technology,
-                        n_nmf_topics=args.n_nmf_topics)
+                        output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
-    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=args.num_ngrams_report)
+    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
+                    nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
 
     # emtech integration
     if args.emerging_technology:
