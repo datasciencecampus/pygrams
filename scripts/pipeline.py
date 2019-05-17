@@ -68,7 +68,7 @@ class Pipeline(object):
                 pickle.dump(
                     (self.__tfidf_obj, self.__dataframe, self.__text_lengths),
                     pickle_file,
-                    protocol=4)
+                    protocol=4, fix_imports=False)
 
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')

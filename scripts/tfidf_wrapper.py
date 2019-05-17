@@ -31,12 +31,12 @@ def tfidf_subset_from_features(tfidf_obj, feature_subset):
     l2 = tfidf_obj.l2_norm
     indices = sorted([tfidf_obj.vocabulary.get(x) for x in feature_subset])
 
-    new_tfidf_matrix = tfidf_obj.count_matrix[:, indices]
+    new_count_matrix = tfidf_obj.count_matrix[:, indices]
     new_vocabulary = {}
     for i in range(len(feature_subset)):
         new_vocabulary.setdefault(feature_subset[i], i)
 
-    return _TFIDF(new_tfidf_matrix, new_vocabulary, feature_subset, l2_norm=l2)
+    return _TFIDF(new_count_matrix, new_vocabulary, feature_subset, l2_norm=l2)
 
 
 class _TFIDF:
@@ -46,7 +46,7 @@ class _TFIDF:
         self.__count_matrix = count_matrix
         self.__vocabulary = vocabulary
         self.__feature_names = feature_names
-        self.__tfidf_transformer = TfidfTransformer(smooth_idf=False, norm=None)
+        self.__tfidf_transformer = None
         self.__tfidf_matrix=None
 
     @property
@@ -64,6 +64,7 @@ class _TFIDF:
     @property
     def tfidf_matrix(self):
         if self.__tfidf_matrix is None:
+            self.__tfidf_transformer = TfidfTransformer(smooth_idf=False, norm=None)
             self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__count_matrix)
             if self.__l2_norm is None:
                 self.__l2_norm = utils.l2normvec(self.__tfidf_matrix)
