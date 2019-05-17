@@ -221,4 +221,4 @@ class SteadyStateModel:
         dfk_out = self.dfk_llm_vard(opt_param)
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
-        return alphahat, mse_alphahat
+        return opt_param, dfk_out, alphahat, mse_alphahat
