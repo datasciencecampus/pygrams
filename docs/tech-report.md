@@ -1,6 +1,7 @@
 # Style guide
 
-Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored in GitHub.
+Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored
+in GitHub.
 
 Write up all commands against the results to show how it worked!
 
@@ -28,7 +29,7 @@ Popular terminology refers to the most frequent keywords and small phrases ( up 
 terminology is keywords that show emerging ( or declining ) frequency patterns when projected on a time-series scale.
 
 ## Stakeholders
-Initially this project idea came from BEIS and the IPO, where the former requested popular key-terminology to be 
+Initially this project idea came from BEIS and the IPO, where the former was popular key-terminology to be 
 retrieved from patent applications and the latter came with the idea of retrieving emerging terminology. Both approaches
 would aim in providing richer information for various technology sectors for policy. The list below demonstrates the 
 various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working
@@ -277,7 +278,7 @@ plenty of white noise ( fast upwards and downwards slopes) that could influence 
 interested in highlighting terms that rapidly emerged in the last few periods of their timeseries, but we wanted to 
 explore a more flexible approach.
 Our immediate next thought was to fit second degree polynomials and sigmoid curves to retrieve emerging patterns in our
-corpus. Again this method came with 
+corpus. Again this method came with its own limitations especially when the timeseries curve had multiple curvatures.
 ### State space (Sonia)
 
 ## Prediction 2 IB
