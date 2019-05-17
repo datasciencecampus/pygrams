@@ -14,13 +14,38 @@ class TestNMFWrapper(unittest.TestCase):
     def setUpClass(cls):
 
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        cls.__tfidf_obj = tfidf_from_text(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
+        tfidf_obj = tfidf_from_text(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
                                     tokenizer=LemmaTokenizer())
+        nmf_topics = 5
+        cls.__nmf = nmf_topic_modelling(nmf_topics, tfidf_obj.tfidf_matrix, tfidf_obj.feature_names)
 
     def test_nmf_topic1(self):
-        nmf_topics = 5
-        nmf = nmf_topic_modelling(nmf_topics, self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
-        actual_topic_1_max_score = nmf.components_[0][3302]
-        expected_topic_1_max_score = 0.2044937886411859
 
-        assert_almost_equal(actual_topic_1_max_score, expected_topic_1_max_score, decimal=3)
+        actual_topic_1_score = self.__nmf.components_[0][3302]
+        expected_topic_1_score = 0.2044937886411859
+
+        assert_almost_equal(actual_topic_1_score, expected_topic_1_score, decimal=3)
+
+    def test_nmf_topic2(self):
+        actual_topic_2_score = self.__nmf.components_[1][281]
+        expected_topic_2_score = 0.276781
+
+        assert_almost_equal(actual_topic_2_score, expected_topic_2_score, decimal=3)
+
+    def test_nmf_topic3(self):
+        actual_topic_3_score = self.__nmf.components_[2][2983]
+        expected_topic_3_score = 0.441
+
+        assert_almost_equal(actual_topic_3_score, expected_topic_3_score, decimal=3)
+
+    def test_nmf_topic4(self):
+        actual_topic_4_score = self.__nmf.components_[3][1683]
+        expected_topic_4_score = 0.219
+
+        assert_almost_equal(actual_topic_4_score, expected_topic_4_score, decimal=3)
+
+    def test_nmf_topic5(self):
+        actual_topic_5_score = self.__nmf.components_[4][252]
+        expected_topic_5_score = 0.275
+
+        assert_almost_equal(actual_topic_5_score, expected_topic_5_score, decimal=3)
