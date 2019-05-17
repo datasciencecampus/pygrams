@@ -10,6 +10,44 @@ from pandas import to_datetime
 from pandas.api.types import is_string_dtype
 
 
+def l2normvec(csr_tfidf_mat):
+
+    l2normvec=np.zeros((csr_tfidf_mat.shape[0],), dtype=np.float64)
+    # iterate through rows ( docs)
+    for i in range(csr_tfidf_mat.shape[0]):
+        start_idx_ptr = csr_tfidf_mat.indptr[i]
+        end_idx_ptr = csr_tfidf_mat.indptr[i + 1]
+        l2norm=0
+        # iterate through columns with non-zero entries
+        for j in range(start_idx_ptr, end_idx_ptr):
+            tfidf_val = csr_tfidf_mat.data[j]
+            l2norm+=tfidf_val*tfidf_val
+        l2normvec[i] = (np.sqrt(l2norm))
+    return l2normvec
+
+
+def apply_l2normvec(csr_tfidf_mat, l2normvec):
+    # iterate through rows ( docs)
+    for i in range(csr_tfidf_mat.shape[0]):
+        start_idx_ptr = csr_tfidf_mat.indptr[i]
+        end_idx_ptr = csr_tfidf_mat.indptr[i + 1]
+        l2norm=l2normvec[i]
+        # iterate through columns with non-zero entries
+        for j in range(start_idx_ptr, end_idx_ptr):
+            csr_tfidf_mat.data[j] /=l2norm
+    return csr_tfidf_mat
+
+
+def remove_all_null_rows_global(sparse_mat, df):
+    nonzero_row_indices, _ = sparse_mat.nonzero()
+    unique_nonzero_indices = np.unique(nonzero_row_indices)
+
+    df = df.reset_index(drop=True)
+    df = df.ix[unique_nonzero_indices]
+    df = df.reset_index(drop=True)
+    return sparse_mat[unique_nonzero_indices], df
+
+
 def bisearch_csr(array, target, start, end):
     while start <= end:
         middle = (start + end) // 2
@@ -168,6 +206,7 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
             if not word_in_ngrams:
                 new_tuples.append(tuple)
     return new_tuples
+
 
 def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
     app_exit = False

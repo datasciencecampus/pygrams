@@ -9,7 +9,7 @@ from scripts.filter_terms import FilterTerms
 from scripts.text_processing import StemTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import TFIDF
+from scripts.tfidf_wrapper import tfidf_from_text
 from scripts.utils import utils
 
 
@@ -46,10 +46,10 @@ class TestTfidfMask(unittest.TestCase):
             'date_header': ''
         }
 
-        self.__tfidf_obj = TFIDF(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
-                                 max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
+        self.__tfidf_obj = tfidf_from_text(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
+                                           max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
 
-        doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_weights
+        doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_filters
         doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],
                                        docs_mask_dict['date_header']).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
@@ -105,10 +105,22 @@ class TestTfidfMask(unittest.TestCase):
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
         self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
 
+    def test_num_non_zeros_clean_rows_clean_unigrams_and_df(self):
+        self.init_mask('Y02', 1, uni_factor=0.4)
+        tfidf_mask_nozero_rows, self.__df = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__df)
+        self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(1, len(self.__df.index))
+
     def test_num_non_zeros_clean_rows(self):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
         self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
+
+    def test_num_non_zeros_clean_rows_and_df(self):
+        self.init_mask('Y02', 2)
+        tfidf_mask_nozero_rows, self.__df = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__df)
+        self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(1, len(self.__df.index))
 
     def test_no_negative_weights(self):
         self.init_mask(None, 2)

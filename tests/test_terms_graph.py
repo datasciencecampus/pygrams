@@ -9,7 +9,7 @@ from scripts.terms_graph import TermsGraph
 from scripts.text_processing import StemTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import TFIDF
+from scripts.tfidf_wrapper import tfidf_from_text
 from scripts.utils import utils
 
 
@@ -24,8 +24,8 @@ class TestGraph(unittest.TestCase):
         ngram_range = (min_n, max_n)
 
         df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
-        tfidf_obj = TFIDF(df['abstract'], ngram_range=ngram_range, max_document_frequency=max_df,
-                          tokenizer=StemTokenizer())
+        tfidf_obj = tfidf_from_text(df['abstract'], ngram_range=ngram_range, max_document_frequency=max_df,
+                                    tokenizer=StemTokenizer())
 
         doc_weights = list(np.ones(len(df)))
 
