@@ -49,12 +49,21 @@ class _TFIDF:
         self.__tfidf_transformer = None
         self.__tfidf_matrix=None
 
+    def __trigger_transformer(self):
+        self.__tfidf_transformer = TfidfTransformer(smooth_idf=False, norm=None)
+        self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__count_matrix)
+        if self.__l2_norm is None:
+            self.__l2_norm = utils.l2normvec(self.__tfidf_matrix)
+        self.__tfidf_matrix = utils.apply_l2normvec(self.__tfidf_matrix, self.__l2_norm)
+
     @property
     def l2_norm(self):
         return self.__l2_norm
 
     @property
     def idf(self):
+        if self.__tfidf_transformer is None:
+            self.__trigger_transformer()
         return self.__tfidf_transformer.idf_
 
     @property
@@ -63,12 +72,8 @@ class _TFIDF:
 
     @property
     def tfidf_matrix(self):
-        if self.__tfidf_matrix is None:
-            self.__tfidf_transformer = TfidfTransformer(smooth_idf=False, norm=None)
-            self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__count_matrix)
-            if self.__l2_norm is None:
-                self.__l2_norm = utils.l2normvec(self.__tfidf_matrix)
-            self.__tfidf_matrix = utils.apply_l2normvec(self.__tfidf_matrix, self.__l2_norm)
+        if self.__tfidf_transformer is None:
+            self.__trigger_transformer()
         return self.__tfidf_matrix
 
     @property
