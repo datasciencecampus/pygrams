@@ -21,7 +21,6 @@ from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
 
 
-
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
                  normalize_rows=False, text_header='abstract', term_counts=False,
@@ -55,7 +54,6 @@ class Pipeline(object):
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
-
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
@@ -149,7 +147,6 @@ class Pipeline(object):
 
         # todo: hence Pipeline then becomes a single function
 
-
     @property
     def term_counts_data(self):
         return self.__term_counts_data
@@ -162,7 +159,6 @@ class Pipeline(object):
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
-
 
     @property
     def term_score_tuples(self):

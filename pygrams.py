@@ -173,7 +173,8 @@ def main(supplied_args):
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
                         prefilter_terms=args.prefilter_terms, pickled_tf_idf_file_name=pickled_tf_idf_path,
-                        output_name=args.outputs_name, emerging_technology=args.emerging_technology)
+                        output_name=args.outputs_name, emerging_technology=args.emerging_technology,
+                        n_nmf_topics=args.n_nmf_topics)
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
                     nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
