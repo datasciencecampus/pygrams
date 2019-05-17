@@ -67,8 +67,7 @@ class Pipeline(object):
             with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
                 pickle.dump(
                     (self.__tfidf_obj, self.__dataframe, self.__text_lengths),
-                    pickle_file,
-                    protocol=4, fix_imports=False)
+                    pickle_file, protocol=4, fix_imports=False)
 
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')

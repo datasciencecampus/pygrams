@@ -71,10 +71,6 @@ class _TFIDF:
             self.__tfidf_matrix = utils.apply_l2normvec(self.__tfidf_matrix, self.__l2_norm)
         return self.__tfidf_matrix
 
-    @tfidf_matrix.setter
-    def tfidf_matrix(self, value):
-        self.__tfidf_matrix = value
-
     @property
     def vocabulary(self):
         return self.__vocabulary
