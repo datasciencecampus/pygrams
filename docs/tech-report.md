@@ -116,14 +116,19 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 TFIDF matrix is huge - needed to reduce number of columns (terms)... --prefilter_terms
 
 ### Document filtering 0.5-1 B
-#### CPC
-#### Dates
-#### 
+
+Document filtering comprises:
+
+- Time filters, restricting the corpus to documents with publication dates within a specified range.
+- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria. For patent data specifically, documents can be restricted to those with a specified Cooperative Patent Classification (CPC) value.
 
 ### Term filtering 2 B
-#### Stop words
-##### Manual list
-##### Fatima work TF
+
+#### Stopwords
+
+Stopwords are handled using three user configurable files. One contains global stopwords, including a list of standard English stopwords; one contains unigram stop words; and the third bi-gram or tri-gram stopwords.
+
+#### Fatima work TF
 
 #### Word embedding 1 E
 
@@ -285,40 +290,13 @@ corpus. Again this method came with its own limitations especially when the time
 ### LSTM
 ### ARIMA
 
-- ARIMA (p, d, q) (autoregressive integrated moving average)
+**NOTE: Probably don't need ARIMA and Holt-Winters sub-section headers, e.g. after providing an initial list of techniques at the beginning of the prediction section.**
 
-- - from statsmodels.tsa.arima_model
+ARIMA (autoregressive integrated moving average) was applied using a grid search optimisation of its (p, d, q) parameters for each time series, based on training on the earliest 80% of the data and testing on the remaining 20% of data.  The grid search parameters were: p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2].
 
-  - ```
-    from statsmodels.tsa.arima_model import ARIMA
-    model = ARIMA(history, order=arima_order)
-    model_fit = model.fit(disp=0, maxiter=200)
-    yhat = model_fit.forecast()[0][0]
-    ```
+### Holt-Winters
 
-  - grid search parameter optimisation, training on the first 80% of the data, testing on the remaining 20% of data by forecasting each data point within this 20% (sequential one step ahead forecasting, building on previous forecasts after the first prediction).
-
-  - - p = [0, 1, 2, 4, 6]
-    - d = [0, 1, 2]
-    - q = [0, 1, 2]
-
-### Holt Winters
-
-- Holt-Winters (damped exponential smoothing)
-
-- - from statsmodels.tsa.holtwinters
-
-  - ```
-    from statsmodels.tsa.holtwinters import Holt
-    self.__model = Holt(y, exponential=True, damped=True)
-    self.__results = self.__model.fit(optimized=True)
-    ```
-
-  - automatically optimised model parameters
-
-  - - alpha = smoothing_level
-    - beta = smoothing_slope
-    - phi = damping_slope
+Holt-Winters was applied in its damped exponential smoothing form using an automated option for parameter optimisation for each time series. Holt-Winters' parameters include: alpha (smoothing level), beta (smoothing slope), and phi (damping slope).
 
 ### Quad cubic etc
 
