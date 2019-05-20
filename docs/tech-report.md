@@ -245,7 +245,9 @@ ARIMA (autoregressive integrated moving average) was applied using a grid search
 
 Holt-Winters was applied in its damped exponential smoothing form using an automated option for parameter optimisation for each time series. Holt-Winters' parameters include: alpha (smoothing level), beta (smoothing slope), and phi (damping slope).
 
-### Quad cubic etc
+### Naive, linear, quadratic, cubic
+
+A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
 
 
 # Outputs 2 IT
