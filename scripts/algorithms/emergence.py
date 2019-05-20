@@ -158,6 +158,25 @@ class Emergence(object):
             score = fit_score(normalized_term, y_fit)
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
+    def escore_exponential(self, weekly_values):
+        # eponential like emergence score
+        my_weekly_values = weekly_values.copy()
+        # convert into whole multiples of 52 (weeks)
+        weeks_in_year = 52
+        num_years = len(my_weekly_values) // weeks_in_year
+        my_weekly_values = my_weekly_values[-num_years * weeks_in_year:]
+        # convert to table with yearly values as rows, then sum rows to obtain yearly values
+        yearly_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
+        yearly_values = [sum(i) for i in yearly_values]
+        # calculate score
+        sum_weighted_yearly_values = sum(np.multiply(yearly_values[0:num_years], range(0, num_years)))
+        sum_yearly_values = sum(yearly_values[0:num_years]) * ((num_years + 1) / 2)
+        try:
+            escore = sum_weighted_yearly_values / sum_yearly_values - 1
+        except:
+            escore = 0  # 0 = horizontal line (stationary)
+        return escore
+
     def escore_sigm(self, show=False, term=None):
         xdata = np.linspace(1, self.NUM_PERIODS_ACTIVE + self.NUM_PERIODS_BASE,
                             self.NUM_PERIODS_ACTIVE + self.NUM_PERIODS_BASE)

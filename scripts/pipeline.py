@@ -2,6 +2,7 @@ import bz2
 import pickle
 from os import makedirs, path
 
+import numpy as np
 from pandas import read_pickle
 from tqdm import tqdm
 
@@ -169,7 +170,7 @@ class Pipeline(object):
 
 # 'USPTO-granted-full-random-500000-term_counts.pkl.bz2'
 class PipelineEmtech(object):
-    def __init__(self, term_counts_data, m_steps_ahead=5, curves=True, nterms=50, minimum_patents_per_quarter=20,
+    def __init__(self, term_counts_data, m_steps_ahead=5, curves=True, exponential=False, nterms=50, minimum_patents_per_quarter=20,
                  outname=None):
         self.__M = m_steps_ahead
 
@@ -183,6 +184,7 @@ class PipelineEmtech(object):
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
+            weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
 
             if len(row_values) == 0:
@@ -195,8 +197,16 @@ class PipelineEmtech(object):
                 continue
 
             if em.init_vars(row_indices, row_values):
-                escore = em.calculate_escore() if not curves else em.escore2()
+                if exponential:
+                     escore = em.escore_exponential(weekly_values)
+                elif curves:
+                    escore = em.escore2()
+                else:
+                    escore = em.calculate_escore()
+
                 self.__emergence_list.append((term_ngram, escore))
+
+
 
         if len(self.__emergence_list) == 0:
             self.__emergent = []

@@ -130,6 +130,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
                         help="analyse using curve or not")
 
+    parser.add_argument("-exp", "--exponential-fitting", default=False, action="store_true",
+                        help="analyse using exponential type fit or not")
+
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
 
@@ -190,7 +193,8 @@ def main(supplied_args):
         term_counts_data = pipeline.term_counts_data
 
         pipeline_emtech = PipelineEmtech(term_counts_data, m_steps_ahead=args.steps_ahead, curves=args.curve_fitting,
-                                         nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                                         exponential=args.exponential_fitting, nterms=args.nterms,
+                                         minimum_patents_per_quarter=args.minimum_per_quarter,
                                          outname=args.outputs_name)
 
         for emergence in ['emergent', 'stationary', 'declining']:
