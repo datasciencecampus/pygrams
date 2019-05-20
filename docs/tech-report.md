@@ -306,7 +306,6 @@ Holt-Winters was applied in its damped exponential smoothing form using an autom
 ## Word cloud
 ## Graph summary
 
-
 # Conclusion 1
 
 # References
