@@ -10,6 +10,22 @@ from pandas import to_datetime
 from pandas.api.types import is_string_dtype
 
 
+def cpc_dict(df):
+    cpc_list_2d = df['classifications_cpc']
+    cpc_dict={}
+    for idx, cpc_list in enumerate(cpc_list_2d):
+        if not isinstance(cpc_list, list):
+            continue
+        for cpc_item in cpc_list:
+            if cpc_item in cpc_dict:
+                cpc_set = cpc_dict[cpc_item]
+                cpc_set.add(idx)
+                cpc_dict[cpc_item] = cpc_set
+            else:
+                cpc_dict[cpc_item] = {idx}
+    return cpc_dict
+
+
 def l2normvec(csr_tfidf_mat):
 
     l2normvec=np.zeros((csr_tfidf_mat.shape[0],), dtype=np.float64)
