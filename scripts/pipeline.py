@@ -54,7 +54,6 @@ class Pipeline(object):
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
-
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
@@ -126,11 +125,11 @@ class Pipeline(object):
 
         # todo: this mutiply and remove null will disappear - maybe put weight combiner last so it can remove 0 weights
         # mask the tfidf matrix
-        tfidf_matrix = self.__tfidf_obj.tfidf_matrix
-        tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
+
+        tfidf_masked = tfidf_mask.multiply(self.__tfidf_obj.tfidf_matrix)
 
         tfidf_masked, self.__dataframe = utils.remove_all_null_rows_global(tfidf_masked, self.__dataframe)
-        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
+        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {self.__tfidf_obj.tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
 
@@ -152,15 +151,14 @@ class Pipeline(object):
     def term_counts_data(self):
         return self.__term_counts_data
 
-    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
+    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
 
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time)
-
+                                  doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
 
     @property
     def term_score_tuples(self):

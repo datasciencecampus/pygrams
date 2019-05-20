@@ -23,6 +23,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-ih", "--id_header", default=None, help=argparse.SUPPRESS)
     parser.add_argument("-c", "--cite", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-pt", "--path", default='data', help=argparse.SUPPRESS)
+    parser.add_argument("-nmf", "--n_nmf_topics", type=int, default=0, help=argparse.SUPPRESS)
+                        # help="NMF topic modelling - number of topics (e.g. 20 or 40)")
 
     # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
@@ -153,6 +155,8 @@ def main(supplied_args):
     outputs.append('report')
     if args.term_counts:
         outputs.append('termcounts')
+    if args.n_nmf_topics >0:
+        outputs.append('nmf')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
@@ -171,7 +175,8 @@ def main(supplied_args):
                         prefilter_terms=args.prefilter_terms, pickled_tf_idf_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
-    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=args.num_ngrams_report)
+    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
+                    nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
 
     # emtech integration
     if args.emerging_technology:
