@@ -48,8 +48,9 @@ class TestTfidfMask(unittest.TestCase):
 
         self.__tfidf_obj = tfidf_from_text(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
                                            max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
+        cpc_dict=utils.cpc_dict(self.__df)
 
-        doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_filters
+        doc_filters = DocumentsFilter(self.__df, docs_mask_dict, cpc_dict).doc_filters
         doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],
                                        docs_mask_dict['date_header']).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]

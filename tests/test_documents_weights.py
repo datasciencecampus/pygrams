@@ -124,13 +124,6 @@ class TestDocumentsWeights(unittest.TestCase):
         actual = list(doc_weights)
         self.assertListEqual(expected, actual)
 
-    def test_normalized(self):
-        expected_weights = [1 / 5, 1 / 2, 1 / 4, 1]
-
-        actual_weights = DocumentsWeights(self.__df, False, None, 'publication_date', [5, 2, 4, 1],
-                                          norm_rows=True).weights
-
-        self.assertListEqual(expected_weights, actual_weights)
 
     def test_time(self):
         expected = [0.2,
