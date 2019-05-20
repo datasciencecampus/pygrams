@@ -1,6 +1,7 @@
 # Style guide
 
-Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored in GitHub.
+Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored
+in GitHub.
 
 Write up all commands against the results to show how it worked!
 
@@ -18,11 +19,32 @@ Write up all commands against the results to show how it worked!
 - Emily Tew: emily.tew@ons.gov.uk
 
 # Objectives and scope 1-2 T
-## Customers
-### Ipo
-### Dirac
-### People survey
-## Previous and related work
+The present project aimed in generating insights out of large document collections. By large document collections we 
+mean a large number of documents ( >=10000 ) that share the same theme, like patents, job adverts, medical journal 
+publications and others. The insights we are aiming to retrieve from these document collections are:
+- popular terminology
+- emerging terminology
+
+Popular terminology refers to the most frequent keywords and small phrases ( up  to three words) and emerging 
+terminology is keywords that show emerging ( or declining ) frequency patterns when projected on a time-series scale.
+
+## Stakeholders
+Initially this project idea came from BEIS and the IPO, where the former was popular key-terminology to be 
+retrieved from patent applications and the latter came with the idea of retrieving emerging terminology. Both approaches
+would aim in providing richer information for various technology sectors for policy. The list below demonstrates the 
+various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working
+on this roject.
+- IPO: Emerging terminology from patent data (PATSTAT)
+- BEIS: popular terminology from UK patents
+- ONS:
+    - popular terminology on people survey free-text comments
+    - Emerging terminology on statistical journal publications data
+    - Emerging terminology on coroners reports
+- DIRAC: Emerging terminology in job adverts. Identification of emerging job skills
+- Innovate UK: Emerging and popular terminology on project grant applications
+- MOJ: popular terminology on people survey free-text comments
+- GDS: Emerging terminology in job adverts. Identification of emerging job skills in DDaT profession
+- DIT: Popular terminology on EU Exit consultations
 
 # Data engineering 1-2 I
 
@@ -224,13 +246,44 @@ the following terms came out as top:
 
 
 
-To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
+To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on 
+[Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
 # Objective 2: Emerging Terminology 4
-## Previous and related work
+In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the 
+tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the 
+period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of 
+seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve 
+emerging terminology. These were Porter(2018), curve fitting and a state-space model with kalman filter.
 ## Escores 2 IT
-### Porter
+## Previous and related work / Porter
+Our first attempts to generate emerging terminology insights were based on the Porter(2018) publication. This method 
+relied on ten timeseries periods, the three first being the base period and the following seven the active one. The 
+emergence score is calculated using a series of differential equations within the active period counts, normalised by
+the global trend.
+
+        active_period_trend = (sum_term_counts_567 / sum_sqrt_total_counts_567) - (sum_term_counts_123 / 
+        sum_sqrt_total_counts_123)
+
+        recent_trend = 10 * (
+                (term_counts[5] + term_counts[6]) / (sqrt(total_counts[5]) + sqrt(total_counts[6]))
+                - (term_counts[3] + term_counts[4]) / (sqrt(total_counts[3]) + sqrt(total_counts[4])))
+
+        mid_year_to_last_year_slope = 10 * (
+                (term_counts[6] / sqrt(total_counts[6])) - (term_counts[3] / sqrt(total_counts[3]))) / 3
+
+        e_score=  2 * active_period_trend + mid_year_to_last_year_slope + recent_trend
+
+![img](img/porter_2018.png)
+
 ### Curves
+The Porter method demonstrated good results, but we decided to investigate alternative methods as we felt Porter's 
+calculations were relying a lot on the last couple of periods slope. In our time-series we realized that there was 
+plenty of white noise ( fast upwards and downwards slopes) that could influence this model. Also we are not only 
+interested in highlighting terms that rapidly emerged in the last few periods of their timeseries, but we wanted to 
+explore a more flexible approach.
+Our immediate next thought was to fit second degree polynomials and sigmoid curves to retrieve emerging patterns in our
+corpus. Again this method came with its own limitations especially when the timeseries curve had multiple curvatures.
 ### State space (Sonia)
 
 ## Prediction 2 IB
@@ -254,7 +307,6 @@ A naive predictor used the last value in each time series as the predicted value
 ## FDG
 ## Word cloud
 ## Graph summary
-
 
 # Conclusion 1
 
