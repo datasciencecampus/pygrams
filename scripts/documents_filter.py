@@ -5,6 +5,8 @@ class DocumentsFilter(object):
     def __init__(self, dates, docs_mask_dict, cpc_dict, number_of_docs):
         self.__doc_indices = set([])
         self.__cpc_dict = cpc_dict
+
+        # todo: Support or fully remove column filtering
         # if docs_mask_dict['columns'] is not None:
         #     self.__doc_indices = self.__filter_column(dates, docs_mask_dict['columns'], docs_mask_dict['filter_by'])
 
