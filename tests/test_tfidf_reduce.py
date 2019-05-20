@@ -34,9 +34,8 @@ class TestTfidfReduce(unittest.TestCase):
 
         filename = os.path.join('tests', 'data', 'USPTO-random-100.csv')
 
-        cls.__pipeline = Pipeline(filename, docs_mask_dict, ngram_range=ngram_range,
-                                  text_header='abstract', term_counts=True,
-                                  max_df=max_df, output_name='test')
+        cls.__pipeline = Pipeline(filename, docs_mask_dict, ngram_range=ngram_range, text_header='abstract',
+                                  term_counts=True, max_df=max_df, output_name='test')
 
         cls.__term_score_tuples = cls.__pipeline.term_score_tuples
 

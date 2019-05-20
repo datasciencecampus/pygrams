@@ -22,10 +22,9 @@ from scripts.vandv.predictor import evaluate_prediction
 
 
 class Pipeline(object):
-    def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
-                 normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_base_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0, terms_threshold=None,
-                 output_name=None, emerging_technology=None):
+    def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
+                 term_counts=False, pickled_base_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
+                 terms_threshold=None, output_name=None, emerging_technology=None):
 
         # load data
         self.__data_filename = data_filename
