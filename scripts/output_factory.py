@@ -70,8 +70,7 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
     elif output_type =='nmf':
         # topic modelling
         topic_terms_to_print = 10
-        feature_names = tfidf_reduce_obj.feature_names
-        nmf = nmf_topic_modelling(nmf_topics, tfidf_reduce_obj.tfidf_masked, feature_names)
+        nmf = nmf_topic_modelling(nmf_topics, tfidf_reduce_obj.tfidf_masked)
         filename_and_path = path.join('outputs', 'reports', name + '_nmf.txt')
         with open(filename_and_path, 'w') as file:
 

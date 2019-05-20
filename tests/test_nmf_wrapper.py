@@ -17,7 +17,7 @@ class TestNMFWrapper(unittest.TestCase):
         tfidf_obj = tfidf_from_text(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
                                     tokenizer=LemmaTokenizer())
         nmf_topics = 5
-        cls.__nmf = nmf_topic_modelling(nmf_topics, tfidf_obj.tfidf_matrix, tfidf_obj.feature_names)
+        cls.__nmf = nmf_topic_modelling(nmf_topics, tfidf_obj.tfidf_matrix)
 
     def test_nmf_topic1(self):
 
