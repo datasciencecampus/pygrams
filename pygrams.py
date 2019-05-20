@@ -172,7 +172,7 @@ def main(supplied_args):
                         ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
                         text_header=args.text_header, max_df=args.max_document_frequency,
                         term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
-                        prefilter_terms=args.prefilter_terms, pickled_tf_idf_file_name=pickled_tf_idf_path,
+                        prefilter_terms=args.prefilter_terms, pickled_base_file_name=pickled_tf_idf_path,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,

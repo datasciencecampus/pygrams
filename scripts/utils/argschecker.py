@@ -1,7 +1,9 @@
 import datetime
 from os import path
+
 import pandas as pd
 
+from scripts.utils.date_utils import date_to_year_week
 from scripts.utils.pygrams_exception import PygramsException
 
 
@@ -114,8 +116,8 @@ class ArgsChecker:
             date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(
                 self.args.date_from)
             docs_mask_dict['date'] = {
-                'to': date_to,
-                'from': date_from
+                'to': date_to_year_week(date_to),
+                'from': date_to_year_week(date_from)
             }
         return docs_mask_dict
 
