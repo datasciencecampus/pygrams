@@ -5,9 +5,9 @@ from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_late
 
 
 class DocumentsFilter(object):
-    def __init__(self, df, docs_mask_dict):
+    def __init__(self, df, docs_mask_dict, cpc_dict):
         self.__doc_indices = set([])
-
+        self.__cpc_dict = cpc_dict
         if docs_mask_dict['columns'] is not None:
             self.__doc_indices = self.__filter_column(df, docs_mask_dict['columns'], docs_mask_dict['filter_by'])
 
@@ -40,21 +40,13 @@ class DocumentsFilter(object):
     def doc_indices(self):
         return self.__doc_indices
 
-    @staticmethod
-    def __filter_cpc(df, cpc):
-        cpc_index_list = []
+    def __filter_cpc(self, df, cpc):
+        indices_set = set()
+        for cpc_item in self.__cpc_dict:
+            if cpc_item.startswith(cpc):
+                indices_set |= self.__cpc_dict[cpc_item]
 
-        df = df.reset_index(drop=True)
-        for index, row in tqdm(df.iterrows(), desc='Sifting documents for ' + cpc, unit='document',
-                               total=df.shape[0]):
-            cpc_list = row['classifications_cpc']
-            if not isinstance(cpc_list, list):
-                continue
-            for cpc_item in cpc_list:
-                if cpc_item.startswith(cpc):
-                    cpc_index_list.append(index)
-                    break
-        return cpc_index_list
+        return list(indices_set)
 
     @staticmethod
     def __filter_column(df, filter_columns, filter_by):

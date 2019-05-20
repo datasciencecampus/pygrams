@@ -60,17 +60,18 @@ class Pipeline(object):
 
             self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
             self.__dataframe.drop(columns=[text_header], inplace=True)
+            self.__cpc_dict = utils.cpc_dict(self.__dataframe)
 
             tfidf_filename = path.join('outputs', 'tfidf', output_name + f'-tfidf-mdf-{max_df}.pkl.bz2')
             makedirs(path.dirname(tfidf_filename), exist_ok=True)
             with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
                 pickle.dump(
-                    (self.__tfidf_obj, self.__dataframe, self.__text_lengths),
+                    (self.__tfidf_obj, self.__dataframe, self.__cpc_dict),
                     pickle_file, protocol=4, fix_imports=False)
 
         else:
             print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')
-            self.__tfidf_obj, self.__dataframe, self.__text_lengths = read_pickle(pickled_tf_idf_file_name)
+            self.__tfidf_obj, self.__dataframe, self.__cpc_dict = read_pickle(pickled_tf_idf_file_name)
             if docs_mask_dict['date_header'] is None:
                 print('Document dates not specified')
             else:
@@ -98,14 +99,13 @@ class Pipeline(object):
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
 
         # docs weights( column, dates subset + time, citations etc.)
-        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_filters
+        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict, self.__cpc_dict).doc_filters
 
         # todo: build up list of weight functions (left with single remaining arg etc via partialfunc)
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
 
         doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['date_header'], self.__text_lengths,
-                                       norm_rows=normalize_rows).weights
+                                       docs_mask_dict['date_header']).weights
         doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
 
         # todo: this is another weight function...
