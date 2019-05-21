@@ -101,7 +101,7 @@ class Pipeline(object):
         #  union: if more entries after single, add / or
         #  intersection: if more entries after single, multiple / and
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
-        print(f'Aplying documents filter...')
+        print(f'Applying documents filter...')
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, self.__cpc_dict,
                                       self.__tfidf_obj.tfidf_matrix.shape[0]).doc_filters
