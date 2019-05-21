@@ -16,7 +16,7 @@ The app pipeline (more details in the user option section):
 2. **[TFIDF Dictionary](#tfidf-dictionary)**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
 3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
 4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
-   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
+   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification).
    2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **[Emergence](#emergence-calculations)**
@@ -211,21 +211,6 @@ python pygrams.py -fh=['female','british'] -fb='union'
 
 This filter assumes that values are '0'/'1', or 'Yes'/'No'.
 
-#### Normalise by document length filter (-ndl)
-
-This option normalises the TFIDF scores by document length.
-
-```
-python pygrams.py -ndl
-```
-
-#### Time-weighting filter (-t)
-
-This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
-
-```
-python pygrams.py -t
-```
 
 #### Choosing CPC classification (Patent specific) (-cpc)
 
@@ -243,7 +228,7 @@ In the console the number of subset patents will be stated. For example, for `py
 
 This subsets the TFIDF term dictionary by only keeping terms related to the given search terms.
 ```
-python pygrams.py -st ['pharmacy', 'medicine', 'chemist']
+python pygrams.py -st pharmacy medicine chemist
 ```
 
 ### Emergence Calculations
