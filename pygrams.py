@@ -247,8 +247,12 @@ if __name__ == '__main__':
         start = time.time()
         main(sys.argv[1:])
         end = time.time()
-        diff = start - end
+        diff = int(end - start)
+        hours=diff//3600
+        minutes=diff//60
+        seconds=diff%60
+
         print('')
-        print(f"pyGrams query took {diff/3600}:{(diff/60):02d}:{(diff%60):02d} to complete")
+        print(f"pyGrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
     except PygramsException as err:
         print(f"pyGrams error: {err.message}")
