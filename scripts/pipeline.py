@@ -112,7 +112,7 @@ class Pipeline(object):
         # todo: this is another weight function...
 
         # term weights - embeddings
-        print(f'Aplying terms filter...')
+        print(f'Applying terms filter...')
         filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, threshold=terms_threshold)
         term_weights = filter_terms_obj.ngram_weights_vec
 
