@@ -62,8 +62,8 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
         }
 
         if date_dict is not None:
-            json_data['month_year']['from'] = date_dict['from'].strftime('%Y-%m-%d')
-            json_data['month_year']['to'] = date_dict['to'].strftime('%Y-%m-%d')
+            json_data['month_year']['from'] = date_dict['from']
+            json_data['month_year']['to'] = date_dict['to']
 
         with open(json_file_name, 'w') as json_file:
             json.dump(json_data, json_file)

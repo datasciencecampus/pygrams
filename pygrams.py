@@ -164,15 +164,15 @@ def main(supplied_args):
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
     if args.input_tfidf is None:
-        pickled_tf_idf_path = None
+        pickled_base_file_name = None
     else:
-        pickled_tf_idf_path = os.path.join('outputs', 'tfidf', args.input_tfidf)
+        pickled_base_file_name = os.path.join('outputs', 'tfidf', args.input_tfidf)
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
-                        ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
-                        text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
-                        prefilter_terms=args.prefilter_terms, pickled_tf_idf_file_name=pickled_tf_idf_path,
+                        ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
+                        term_counts=args.term_counts, pickled_base_file_name=pickled_base_file_name,
+                        max_df=args.max_document_frequency, user_ngrams=args.search_terms,
+                        prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,

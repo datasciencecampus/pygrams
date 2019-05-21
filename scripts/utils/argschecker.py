@@ -1,7 +1,9 @@
 import datetime
 from os import path
+
 import pandas as pd
 
+from scripts.utils.date_utils import date_to_year_week
 from scripts.utils.pygrams_exception import PygramsException
 
 
@@ -36,6 +38,11 @@ class ArgsChecker:
         if date_from is not None and date_to is not None:
             if date_from > date_to:
                 raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
+
+        if date_from is None and date_to is None:
+            print()
+            print('WARNING: No dates defined - time series analysis will not be possible (or with the cached output)!')
+            print()
 
         if self.args.min_ngrams > self.args.max_ngrams:
             print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
@@ -114,8 +121,8 @@ class ArgsChecker:
             date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(
                 self.args.date_from)
             docs_mask_dict['date'] = {
-                'to': date_to,
-                'from': date_from
+                'to': date_to_year_week(date_to),
+                'from': date_to_year_week(date_from)
             }
         return docs_mask_dict
 
