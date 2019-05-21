@@ -249,6 +249,6 @@ if __name__ == '__main__':
         end = time.time()
         diff = start - end
         print('')
-        print(f"pyGrams query took {diff/3600}:{diff/60}:{diff%60} to complete")
+        print(f"pyGrams query took {diff/3600}:{(diff/60):02d}:{(diff%60):02d} to complete")
     except PygramsException as err:
         print(f"pyGrams error: {err.message}")
