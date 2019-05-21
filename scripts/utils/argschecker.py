@@ -39,6 +39,11 @@ class ArgsChecker:
             if date_from > date_to:
                 raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
 
+        if date_from is None and date_to is None:
+            print()
+            print('WARNING: No dates defined - time series analysis will not be possible (or with the cached output)!')
+            print()
+
         if self.args.min_ngrams > self.args.max_ngrams:
             print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
                   f"count {self.args.max_ngrams}")
