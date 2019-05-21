@@ -78,12 +78,10 @@ class Pipeline(object):
             self.__dates = read_pickle(pickled_base_file_name + '-dates.pkl.bz2')
             self.__cpc_dict = read_pickle(pickled_base_file_name + '-cpc_dict.pkl.bz2')
 
-            if docs_mask_dict['date_header'] is None:
-                print('Document dates not specified')
-            else:
+            if self.__dates is not None:
                 min_date = min(self.__dates)
                 max_date = max(self.__dates)
-                print(f'Document ISO dates range from {min_date} to {max_date}')
+                print(f'Document year-week dates range from {min_date/100}-{min_date%100} to {max_date/100}-{max_date%100}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
@@ -103,7 +101,7 @@ class Pipeline(object):
         #  union: if more entries after single, add / or
         #  intersection: if more entries after single, multiple / and
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
-
+        print(f'Aplying documents filter...')
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, self.__cpc_dict,
                                       self.__tfidf_obj.tfidf_matrix.shape[0]).doc_filters
@@ -114,13 +112,14 @@ class Pipeline(object):
         # todo: this is another weight function...
 
         # term weights - embeddings
+        print(f'Aplying terms filter...')
         filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, threshold=terms_threshold)
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # todo: replace tfidf_mask with isolated functions: clean_unigrams, unbias_ngrams;
         #  these operate directly on tfidf
         #  Hence return nothing - operate in place on tfidf.
-
+        print(f'Creating a masked tfidf matrix from filters...')
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
         tfidf_mask_obj.update_mask(doc_filters, term_weights)
@@ -139,6 +138,7 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
         if term_counts or emerging_technology:
+            print(f'Creating timeseries matrix...')
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dates)
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)

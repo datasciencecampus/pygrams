@@ -28,7 +28,7 @@ def cpc_dict(df):
 
 
 def l2normvec(csr_tfidf_mat):
-    l2normvec = np.zeros((csr_tfidf_mat.shape[0],), dtype=np.float64)
+    l2normvec = np.zeros((csr_tfidf_mat.shape[0],), dtype=np.float32)
     # iterate through rows ( docs)
     for i in range(csr_tfidf_mat.shape[0]):
         start_idx_ptr = csr_tfidf_mat.indptr[i]
