@@ -287,7 +287,13 @@ corpus. Again this method came with its own limitations especially when the time
 ### State space (Sonia)
 
 ## Prediction 2 IB
-### LSTM
+
+Different techniques were implemented and tested, to determine the most suitable approach to predict future trends.
+These techniques are now covered in the following sub-sections.
+
+### Naive, linear, quadratic, cubic
+
+A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
 ### ARIMA
 
 **NOTE: Probably don't need ARIMA and Holt-Winters sub-section headers, e.g. after providing an initial list of techniques at the beginning of the prediction section.**
@@ -298,9 +304,33 @@ ARIMA (autoregressive integrated moving average) was applied using a grid search
 
 Holt-Winters was applied in its damped exponential smoothing form using an automated option for parameter optimisation for each time series. Holt-Winters' parameters include: alpha (smoothing level), beta (smoothing slope), and phi (damping slope).
 
-### Naive, linear, quadratic, cubic
+### LSTM
 
-A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
+Long Short-Term Memory (LSTM) recurrent neural networks are a powerful tool for detecting patterns in time series;
+for predicting *n* values, three potential approaches are:
+
+1. Single LSTM that can predict 1 value ahead (but is called *n* times on its own prediction to generate *n* values ahead)
+2. Single LSTM that can predict *n* values ahead
+3. *n* LSTM models, each model predicts different steps ahead (so merge all results to produce *n* values ahead)
+
+The single LSTM with single lookahead can fail due to compound errors - once it goes wrong, its further predictions
+are then based on erroneous output. A single LSTM predicting *n* outputs at once will have a single prediction pass and
+in theory be less prone to compound error. Finally, multiple LSTMs each predicting a different step cannot suffer from
+compound error as they are independent of each other.
+
+In addition, we use Keras as our neural network library, where LSTMs can be trained as either stateless or stateful.
+This means that when Keras trains the network, with a stateless LSTM, the LSTM state will not propagate between batches.
+Conversely, with a stateful LSTM the state will propagate between batches. 
+
+### Prediction Testing
+`pyGrams` can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting
+algorithm - they are used to test its prediction. 
+
+### Results and Discussion
+
+pyGrams was run on the example USPTO dataset of 3.2M patents, and all predictions were requested. Sample output is as 
+follows:
+
 
 
 # Outputs 2 IT
