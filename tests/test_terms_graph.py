@@ -33,7 +33,7 @@ class TestGraph(unittest.TestCase):
         filter_output_obj = FilterTerms(tfidf_obj.feature_names, None, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
-        tfidf_mask_obj = TfidfMask(tfidf_obj, ngram_range=ngram_range)
+        tfidf_mask_obj = TfidfMask(tfidf_obj, ngram_range=ngram_range, unbias=True)
         tfidf_mask_obj.update_mask(doc_weights, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 

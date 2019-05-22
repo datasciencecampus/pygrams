@@ -1,10 +1,8 @@
 import bz2
 import pickle
+
 from os import makedirs, path
-
 from pandas import read_pickle
-from tqdm import tqdm
-
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
@@ -19,6 +17,7 @@ from scripts.utils import utils
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
+from tqdm import tqdm
 
 
 class Pipeline(object):
@@ -43,6 +42,8 @@ class Pipeline(object):
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
                                                tokenizer=LemmaTokenizer())
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
+            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
 
             if prefilter_terms != 0:
                 tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
