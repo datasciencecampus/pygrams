@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
-                 term_counts=False, pickled_base_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
+                 term_counts=False, pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, emerging_technology=None):
 
         # load data
@@ -32,7 +32,7 @@ class Pipeline(object):
 
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
-        if pickled_base_file_name is None:
+        if pickled_tfidf_folder_name is None:
 
             dataframe = datafactory.get(data_filename)
             utils.checkdf(dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
@@ -65,7 +65,9 @@ class Pipeline(object):
             makedirs(base_pickle_path, exist_ok=True)
 
             def pickle_object(short_name, obj):
-                file_name = path.join(base_pickle_path, output_name + f'-mdf-{max_df}-{short_name}.pkl.bz2')
+                folder_name = path.join(base_pickle_path, output_name + f'-mdf-{max_df}')
+                makedirs(folder_name, exist_ok=True)
+                file_name = path.join(folder_name, output_name + f'-mdf-{max_df}-{short_name}.pkl.bz2')
                 with bz2.BZ2File(file_name, 'wb') as pickle_file:
                     pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
 
@@ -74,7 +76,11 @@ class Pipeline(object):
             pickle_object('cpc_dict', self.__cpc_dict)
 
         else:
-            print(f'Reading document and TFIDF from pickle {pickled_base_file_name}')
+            print(f'Reading document and TFIDF from pickle {pickled_tfidf_folder_name}')
+
+            base_folder = path.basename(pickled_tfidf_folder_name)
+            pickled_base_file_name = path.join(pickled_tfidf_folder_name, base_folder)
+
             self.__tfidf_obj = read_pickle(pickled_base_file_name + '-tfidf.pkl.bz2')
             self.__dates = read_pickle(pickled_base_file_name + '-dates.pkl.bz2')
             self.__cpc_dict = read_pickle(pickled_base_file_name + '-cpc_dict.pkl.bz2')

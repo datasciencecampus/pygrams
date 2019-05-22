@@ -132,7 +132,7 @@ class TestPyGrams(unittest.TestCase):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
 
-        mock_makedirs.assert_called_with(self.tfidfOutputFolder(), exist_ok=True)
+        mock_makedirs.assert_called_with(self.tfidfOutputFolder(self.out_name, max_df), exist_ok=True)
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == self.tfidfFileName(self.out_name, max_df):
@@ -165,12 +165,13 @@ class TestPyGrams(unittest.TestCase):
             self.fail('Term counts results were not matched - were filenames correct?')
 
     @staticmethod
-    def tfidfOutputFolder():
-        return os.path.join('outputs', 'tfidf')
+    def tfidfOutputFolder(data_source_name, max_df):
+        return os.path.join('outputs', 'tfidf', data_source_name + f'-mdf-{max_df}')
 
     @staticmethod
     def tfidfFileName(data_source_name, max_df):
-        return os.path.join(TestPyGrams.tfidfOutputFolder(), data_source_name + f'-mdf-{max_df}-tfidf.pkl.bz2')
+        return os.path.join(TestPyGrams.tfidfOutputFolder(data_source_name, max_df),
+                            data_source_name + f'-mdf-{max_df}-tfidf.pkl.bz2')
 
     @staticmethod
     def termCountsOutputFolder():
@@ -245,13 +246,16 @@ class TestPyGrams(unittest.TestCase):
                     return args[0][0]
             return None
 
-        dumped_tfidf_file_name = os.path.join('outputs', 'tfidf', self.out_name + '-mdf-1.0-tfidf.pkl.bz2')
+        dumped_tfidf_file_name = os.path.join('outputs', 'tfidf', self.out_name + '-mdf-1.0',
+                                              self.out_name + '-mdf-1.0-tfidf.pkl.bz2')
         self.dumped_tfidf = find_matching_pickle(mock_pickle_dump, dumped_tfidf_file_name)
 
-        dumped_dates_file_name = os.path.join('outputs', 'tfidf', self.out_name + '-mdf-1.0-dates.pkl.bz2')
+        dumped_dates_file_name = os.path.join('outputs', 'tfidf', self.out_name + '-mdf-1.0',
+                                              self.out_name + '-mdf-1.0-dates.pkl.bz2')
         self.dumped_dates = find_matching_pickle(mock_pickle_dump, dumped_dates_file_name)
 
-        dumped_cpc_dict_file_name = os.path.join('outputs', 'tfidf', self.out_name + '-mdf-1.0-cpc_dict.pkl.bz2')
+        dumped_cpc_dict_file_name = os.path.join('outputs', 'tfidf', self.out_name + '-mdf-1.0',
+                                                 self.out_name + '-mdf-1.0-cpc_dict.pkl.bz2')
         self.dumped_cpc_dict = find_matching_pickle(mock_pickle_dump, dumped_cpc_dict_file_name)
 
         mock_factory_read_pickle.side_effect = factory_read_pickle_fake
