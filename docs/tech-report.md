@@ -1,7 +1,7 @@
 # Style guide
 
 Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored
-in GitHub.
+in GitHub. Example; ```python pygrams.py -it USPTO-mdf-0.05
 
 Write up all commands against the results to show how it worked!
 
@@ -288,12 +288,22 @@ corpus. Again this method came with its own limitations especially when the time
 
 ## Prediction 2 IB
 
-Different techniques were implemented and tested, to determine the most suitable approach to predict future trends.
+The popular terms are processed using either Porter or curves analysis to separate terms into
+emerging (usage is increasing over time), stationary (usage is static) or declining (usage is
+reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
+
+Given the labels, we take the top 25 emergent, top 25 stationary and top 25 declining terms
+and run usage predictions on these terms.
+The top emergent terms are defined as those with the most positive emergence score, the top stationary terms
+those with a score around 0, and top declining those with the most negative score.
+
+Different prediction techniques were implemented and tested, to determine the most suitable approach to predict future trends.
 These techniques are now covered in the following sub-sections.
 
 ### Naive, linear, quadratic, cubic
 
 A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
+
 ### ARIMA
 
 **NOTE: Probably don't need ARIMA and Holt-Winters sub-section headers, e.g. after providing an initial list of techniques at the beginning of the prediction section.**
@@ -323,13 +333,71 @@ This means that when Keras trains the network, with a stateless LSTM, the LSTM s
 Conversely, with a stateful LSTM the state will propagate between batches. 
 
 ### Prediction Testing
-`pyGrams` can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting
-algorithm - they are used to test its prediction. 
+**pyGrams** can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting
+algorithm - they are used to test its prediction. The residuals of the predictions are recorded and analysed; these
+results are output as an HTML report. For example, using the supplied USPTO dataset:
+
+```python pygrams.py -it USPTO-mdf-0.05 -emt --test -pns 0```
+
+An extract of the output is shown below:
+
+![img](img/prediction_test.png)
+
+After examining the output, the predictors with lowest trimmed mean and standard deviation of 
+relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters,
+stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
 
 ### Results and Discussion
 
-pyGrams was run on the example USPTO dataset of 3.2M patents, and all predictions were requested. Sample output is as 
-follows:
+**pyGrams** was run on the example USPTO dataset of 3.2M patents, with predictions generated
+from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
+
+```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
+
+Various outputs are produced; first, the top 250 popular terms are listed:
+```
+1. semiconductor device           3181.175539
+2. electronic device              2974.360838
+3. light source                   2861.643506
+4. semiconductor substrate        2602.684013
+5. mobile device                  2558.832724
+6. pharmaceutical composition     2446.811441
+7. electrically connect           2246.935926
+8. base station                   2008.353328
+9. memory cell                    1955.181403
+10. display device                 1939.361315
+...
+```
+
+Top emergent terms:
+```
+mobile device: 29.820764545328476
+base station: 21.845790614296153
+user equipment: 20.68596854844115
+computer program product: 18.63254739799396
+...
+``` 
+
+Top stationary terms:
+```
+...
+fuel injection: 0.0004264722186599623
+key performance indicator: 7.665313838841475e-05
+chemical structure: -1.9375784177676214e-05
+subsequent stage: -8.295764831296043e-05
+...
+```
+
+Top declining terms:
+```
+...
+plasma display panel: -5.010357686060525
+optical disc: -5.487049355577173
+semiconductor substrate: -6.777448387341435
+liquid crystal display: -8.137031419798937
+```
+
+![img](img/prediction_test.png)
 
 
 
