@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import time
 
 from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
@@ -141,6 +142,7 @@ def get_args(command_line_arguments):
 
 
 def main(supplied_args):
+
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
              os.path.join('outputs', 'table'), os.path.join('outputs', 'emergence')]
     for path in paths:
@@ -242,6 +244,15 @@ def main(supplied_args):
 
 if __name__ == '__main__':
     try:
+        start = time.time()
         main(sys.argv[1:])
+        end = time.time()
+        diff = int(end - start)
+        hours=diff//3600
+        minutes=diff//60
+        seconds=diff%60
+
+        print('')
+        print(f"pyGrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
     except PygramsException as err:
         print(f"pyGrams error: {err.message}")
