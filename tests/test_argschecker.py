@@ -1,8 +1,8 @@
 import unittest
-import pandas as pd
-from pandas import Timestamp
 from unittest import mock
 from unittest.mock import MagicMock
+
+import pandas as pd
 
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
@@ -106,17 +106,17 @@ class TestArgsChecker(unittest.TestCase):
 
     @mock.patch("scripts.utils.argschecker.path", create=True)
     def test_get_docs_mask_dict(self, mock_path):
-        expected_date_from = '2019/03/10'
-        expected_date_to = '2019/03/11'
+        expected_date_from = 201910
+        expected_date_to = 201911
         self.setUpTest(mock_path)
-        self.args.date_from = expected_date_from
-        self.args.date_to = expected_date_to
+        self.args.date_from = pd.Timestamp('2019/03/10')
+        self.args.date_to = pd.Timestamp('2019/03/11')
         args_checker = ArgsChecker(self.args, self.args_default)
 
         args_dict = args_checker.get_docs_mask_dict()
 
-        self.assertEqual(Timestamp(expected_date_from), args_dict['date']['from'])
-        self.assertEqual(Timestamp(expected_date_to), args_dict['date']['to'])
+        self.assertEqual(expected_date_from, args_dict['date']['from'])
+        self.assertEqual(expected_date_to, args_dict['date']['to'])
 
     @mock.patch("scripts.utils.argschecker.path", create=True)
     def test_get_docs_mask_dict_date_from_to_None(self, mock_path):

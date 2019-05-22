@@ -1,25 +1,24 @@
-import pandas as pd
 from tqdm import tqdm
-
-from scripts.utils.date_utils import year2pandas_earliest_date, year2pandas_latest_date
 
 
 class DocumentsFilter(object):
-    def __init__(self, df, docs_mask_dict):
+    def __init__(self, dates, docs_mask_dict, cpc_dict, number_of_docs):
         self.__doc_indices = set([])
+        self.__cpc_dict = cpc_dict
 
-        if docs_mask_dict['columns'] is not None:
-            self.__doc_indices = self.__filter_column(df, docs_mask_dict['columns'], docs_mask_dict['filter_by'])
+        # todo: Support or fully remove column filtering
+        # if docs_mask_dict['columns'] is not None:
+        #     self.__doc_indices = self.__filter_column(dates, docs_mask_dict['columns'], docs_mask_dict['filter_by'])
 
         if docs_mask_dict['cpc'] is not None:
-            doc_set = self.__filter_cpc(df, docs_mask_dict['cpc'])
+            doc_set = self.__filter_cpc(docs_mask_dict['cpc'])
             self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
         if docs_mask_dict['date'] is not None:
-            doc_set = self.__filter_dates(df, docs_mask_dict['date'], docs_mask_dict['date_header'])
+            doc_set = self.__filter_dates(dates, docs_mask_dict['date'])
             self.__add_set(doc_set, docs_mask_dict['filter_by'])
 
-        self.__doc_filters = [0.0] * len(df) if len(self.__doc_indices) > 0 else [1.0] * len(df)
+        self.__doc_filters = [0.0] * number_of_docs if len(self.__doc_indices) > 0 else [1.0] * number_of_docs
         for i in self.__doc_indices:
             self.__doc_filters[i] = 1.0
 
@@ -40,31 +39,23 @@ class DocumentsFilter(object):
     def doc_indices(self):
         return self.__doc_indices
 
-    @staticmethod
-    def __filter_cpc(df, cpc):
-        cpc_index_list = []
+    def __filter_cpc(self, cpc):
+        indices_set = set()
+        for cpc_item in self.__cpc_dict:
+            if cpc_item.startswith(cpc):
+                indices_set |= self.__cpc_dict[cpc_item]
 
-        df = df.reset_index(drop=True)
-        for index, row in tqdm(df.iterrows(), desc='Sifting documents for ' + cpc, unit='document',
-                               total=df.shape[0]):
-            cpc_list = row['classifications_cpc']
-            if not isinstance(cpc_list, list):
-                continue
-            for cpc_item in cpc_list:
-                if cpc_item.startswith(cpc):
-                    cpc_index_list.append(index)
-                    break
-        return cpc_index_list
+        return list(indices_set)
 
     @staticmethod
-    def __filter_column(df, filter_columns, filter_by):
+    def __filter_column(dates, filter_columns, filter_by):
 
         header_lists = []
         filter_headers = filter_columns.split(',')
         filter_headers = [header.strip() for header in filter_headers]
         header_filter_cols = [x.strip() for x in
                               filter_headers] if filter_columns is not None else []
-        filter_df = df.copy()
+        filter_df = dates.copy()
         filter_df = filter_df[filter_headers]
 
         for column in filter_df:
@@ -74,7 +65,7 @@ class DocumentsFilter(object):
         doc_set = None
         if len(header_filter_cols) > 0:
             for header_idx in range(len(header_filter_cols)):
-                header_list = df[header_filter_cols[header_idx]]
+                header_list = dates[header_filter_cols[header_idx]]
                 header_idx_list = []
                 for row_idx, value in enumerate(header_list):
                     if value == 1 or value.lower() == 'yes':
@@ -90,18 +81,15 @@ class DocumentsFilter(object):
         return doc_set
 
     @staticmethod
-    def __filter_dates(df, date_dict, date_header):
+    def __filter_dates(dates, date_dict):
         date_from = date_dict['from']
         date_to = date_dict['to']
         doc_ids = set([])
 
-        date_from = pd.Timestamp(date_from)
-        date_to = pd.Timestamp(date_to)
-
-        for idx, date in tqdm(enumerate(df[date_header]), desc='Sifting documents for date-range: ' +
-                                                               str(date_from) + ' - ' + str(date_to),
+        for idx, date in tqdm(enumerate(dates), desc='Sifting documents for date-range: ' +
+                                                     str(date_from) + ' - ' + str(date_to),
                               unit='document',
-                              total=df.shape[0]):
+                              total=dates.shape[0]):
             if date_to > date > date_from:
                 doc_ids.add(idx)
 

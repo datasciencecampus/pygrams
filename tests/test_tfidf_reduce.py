@@ -1,7 +1,10 @@
-import unittest
 import os
+import unittest
+
 import pandas as pd
+
 from scripts.pipeline import Pipeline
+from scripts.utils.date_utils import date_to_year_week
 from tests import support
 
 
@@ -14,10 +17,10 @@ class TestTfidfReduce(unittest.TestCase):
         max_df = 0.3
         ngram_range = (min_n, max_n)
 
-        date_to = pd.to_datetime('today').date()
-        date_from = pd.to_datetime('1900-01-01')
+        date_to = date_to_year_week(pd.to_datetime('today').date())
+        date_from = date_to_year_week(pd.to_datetime('1900-01-01').date())
 
-        docs_mask_dict={}
+        docs_mask_dict = {}
         docs_mask_dict['filter_by'] = 'union'
         docs_mask_dict['cpc'] = None
         docs_mask_dict['time'] = None
@@ -31,9 +34,8 @@ class TestTfidfReduce(unittest.TestCase):
 
         filename = os.path.join('tests', 'data', 'USPTO-random-100.csv')
 
-        cls.__pipeline = Pipeline(filename, docs_mask_dict,  ngram_range=ngram_range,
-                  text_header='abstract', term_counts=True,
-                  max_df=max_df, output_name='test')
+        cls.__pipeline = Pipeline(filename, docs_mask_dict, ngram_range=ngram_range, text_header='abstract',
+                                  term_counts=True, max_df=max_df, output_name='test')
 
         cls.__term_score_tuples = cls.__pipeline.term_score_tuples
 

@@ -3,15 +3,17 @@ import json
 import pickle
 from os import makedirs, path
 
+from scripts.nmf_wrapper import nmf_topic_modelling
 from scripts.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           term_counts_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, time=None):
+           term_counts_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, time=None, nmf_topics=0):
 
     if output_type == 'report':
         filename_and_path = path.join('outputs', 'reports', name + '.txt')
+        print()
         with open(filename_and_path, 'w') as file:
             counter = 1
             for score, term in output:
@@ -61,11 +63,33 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
         }
 
         if date_dict is not None:
-            json_data['month_year']['from'] = date_dict['from'].strftime('%Y-%m-%d')
-            json_data['month_year']['to'] = date_dict['to'].strftime('%Y-%m-%d')
+            json_data['month_year']['from'] = date_dict['from']
+            json_data['month_year']['to'] = date_dict['to']
 
         with open(json_file_name, 'w') as json_file:
             json.dump(json_data, json_file)
+    elif output_type =='nmf':
+        # topic modelling
+        topic_terms_to_print = 10
+        nmf = nmf_topic_modelling(nmf_topics, tfidf_reduce_obj.tfidf_masked)
+        filename_and_path = path.join('outputs', 'reports', name + '_nmf.txt')
+        with open(filename_and_path, 'w') as file:
 
+            # print topics
+            print()
+            print('*** NMF topic modelling (experimental only) ***')
+            file.write('*** NMF topic modelling (experimental only) *** \n')
+            print('Topics:')
+            file.write('Topics \n')
+            feature_names = tfidf_reduce_obj.feature_names
+            for topic_idx, term_weights in enumerate(nmf.components_):
+                print("%d:" % (topic_idx), end='')
+                file.write("%d: " % (topic_idx))
+                topic_names = ", ".join(
+                    [feature_names[i] for i in term_weights.argsort()[:-topic_terms_to_print - 1:-1]])
+                print(topic_names)
+                file.write(topic_names + '\n')
+            print()
+            file.write('\n')
     else:
         assert 0, "Bad output type: " + output_type

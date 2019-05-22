@@ -1,9 +1,9 @@
 import numpy as np
-from scripts.utils import utils
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
 from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
+from scripts.utils import utils
 
 
 def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer()):
@@ -42,7 +42,7 @@ def tfidf_subset_from_features(tfidf_obj, feature_subset):
 class _TFIDF:
 
     def __init__(self,  count_matrix, vocabulary, feature_names, l2_norm=None):
-        self.__l2_norm=l2_norm
+        self.__l2_norm = l2_norm
         self.__count_matrix = count_matrix
         self.__vocabulary = vocabulary
         self.__feature_names = feature_names

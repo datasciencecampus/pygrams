@@ -15,7 +15,7 @@ from scipy.stats import trim_mean
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from tqdm import tqdm
 
-from scripts.utils.utils import iso_to_gregorian
+from scripts.utils.date_utils import year_week_to_gregorian
 
 
 def plot_to_html_image(plt):
@@ -190,8 +190,8 @@ def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
     if normalised:
         test_terms = ['__ number of patents'] + list(test_terms)
 
-    first_patent_date = iso_to_gregorian(weekly_iso_dates[0])
-    last_patent_date = iso_to_gregorian(weekly_iso_dates[-1])
+    first_patent_date = year_week_to_gregorian(weekly_iso_dates[0])
+    last_patent_date = year_week_to_gregorian(weekly_iso_dates[-1])
     html_string += f'Patents from {first_patent_date:%d %B %Y} to {last_patent_date:%d %B %Y}.<p/>\n'
 
     if test_forecasts:
