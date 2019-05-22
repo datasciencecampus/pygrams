@@ -39,9 +39,13 @@ class ArgsChecker:
             if date_from > date_to:
                 raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
 
-        if date_from is None and date_to is None:
+        if len(self.args.search_terms) > 0:
+            print("The user input words are:")
+            for idx, word in enumerate(self.args.search_terms):
+                print(f'{idx}. {word}')
+        if self.args.input_tfidf is not None and self.args.date_header is None:
             print()
-            print('WARNING: No dates defined - time series analysis will not be possible (or with the cached output)!')
+            print('WARNING: No dates defined - time series analysis will not be possible with the cached object!')
             print()
 
         if self.args.min_ngrams > self.args.max_ngrams:
