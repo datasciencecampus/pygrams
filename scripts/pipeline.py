@@ -42,7 +42,7 @@ class Pipeline(object):
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
                                                tokenizer=LemmaTokenizer())
-            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=1.2, unbias=True)
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
 
             if prefilter_terms != 0:
