@@ -399,9 +399,9 @@ class TestPyGrams(unittest.TestCase):
         pygrams.main(args)
 
         def assert_outputs(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates):
-            self.assertListEqual(feature_names, ['abstract', 'extra', 'extra stuff', 'patent', 'stuff', 'with'])
+            self.assertListEqual(feature_names, ['abstract',  'extra stuff', 'patent', 'with'])
             term_counts_as_lists = term_counts_per_week.todense().tolist()
-            self.assertListEqual(term_counts_as_lists[0], [1, 0, 1, 1, 0, 1])
+            self.assertListEqual(term_counts_as_lists[0], [1,  1, 1,  1])
             self.assertListEqual(number_of_documents_per_week, [1])
             self.assertListEqual(week_iso_dates, [200052])
 
