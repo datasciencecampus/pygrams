@@ -2,7 +2,6 @@ import numpy as np
 from tqdm import tqdm
 
 from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
-import pandas as pd
 
 
 class TfidfReduce(object):
