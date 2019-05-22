@@ -88,7 +88,7 @@ class Pipeline(object):
             if self.__dates is not None:
                 min_date = min(self.__dates)
                 max_date = max(self.__dates)
-                print(f'Document year-week dates range from {min_date/100}-{min_date%100} to {max_date/100}-{max_date%100}')
+                print(f'Document year-week dates range from {min_date//100}-{(min_date%100):02d} to {max_date//100}-{(max_date%100):02d}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
