@@ -285,7 +285,7 @@ class PipelineEmtech(object):
         # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
         #                                                   'term2', 2, 4, 1, 3
         #
-        filename = 'outputs/emergence/' + emergence + '_time_series.csv'
+        filename = path.join('outputs', 'emergence', emergence + '_time_series.csv')
         with open(filename, 'w') as f:
             w = csv.writer(f)
             for key, values in training_values.items():
