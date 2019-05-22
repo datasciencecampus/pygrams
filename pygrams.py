@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import time
 
 from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
@@ -141,6 +142,7 @@ def get_args(command_line_arguments):
 
 
 def main(supplied_args):
+
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
              os.path.join('outputs', 'table'), os.path.join('outputs', 'emergence')]
     for path in paths:
@@ -164,13 +166,13 @@ def main(supplied_args):
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
     if args.input_tfidf is None:
-        pickled_base_file_name = None
+        pickled_tfidf_folder_name = None
     else:
-        pickled_base_file_name = os.path.join('outputs', 'tfidf', args.input_tfidf)
+        pickled_tfidf_folder_name = os.path.join('outputs', 'tfidf', args.input_tfidf)
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
-                        term_counts=args.term_counts, pickled_base_file_name=pickled_base_file_name,
+                        term_counts=args.term_counts, pickled_tfidf_folder_name=pickled_tfidf_folder_name,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, emerging_technology=args.emerging_technology)
@@ -242,6 +244,15 @@ def main(supplied_args):
 
 if __name__ == '__main__':
     try:
+        start = time.time()
         main(sys.argv[1:])
+        end = time.time()
+        diff = int(end - start)
+        hours=diff//3600
+        minutes=diff//60
+        seconds=diff%60
+
+        print('')
+        print(f"pyGrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
     except PygramsException as err:
         print(f"pyGrams error: {err.message}")

@@ -1,10 +1,8 @@
 import bz2
 import pickle
+
 from os import makedirs, path
-
 from pandas import read_pickle
-from tqdm import tqdm
-
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
@@ -19,11 +17,12 @@ from scripts.utils import utils
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
+from tqdm import tqdm
 
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
-                 term_counts=False, pickled_base_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
+                 term_counts=False, pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, emerging_technology=None):
 
         # load data
@@ -33,7 +32,7 @@ class Pipeline(object):
 
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
-        if pickled_base_file_name is None:
+        if pickled_tfidf_folder_name is None:
 
             dataframe = datafactory.get(data_filename)
             utils.checkdf(dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
@@ -43,6 +42,8 @@ class Pipeline(object):
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
                                                tokenizer=LemmaTokenizer())
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
+            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
 
             if prefilter_terms != 0:
                 tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
@@ -64,7 +65,9 @@ class Pipeline(object):
             makedirs(base_pickle_path, exist_ok=True)
 
             def pickle_object(short_name, obj):
-                file_name = path.join(base_pickle_path, output_name + f'-mdf-{max_df}-{short_name}.pkl.bz2')
+                folder_name = path.join(base_pickle_path, output_name + f'-mdf-{max_df}')
+                makedirs(folder_name, exist_ok=True)
+                file_name = path.join(folder_name, output_name + f'-mdf-{max_df}-{short_name}.pkl.bz2')
                 with bz2.BZ2File(file_name, 'wb') as pickle_file:
                     pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
 
@@ -73,17 +76,19 @@ class Pipeline(object):
             pickle_object('cpc_dict', self.__cpc_dict)
 
         else:
-            print(f'Reading document and TFIDF from pickle {pickled_base_file_name}')
+            print(f'Reading document and TFIDF from pickle {pickled_tfidf_folder_name}')
+
+            base_folder = path.basename(pickled_tfidf_folder_name)
+            pickled_base_file_name = path.join(pickled_tfidf_folder_name, base_folder)
+
             self.__tfidf_obj = read_pickle(pickled_base_file_name + '-tfidf.pkl.bz2')
             self.__dates = read_pickle(pickled_base_file_name + '-dates.pkl.bz2')
             self.__cpc_dict = read_pickle(pickled_base_file_name + '-cpc_dict.pkl.bz2')
 
-            if docs_mask_dict['date_header'] is None:
-                print('Document dates not specified')
-            else:
+            if self.__dates is not None:
                 min_date = min(self.__dates)
                 max_date = max(self.__dates)
-                print(f'Document ISO dates range from {min_date} to {max_date}')
+                print(f'Document year-week dates range from {min_date/100}-{min_date%100} to {max_date/100}-{max_date%100}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
@@ -103,7 +108,7 @@ class Pipeline(object):
         #  union: if more entries after single, add / or
         #  intersection: if more entries after single, multiple / and
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
-
+        print(f'Applying documents filter...')
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, self.__cpc_dict,
                                       self.__tfidf_obj.tfidf_matrix.shape[0]).doc_filters
@@ -114,13 +119,14 @@ class Pipeline(object):
         # todo: this is another weight function...
 
         # term weights - embeddings
+        print(f'Applying terms filter...')
         filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, threshold=terms_threshold)
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # todo: replace tfidf_mask with isolated functions: clean_unigrams, unbias_ngrams;
         #  these operate directly on tfidf
         #  Hence return nothing - operate in place on tfidf.
-
+        print(f'Creating a masked tfidf matrix from filters...')
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
         tfidf_mask_obj.update_mask(doc_filters, term_weights)
@@ -139,6 +145,7 @@ class Pipeline(object):
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
         if term_counts or emerging_technology:
+            print(f'Creating timeseries matrix...')
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dates)
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)

@@ -13,6 +13,7 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
 
     if output_type == 'report':
         filename_and_path = path.join('outputs', 'reports', name + '.txt')
+        print()
         with open(filename_and_path, 'w') as file:
             counter = 1
             for score, term in output:
