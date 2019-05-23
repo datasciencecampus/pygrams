@@ -48,7 +48,7 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
 ### System Performance
 
-The system performance was tested using a 2.7GHz Intel Core i7 16GB MacBook Pro using 3.2M US patent abstracts from approximately 2005 to 2018. It initially takes about 6 hours to produce a specially optimised 100,000 term TFIDF Dictionary with a file size under 100MB. Once this is created however, it takes approximately 1 minute to run a pygrams popular terminology query, or approximately 7 minutes for an emerging terminology query.
+The system performance was tested using a 2.7GHz Intel Core i7 16GB MacBook Pro using 3.2M US patent abstracts from approximately 2005 to 2018. Indicatively, it initially takes about 6 hours to produce a specially optimised 100,000 term TFIDF Dictionary with a file size under 100MB. Once this is created however, it takes approximately 1 minute to run a pyGrams popular terminology query, or approximately 7 minutes for an emerging terminology query.
 
 ## User guide
 
