@@ -33,7 +33,7 @@ Initially this project idea came from BEIS and the IPO, where the former was pop
 retrieved from patent applications and the latter came with the idea of retrieving emerging terminology. Both approaches
 would aim in providing richer information for various technology sectors for policy. The list below demonstrates the 
 various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working
-on this roject.
+on this project.
 - IPO: Emerging terminology from patent data (PATSTAT)
 - BEIS: popular terminology from UK patents
 - ONS:
@@ -57,7 +57,7 @@ To enable the most generic support possible at minimum overhead, we decided to s
 Initially, we did not have access to [PatStat](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1)
 (the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable
 us to use large numbers of patent abstract as soon as possible, we imported the USPTO's
-[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2014 onwards (as this was
+[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was
 stored in a similar XML format). The XML data was scraped from the web using
 [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame
 format for ingestion into pygrams.
@@ -112,27 +112,57 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 
 ## Filtering 2
 
-### Dictionary Reduction
-TFIDF matrix is huge - needed to reduce number of columns (terms)... --prefilter_terms
+## Issues when using mixed length phrases
+There are some issues when using mixed length phrases. That is for a given tri-gram ie. combustion engine, its associated 
+bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine'
+will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to
+have a less biased output of phrases as a result.
+
+### Dictionary Post process and Reduction
+The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the
+columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and
+was one of the major challenges for this project. In order to allow for faster processing and greater versatility in 
+terms of computer specifications needed to run the pygrams pipeline we came up with some optimization ideas.
+We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical 
+format. 
+The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user 
+configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to
+reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we
+could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data 
+element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces 
+the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back.
+This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on
+our github page in https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05 and has been 
+used to produce all the results in this report. We also append the command line arguments used to generate our outputs
+so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a 
+macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and
+a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
+
 
 ### Document filtering 0.5-1 B
+Once the cached object is read we filter rows and columns based on the user query in order to produce the right results
 
 Document filtering comprises:
 
 - Time filters, restricting the corpus to documents with publication dates within a specified range.
-- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria. For patent data specifically, documents can be restricted to those with a specified Cooperative Patent Classification (CPC) value.
+- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria. 
+For patent data specifically, documents can be restricted to those with a specified Cooperative Patent Classification (CPC) value.
 
 ### Term filtering 2 B
 
+
 #### Stopwords
 
-Stopwords are handled using three user configurable files. One contains global stopwords, including a list of standard English stopwords; one contains unigram stop words; and the third bi-gram or tri-gram stopwords.
+Stopwords are handled using three user configurable files. One contains global stopwords, including a list of standard 
+English stopwords; one contains unigram stop words; and the third bi-gram or tri-gram stopwords.
 
 #### Fatima work TF
 
 #### Word embedding 1 E
 
-The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this, it uses a GloVe pre-trained word embedding.
+The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this,
+it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models like word2vec or fasttext.
+Glove has been chosen for practical purposes as it is low in storage and fast on execution.
 
 ##### What is a GloVe pre-trained word embedding?
 
@@ -249,18 +279,72 @@ the following terms came out as top:
 To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on 
 [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
+Example output:
+
+command: -it=USPTO-mdf-0.05 -st pharmacy medicine chemist -on=out-embed | exec time: 1:18 mins
+
+1. pharmaceutical composition     		2446.811441
+2. medical device                 		847.004068
+3. implantable medical device     		376.653856
+4. treat cancer                   		303.083392
+5. treat disease                  		291.440180
+6. work piece                     		279.293397
+7. heat treatment                 		278.582799
+8. food product                   		245.006287
+9. work surface                   		212.500359
+10. work fluid                     		202.991614
+11. patient body                   		196.159483
+12. pharmaceutical formulation     		177.029507
+13. treatment and/or prevention   		168.678058
+14. cancer cell                    		159.921436
+15. provide pharmaceutical composition 	152.719985
+16. treatment fluid                		132.922168
+17. medical image                  		127.059351
+18. medical instrument             		123.362187
+19. treatment and/or prophylaxis   		114.959887
+20. prostate cancer                		108.456828
+
+
+cmd: -it=USPTO-mdf-0.05 | exec time: 52 secs
+
+1. semiconductor device           		3181.175539
+2. electronic device              		2974.360838
+3. light source                   		2861.643506
+4. semiconductor substrate        		2602.684013
+5. mobile device                  		2558.832724
+6. pharmaceutical composition 		    2446.811441
+7. electrically connect           		2246.935926
+8. base station                   		2008.353328
+9. memory cell                    		1955.181403
+10. display device                 		1939.361315
+11. image data                     		1807.067937
+12. main body                      		1799.963480
+13. dielectric layer               		1762.330106
+14. semiconductor layer            		1749.876921
+15. control unit                   		1730.955634
+16. circuit board                  		1696.772008
+17. control signal                 		1669.367299
+18. top surface                    		1659.069068
+19. gate electrode                 		1637.708834
+20. input signal                   		1567.315205
+
+
 # Objective 2: Emerging Terminology 4
 In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the 
 tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the 
 period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of 
 seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve 
 emerging terminology. These were Porter(2018), curve fitting and a state-space model with kalman filter.
+
+
 ## Escores 2 IT
 ## Previous and related work / Porter
 Our first attempts to generate emerging terminology insights were based on the Porter(2018) publication. This method 
 relied on ten timeseries periods, the three first being the base period and the following seven the active one. The 
 emergence score is calculated using a series of differential equations within the active period counts, normalised by
 the global trend.
+
+TODO: replace this with math:
 
         active_period_trend = (sum_term_counts_567 / sum_sqrt_total_counts_567) - (sum_term_counts_123 / 
         sum_sqrt_total_counts_123)
@@ -276,14 +360,76 @@ the global trend.
 
 ![img](img/porter_2018.png)
 
+This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations.
+It also takes into consideration the global trend, which sometimes may not be desirable 
+
 ### Curves
-The Porter method demonstrated good results, but we decided to investigate alternative methods as we felt Porter's 
-calculations were relying a lot on the last couple of periods slope. In our time-series we realized that there was 
-plenty of white noise ( fast upwards and downwards slopes) that could influence this model. Also we are not only 
-interested in highlighting terms that rapidly emerged in the last few periods of their timeseries, but we wanted to 
-explore a more flexible approach.
-Our immediate next thought was to fit second degree polynomials and sigmoid curves to retrieve emerging patterns in our
-corpus. Again this method came with its own limitations especially when the timeseries curve had multiple curvatures.
+We decided to investigate alternative methods that would be more generic in the sense that emergence could be 
+scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next 
+thought was to fit second degree polynomials and sigmoid curves to retrieve emerging patterns in our corpus. 
+
+![img](img/curves.png)
+
+Initially we were fitting both sigmoid and polynomial curves and pick the best fit one. However in most cases polynomials
+would fit best, so we decided in favour of keeping just them. The e-score is simply the coefficient of the highest rank 
+term of the fitted curve, which characterises the slope. For a quadratic, y=ax^2 +bx + c, a determines how steeply the
+series emerge (or decline if a is negative).
+
+The emergeThe results were comparable to porter's method for our dataset as demonstrated below.
+
+Porter:
+cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
+
+mobile device: 			    33.6833326760551
+electronic device: 		    28.63492052752744
+computing device: 		    25.539666723556127
+display device: 		    23.69755247231993
+compute device: 		    19.604581131580854
+virtual machine: 		    16.725067554171893
+user interface: 		    15.062028899069167
+image form apparatus: 	    14.584135688497181
+client device: 			    13.717931666935373
+computer program product:   13.520757988739204
+light source: 			    13.4761974473862
+display panel: 			    12.987288891969184
+unit configure: 		    11.988598669141473
+display unit: 			    11.928201471077147
+user device: 			    11.207295342544285
+control unit: 			    10.304289943906731
+mobile terminal: 		    8.968774302298257
+far configure: 			    8.710208143729222
+controller configure: 	    8.60326087325161
+determine base: 		    8.435695146267795
+touch panel: 			    8.340320405278447
+optical fiber: 			    7.853598239644436
+
+Curves:
+cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
+
+mobile device: 			    26.93560606060607
+electronic device: 		    24.636363636363637
+computing device: 		    20.659090909090924
+display device: 		    19.962121212121207
+compute device: 		    15.162878787878798
+virtual machine: 		    14.348484848484855
+optical fiber: 			    13.814393939393954
+light source: 			    13.696969696969699
+client device: 			    10.465909090909093
+image form apparatus: 	    10.462121212121222
+display unit: 			    10.272727272727273
+unit configure: 		    10.151515151515154
+user device: 			    9.503787878787884
+display panel: 			    9.223484848484851
+user interface: 		    8.833333333333329
+touch panel: 			    7.844696969696972
+control unit: 			    7.818181818181827
+far configure: 			    7.393939393939394
+computer storage medium: 	7.234848484848488
+mobile terminal: 			6.91287878787879
+controller configure: 		6.560606060606065
+frequency band: 			6.3212121212121115
+
+Again this method came with its own limitations especially when the timeseries plot had multiple curvatures.
 ### State space (Sonia)
 
 ## Prediction 2 IB
