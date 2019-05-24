@@ -78,10 +78,10 @@ When you type text into a computer it can't understand the words in the way that
 
 ## Previous and related work
 ## Tfidf 2 E
+//T: Nice section. Only need to stretch that tfidf is a sparse matrix(mostly zeros). In the example shown as dense
+**PyGrams** uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short.
 
-**PyGrams** uses a tool called Term Frequency - Inverse Document Frequency or **TF-IDF** for short.
-
-TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a TF-IDF weight which can be used to rank the importance of terms within the corpus.  It can be broken down into two parts:
+TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus.  It can be broken down into two parts:
 
 1. **Term Frequency (TF)** = **$\frac{\text{The number of times a term appears in a document}}{\text{Total number of terms in the document}}$**
 
@@ -110,15 +110,20 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 |  3 |  0.17 |  0.04 |  0.13 |
 |  **Final_Weight**  |   **0.58**    | **0.17**  | **0.35**  |
 
-## Filtering 2
+#Producing the TFIDF matrix in our pipeline
+
+#Pre-processing
+The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'This were someone's cars' would become 'this is someone car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix. 
+
+
+### Post processing
 
 ## Issues when using mixed length phrases
 There are some issues when using mixed length phrases. That is for a given tri-gram ie. combustion engine, its associated 
 bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine'
 will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to
 have a less biased output of phrases as a result.
-
-### Dictionary Post process and Reduction
+## Reducing the tfidf matrix size
 The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the
 columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and
 was one of the major challenges for this project. In order to allow for faster processing and greater versatility in 
@@ -138,7 +143,7 @@ so that readers can reproduce them if they wish. The time it takes to cache the 
 macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and
 a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
 
-
+## Filtering 2
 ### Document filtering 0.5-1 B
 Once the cached object is read we filter rows and columns based on the user query in order to produce the right results
 
@@ -153,8 +158,8 @@ For patent data specifically, documents can be restricted to those with a specif
 
 #### Stopwords
 
-Stopwords are handled using three user configurable files. One contains global stopwords, including a list of standard 
-English stopwords; one contains unigram stop words; and the third bi-gram or tri-gram stopwords.
+Stopwords are handled using three user configurable files. The first one, 'stopwords_glob.txt' contains global stopwords, including a list of standard 
+English stopwords; These stopwords are applied before tokenization. The file 'stopwords_n.txt' contains bi-gram or tri-gram stopwords. This stopword list is applied after tokenization for phrases containing more than one word. Finally, the file 'stopwords_uni.txt' contains unigram stop words and is applied after tokenization too;
 
 #### Fatima work TF
 
@@ -300,9 +305,11 @@ and further below:
 To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on 
 [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
-
+## Alternative models
+Our pipeline can run with other embedding models too, like fasttext 300d or word2vec 200d. We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can be easily be deployed.
 
 # Objective 2: Emerging Terminology 4
+##From tfidf to the timeseries matrix
 In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the 
 tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the 
 period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of 
@@ -317,7 +324,7 @@ relied on ten timeseries periods, the three first being the base period and the 
 emergence score is calculated using a series of differential equations within the active period counts, normalised by
 the global trend.
 
-TODO: replace this with math:
+/T: TODO: replace this with math from our slides:
 
         active_period_trend = (sum_term_counts_567 / sum_sqrt_total_counts_567) - (sum_term_counts_123 / 
         sum_sqrt_total_counts_123)
@@ -333,20 +340,18 @@ TODO: replace this with math:
 
 ![img](img/porter_2018.png)
 
-This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations.
+This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations. However we found that it penalises terms that do not follow the desirable pattern, ie. fast emerging at the last three periods.
 It also takes into consideration the global trend, which sometimes may not be desirable 
 
 ### Curves
 We decided to investigate alternative methods that would be more generic in the sense that emergence could be 
 scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next 
-thought was to fit quadratic and quadratic curves to retrieve retrieve different emerging patterns in our corpus. 
+thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. 
 Quadratic curves would pick trend patterns similar to Porter's method
 ![img](img/curves.png)
 
-Initially we were fitting both sigmoid and quadratic curves and pick the best fit one. However, since For a quadratic, y=ax^2 +bx + c, a determines how steeply the
-series emerge (or decline if a is negative).
 
-The emergeThe results were comparable to porter's method for our dataset as demonstrated below.
+The emergeThe results from quadratic fitting were comparable to porter's method for our dataset as demonstrated in the results below.
 
 Porter:
 cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
@@ -405,7 +410,7 @@ Again this method came with its own limitations especially when the timeseries p
 
 ## Prediction 2 IB
 
-The popular terms are processed using either Porter or curves analysis to separate terms into
+The popular terms are processed using either Porter or quadratic fitting to separate terms into
 emerging (usage is increasing over time), stationary (usage is static) or declining (usage is
 reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
 
