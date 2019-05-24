@@ -413,7 +413,9 @@ A more flexible approach is that of the state space model with a kalman filter. 
 
 At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disantvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
 
-<<<table with state-space e-scores here and a few plots>>>
+(table with state-space e-scores here and a few plots)
+### which method is best?
+It all depends on what outcome is desirable. If we are after a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the timeseries, then quadratic fitting ( or sigmoid , depending on the pattern we are after) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. Pygrams offers all the above options.
 
 ## Prediction 2 IB
 
