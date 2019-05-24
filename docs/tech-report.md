@@ -568,10 +568,27 @@ width of the link is proportional to the number of times a term co-occurs.
 An example visualisation of the USPTO dataset can be generated with 
 ```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, and example output shown below.
 
- 
+![img](img/fdg.png)
+
+
+## Graph summary
+The relationship between co-occurring terms is also output when an FDG is generated; it is of the form:
+
+1. semiconductor device:3181.18  -> semiconductor substrate: 1.00, gate electrode: 0.56, semiconductor chip: 0.48, semiconductor layer: 0.46, insulating film: 0.36, dielectric layer: 0.34, conductive layer: 0.33, active region: 0.31, insulating layer: 0.29, gate structure: 0.27
+2. electronic device:2974.36  -> circuit board: 0.14, main body : 0.12, electronic component: 0.10, electrically connect: 0.08, portable electronic device: 0.07, display unit: 0.06, electronic device base: 0.06, user interface: 0.06, external device: 0.05, power supply: 0.05
+3. light source:2861.64  -> light guide plate: 0.33, light beam: 0.32, light emit: 0.23, light guide: 0.20, emit light: 0.17, light source unit: 0.13, optical element: 0.12, optical system: 0.12, lighting device: 0.11, liquid crystal display: 0.11
+4. semiconductor substrate:2602.68  -> semiconductor device: 0.59, gate electrode: 0.32, dielectric layer: 0.23, insulating film: 0.21, active region: 0.21, conductivity type: 0.19, semiconductor layer: 0.18, drain region: 0.15, insulating layer: 0.14, channel region: 0.14
+...
+
+This is output as a text file for further processing, as it indicates a popular term followed by 
+the top 10 co-occurring terms (weighted by term popularity).
 
 ## Word cloud
-## Graph summary
+Related to the FDG output, the popularity of a term can instead be mapped to the font size
+of the term and the top **n** terms displayed as a wordcloud. 
+An example visualisation of the USPTO dataset can be generated with 
+```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, and example output shown below.
+![img](img/wordcloud.png)
 
 # Conclusion 1
 
