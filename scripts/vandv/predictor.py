@@ -1,7 +1,7 @@
 from tqdm import tqdm
 
 from scripts.algorithms.predictor_factory import PredictorFactory as factory
-from scripts.utils.utils import timeseries_weekly_to_quarterly
+from scripts.utils.date_utils import timeseries_weekly_to_quarterly
 
 
 def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, weekly_iso_dates, test_terms,

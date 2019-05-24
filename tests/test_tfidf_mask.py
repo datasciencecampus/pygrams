@@ -4,15 +4,12 @@ import pandas as pd
 
 from scripts import FilePaths
 from scripts.documents_filter import DocumentsFilter
-from scripts.documents_weights import DocumentsWeights
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import StemTokenizer
 from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import tfidf_from_text
 from scripts.utils import utils
-
-
 # text for record 95, the only Y02 in set
 # An engine control system with a variable turbocharger may include an engine
 # including a cylinder generating power by combustion of a fuel, a variable
@@ -24,6 +21,7 @@ from scripts.utils import utils
 # driving region, and a deceleration driving region from a fuel amount supplied to
 # the cylinder and a required torque of the engine, and controlling opening of the
 # vane and an injection timing of fuel injected into the cylinder.
+from scripts.utils.date_utils import generate_year_week_dates
 
 
 class TestTfidfMask(unittest.TestCase):
@@ -43,23 +41,22 @@ class TestTfidfMask(unittest.TestCase):
             'cite': [],
             'columns': None,
             'date': None,
-            'date_header': ''
+            'date_header': None
         }
 
         self.__tfidf_obj = tfidf_from_text(self.__df['abstract'], ngram_range=(min_n, self.__max_n),
                                            max_document_frequency=self.__max_df, tokenizer=StemTokenizer())
+        cpc_dict = utils.cpc_dict(self.__df)
 
-        doc_filters = DocumentsFilter(self.__df, docs_mask_dict).doc_filters
-        doc_weights = DocumentsWeights(self.__df, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['date_header']).weights
-        doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
+        self.__dates = generate_year_week_dates(self.__df, docs_mask_dict['date_header'])
+        doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, cpc_dict, self.__df.shape[0]).doc_filters
 
         # term weights - embeddings
         filter_output_obj = FilterTerms(self.__tfidf_obj.feature_names, None)
         term_weights = filter_output_obj.ngram_weights_vec
 
-        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=(min_n, self.__max_n), uni_factor=uni_factor)
-        tfidf_mask_obj.update_mask(doc_weights, term_weights)
+        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=(min_n, self.__max_n), uni_factor=uni_factor, unbias=True)
+        tfidf_mask_obj.update_mask(doc_filters, term_weights)
         self.__tfidf_mask = tfidf_mask_obj.tfidf_mask
 
     def test_num_non_zeros_no_clean_rows(self):
@@ -107,9 +104,10 @@ class TestTfidfMask(unittest.TestCase):
 
     def test_num_non_zeros_clean_rows_clean_unigrams_and_df(self):
         self.init_mask('Y02', 1, uni_factor=0.4)
-        tfidf_mask_nozero_rows, self.__df = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__df)
+        tfidf_mask_nozero_rows, dates = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__dates)
         self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
-        self.assertEqual(1, len(self.__df.index))
+        self.assertEqual(1, tfidf_mask_nozero_rows.shape[0])
+        self.assertIsNone(self.__dates)
 
     def test_num_non_zeros_clean_rows(self):
         self.init_mask('Y02', 2)
@@ -118,9 +116,10 @@ class TestTfidfMask(unittest.TestCase):
 
     def test_num_non_zeros_clean_rows_and_df(self):
         self.init_mask('Y02', 2)
-        tfidf_mask_nozero_rows, self.__df = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__df)
+        tfidf_mask_nozero_rows, dates = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__dates)
         self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
-        self.assertEqual(1, len(self.__df.index))
+        self.assertEqual(1, tfidf_mask_nozero_rows.shape[0])
+        self.assertIsNone(self.__dates)
 
     def test_no_negative_weights(self):
         self.init_mask(None, 2)

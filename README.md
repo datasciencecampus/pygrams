@@ -16,7 +16,7 @@ The app pipeline (more details in the user option section):
 2. **[TFIDF Dictionary](#tfidf-dictionary)**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
 3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
 4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
-   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
+   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification).
    2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **[Emergence](#emergence-calculations)**
@@ -46,19 +46,9 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
    This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
-### System requirements
+### System Performance
 
-We have stress-tested `pygrams.py` using Windows 10 (64-bit) with 8GB memory (VM hosted on 2.1GHz Xeon E5-2620). We observed a linear increase in both execution time and memory usage in relation to number of documents analysed, resulting in:
-
-- Processing time: 41.2 documents/sec
-- Memory usage: 236.9 documents/MB
-
-For the sample files, this was recorded as:
-
-- 1,000 documents: 0:00:37
-- 10,000 documents: 0:04:45 (285s); 283MB
-- 100,000 documents: 0:40:10 (2,410s); 810MB
-- 500,000 documents: 3:22:08 (12,128s); 2,550MB
+The system performance was tested using a 2.7GHz Intel Core i7 16GB MacBook Pro using 3.2M US patent abstracts from approximately 2005 to 2018. Indicatively, it initially takes about 6 hours to produce a specially optimised 100,000 term TFIDF Dictionary with a file size under 100MB. Once this is created however, it takes approximately 1 minute to run a pyGrams popular terminology query, or approximately 7 minutes for an emerging terminology query.
 
 ## User guide
 
@@ -211,21 +201,6 @@ python pygrams.py -fh=['female','british'] -fb='union'
 
 This filter assumes that values are '0'/'1', or 'Yes'/'No'.
 
-#### Normalise by document length filter (-ndl)
-
-This option normalises the TFIDF scores by document length.
-
-```
-python pygrams.py -ndl
-```
-
-#### Time-weighting filter (-t)
-
-This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
-
-```
-python pygrams.py -t
-```
 
 #### Choosing CPC classification (Patent specific) (-cpc)
 
@@ -243,7 +218,7 @@ In the console the number of subset patents will be stated. For example, for `py
 
 This subsets the TFIDF term dictionary by only keeping terms related to the given search terms.
 ```
-python pygrams.py -st ['pharmacy', 'medicine', 'chemist']
+python pygrams.py -st pharmacy medicine chemist
 ```
 
 ### Emergence Calculations

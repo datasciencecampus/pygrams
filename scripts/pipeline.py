@@ -1,16 +1,14 @@
 import bz2
 import pickle
-from os import makedirs, path
-
 import numpy as np
-from pandas import read_pickle
-from tqdm import tqdm
 
+from os import makedirs, path
+from pandas import read_pickle
 import scripts.data_factory as datafactory
 import scripts.output_factory as output_factory
+import scripts.utils.date_utils
 from scripts.algorithms.emergence import Emergence
 from scripts.documents_filter import DocumentsFilter
-from scripts.documents_weights import DocumentsWeights
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
 from scripts.tfidf_mask import TfidfMask
@@ -20,13 +18,13 @@ from scripts.utils import utils
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
+from tqdm import tqdm
 
 
 class Pipeline(object):
-    def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3),
-                 normalize_rows=False, text_header='abstract', term_counts=False,
-                 pickled_tf_idf_file_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0, terms_threshold=None,
-                 output_name=None, emerging_technology=None):
+    def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
+                 term_counts=False, pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
+                 terms_threshold=None, output_name=None, emerging_technology=None):
 
         # load data
         self.__data_filename = data_filename
@@ -35,16 +33,18 @@ class Pipeline(object):
 
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
-        if pickled_tf_idf_file_name is None:
-                  
-            self.__dataframe = datafactory.get(data_filename)
-            utils.checkdf(self.__dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
-            utils.remove_empty_documents(self.__dataframe, text_header)
+        if pickled_tfidf_folder_name is None:
 
-            self.__tfidf_obj = tfidf_from_text(text_series=self.__dataframe[text_header],
+            dataframe = datafactory.get(data_filename)
+            utils.checkdf(dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
+            utils.remove_empty_documents(dataframe, text_header)
+
+            self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
                                                tokenizer=LemmaTokenizer())
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
+            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
 
             if prefilter_terms != 0:
                 tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
@@ -55,30 +55,41 @@ class Pipeline(object):
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
-
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
 
-            self.__text_lengths = self.__dataframe[text_header].map(len).tolist()
-            self.__dataframe.drop(columns=[text_header], inplace=True)
+            self.__cpc_dict = utils.cpc_dict(dataframe)
+            self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe, docs_mask_dict['date_header'])
 
-            tfidf_filename = path.join('outputs', 'tfidf', output_name + f'-tfidf-mdf-{max_df}.pkl.bz2')
-            makedirs(path.dirname(tfidf_filename), exist_ok=True)
-            with bz2.BZ2File(tfidf_filename, 'wb') as pickle_file:
-                pickle.dump(
-                    (self.__tfidf_obj, self.__dataframe, self.__text_lengths),
-                    pickle_file, protocol=4, fix_imports=False)
+            base_pickle_path = path.join('outputs', 'tfidf')
+            makedirs(base_pickle_path, exist_ok=True)
+
+            def pickle_object(short_name, obj):
+                folder_name = path.join(base_pickle_path, output_name + f'-mdf-{max_df}')
+                makedirs(folder_name, exist_ok=True)
+                file_name = path.join(folder_name, output_name + f'-mdf-{max_df}-{short_name}.pkl.bz2')
+                with bz2.BZ2File(file_name, 'wb') as pickle_file:
+                    pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
+
+            pickle_object('tfidf', self.__tfidf_obj)
+            pickle_object('dates', self.__dates)
+            pickle_object('cpc_dict', self.__cpc_dict)
 
         else:
-            print(f'Reading document and TFIDF from pickle {pickled_tf_idf_file_name}')
-            self.__tfidf_obj, self.__dataframe, self.__text_lengths = read_pickle(pickled_tf_idf_file_name)
-            if docs_mask_dict['date_header'] is None:
-                print('Document dates not specified')
-            else:
-                min_date = min(self.__dataframe[docs_mask_dict['date_header']])
-                max_date = max(self.__dataframe[docs_mask_dict['date_header']])
-                print(f'Document dates range from {min_date:%Y-%m-%d} to {max_date:%Y-%m-%d}')
+            print(f'Reading document and TFIDF from pickle {pickled_tfidf_folder_name}')
+
+            base_folder = path.basename(pickled_tfidf_folder_name)
+            pickled_base_file_name = path.join(pickled_tfidf_folder_name, base_folder)
+
+            self.__tfidf_obj = read_pickle(pickled_base_file_name + '-tfidf.pkl.bz2')
+            self.__dates = read_pickle(pickled_base_file_name + '-dates.pkl.bz2')
+            self.__cpc_dict = read_pickle(pickled_base_file_name + '-cpc_dict.pkl.bz2')
+
+            if self.__dates is not None:
+                min_date = min(self.__dates)
+                max_date = max(self.__dates)
+                print(f'Document year-week dates range from {min_date//100}-{(min_date%100):02d} to {max_date//100}-{(max_date%100):02d}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
@@ -98,48 +109,45 @@ class Pipeline(object):
         #  union: if more entries after single, add / or
         #  intersection: if more entries after single, multiple / and
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
-
+        print(f'Applying documents filter...')
         # docs weights( column, dates subset + time, citations etc.)
-        doc_filters = DocumentsFilter(self.__dataframe, docs_mask_dict).doc_filters
+        doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, self.__cpc_dict,
+                                      self.__tfidf_obj.tfidf_matrix.shape[0]).doc_filters
 
         # todo: build up list of weight functions (left with single remaining arg etc via partialfunc)
         #  combine(list, tfidf) => multiplies weights together, then multiplies across tfidf (if empty, no side effect)
 
-        doc_weights = DocumentsWeights(self.__dataframe, docs_mask_dict['time'], docs_mask_dict['cite'],
-                                       docs_mask_dict['date_header'], self.__text_lengths,
-                                       norm_rows=normalize_rows).weights
-        doc_weights = [a * b for a, b in zip(doc_filters, doc_weights)]
-
         # todo: this is another weight function...
 
         # term weights - embeddings
+        print(f'Applying terms filter...')
         filter_terms_obj = FilterTerms(self.__tfidf_obj.feature_names, user_ngrams, threshold=terms_threshold)
         term_weights = filter_terms_obj.ngram_weights_vec
 
         # todo: replace tfidf_mask with isolated functions: clean_unigrams, unbias_ngrams;
         #  these operate directly on tfidf
         #  Hence return nothing - operate in place on tfidf.
-
+        print(f'Creating a masked tfidf matrix from filters...')
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
         tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
-        tfidf_mask_obj.update_mask(doc_weights, term_weights)
+        tfidf_mask_obj.update_mask(doc_filters, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
         # todo: this mutiply and remove null will disappear - maybe put weight combiner last so it can remove 0 weights
         # mask the tfidf matrix
-        tfidf_matrix = self.__tfidf_obj.tfidf_matrix
-        tfidf_masked = tfidf_mask.multiply(tfidf_matrix)
 
-        tfidf_masked, self.__dataframe = utils.remove_all_null_rows_global(tfidf_masked, self.__dataframe)
-        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {tfidf_matrix.shape[0]:,} documents')
+        tfidf_masked = tfidf_mask.multiply(self.__tfidf_obj.tfidf_matrix)
+
+        tfidf_masked, self.__dates = utils.remove_all_null_rows_global(tfidf_masked, self.__dates)
+        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {self.__tfidf_obj.tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__term_counts_data = None
         if term_counts or emerging_technology:
-            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dataframe,
-                                                                                 docs_mask_dict['date_header'])
+            print(f'Creating timeseries matrix...')
+            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dates)
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
@@ -153,15 +161,14 @@ class Pipeline(object):
     def term_counts_data(self):
         return self.__term_counts_data
 
-    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50):
+    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
 
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, term_counts_data=self.__term_counts_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time)
-
+                                  doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
 
     @property
     def term_score_tuples(self):
@@ -192,7 +199,7 @@ class PipelineEmtech(object):
 
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
 
-            _, quarterly_values = utils.timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
+            _, quarterly_values = scripts.utils.date_utils.timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
             if max(quarterly_values) < minimum_patents_per_quarter:
                 continue
 

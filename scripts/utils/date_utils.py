@@ -1,4 +1,5 @@
 import calendar
+import datetime
 
 import numpy as np
 from pandas import Timestamp
@@ -72,3 +73,68 @@ def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
     week_dates.append(current_week)
 
     return week_counts_csr, week_totals, week_dates
+
+
+def convert_year_week_to_year_week_tuple(date_in_year_week_format):
+    year = date_in_year_week_format // 100
+    week = (date_in_year_week_format % 100) - 1
+    return year, week
+
+
+def year_week_to_gregorian(date_in_year_week_format):
+    "Gregorian calendar date for the given ISO year, week and day"
+    # ref: https://stackoverflow.com/questions/304256/whats-the-best-way-to-find-the-inverse-of-datetime-isocalendar
+    iso_year, iso_week = convert_year_week_to_year_week_tuple(date_in_year_week_format)
+    iso_day = 1
+    fourth_jan = datetime.date(iso_year, 1, 4)
+    _, fourth_jan_week, fourth_jan_day = fourth_jan.isocalendar()
+    return fourth_jan + datetime.timedelta(days=iso_day - fourth_jan_day, weeks=iso_week - fourth_jan_week)
+
+
+def add_weeks(year, weeks, offset, num_weeks_per_year):
+    weeks += offset
+    final_weeks = (weeks % num_weeks_per_year)
+    final_years = year + (weeks // num_weeks_per_year)
+    return final_years, final_weeks
+
+
+def convert_year_week_to_fractional_year(date_in_year_week_format, num_weeks_per_year=53):
+    year, week = convert_year_week_to_year_week_tuple(date_in_year_week_format)
+    return year + (week / num_weeks_per_year)
+
+
+def timeseries_weekly_to_quarterly(weekly_dates, weekly_values):
+    dict_dates = {}
+    for date, value in zip(weekly_dates, weekly_values):
+        year = date // 100
+        week = date % 100
+        if 0 <= week < 13:
+            new_date = (year * 100) + 1
+        elif 13 <= week < 26:
+            new_date = (year * 100) + 4
+        elif 26 <= week < 39:
+            new_date = (year * 100) + 7
+        else:
+            new_date = (year * 100) + 10
+
+        if new_date in dict_dates:
+            dict_dates[new_date] += value
+        else:
+            dict_dates[new_date] = value
+
+    return list(dict_dates.keys()), list(dict_dates.values())
+
+
+def date_to_year_week(date):
+    iso_date = date.isocalendar()
+    integer_date = iso_date[0] * 100 + iso_date[1]
+    return integer_date
+
+
+def generate_year_week_dates(data_frame, date_header):
+    if date_header not in data_frame.columns:
+        return None
+
+    dates = data_frame[date_header].tolist()
+    document_week_dates = [date_to_year_week(d) for d in dates]
+    return np.array(document_week_dates, dtype=np.uint32)

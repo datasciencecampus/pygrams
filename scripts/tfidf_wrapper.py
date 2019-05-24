@@ -1,9 +1,9 @@
 import numpy as np
-from scripts.utils import utils
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
 from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
+from scripts.utils import utils
 
 
 def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer()):
@@ -42,7 +42,7 @@ def tfidf_subset_from_features(tfidf_obj, feature_subset):
 class _TFIDF:
 
     def __init__(self,  count_matrix, vocabulary, feature_names, l2_norm=None):
-        self.__l2_norm=l2_norm
+        self.__l2_norm = l2_norm
         self.__count_matrix = count_matrix
         self.__vocabulary = vocabulary
         self.__feature_names = feature_names
@@ -55,6 +55,11 @@ class _TFIDF:
         if self.__l2_norm is None:
             self.__l2_norm = utils.l2normvec(self.__tfidf_matrix)
         self.__tfidf_matrix = utils.apply_l2normvec(self.__tfidf_matrix, self.__l2_norm)
+
+    def apply_weights(self, weights_matrix):
+        self.__count_matrix = self.__count_matrix.multiply(weights_matrix)
+        self.__tfidf_matrix = self.__tfidf_matrix.multiply(weights_matrix)
+        self.__count_matrix.data = np.array([np.uint8(round(x)) for x in self.__count_matrix.data])
 
     @property
     def l2_norm(self):
@@ -83,3 +88,4 @@ class _TFIDF:
     @property
     def feature_names(self):
         return self.__feature_names
+

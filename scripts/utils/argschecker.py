@@ -1,7 +1,9 @@
 import datetime
 from os import path
+
 import pandas as pd
 
+from scripts.utils.date_utils import date_to_year_week
 from scripts.utils.pygrams_exception import PygramsException
 
 
@@ -36,6 +38,16 @@ class ArgsChecker:
         if date_from is not None and date_to is not None:
             if date_from > date_to:
                 raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
+
+        if len(self.args.search_terms) > 0:
+            print("The user input words are:")
+            for idx, word in enumerate(self.args.search_terms):
+                print(f'{idx}. {word}')
+
+        if self.args.input_tfidf is None and self.args.date_header is None:
+            print()
+            print('WARNING: No dates defined - time series analysis will not be possible with the cached object!')
+            print()
 
         if self.args.min_ngrams > self.args.max_ngrams:
             print(f"minimum ngram count {self.args.min_ngrams} should be less or equal to maximum ngram "
@@ -91,11 +103,11 @@ class ArgsChecker:
             print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
             app_exit = True
 
-        if self.args.emerging_technology:
-            if self.args.date_header is None:
-                print(f"date_header is None")
-                print(f"Cannot calculate emergence without a specifying a date column")
-                app_exit = True
+        if self.args.emerging_technology and self.args.input_tfidf is None and self.args.date_header is None:
+
+            print(f"date_header is None")
+            print(f"Cannot calculate emergence without a specifying a date column")
+            app_exit = True
 
         if app_exit:
             exit(0)
@@ -114,8 +126,8 @@ class ArgsChecker:
             date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(
                 self.args.date_from)
             docs_mask_dict['date'] = {
-                'to': date_to,
-                'from': date_from
+                'to': date_to_year_week(date_to),
+                'from': date_to_year_week(date_from)
             }
         return docs_mask_dict
 
