@@ -110,9 +110,9 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 |  3 |  0.17 |  0.04 |  0.13 |
 |  **Final_Weight**  |   **0.58**    | **0.17**  | **0.35**  |
 
-#Producing the TFIDF matrix in our pipeline
+# Producing the TFIDF matrix in our pipeline
 
-#Pre-processing
+# Pre-processing
 The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'This were someone's cars' would become 'this is someone car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix. 
 
 
@@ -309,7 +309,7 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 Our pipeline can run with other embedding models too, like fasttext 300d or word2vec 200d. We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can be easily be deployed.
 
 # Objective 2: Emerging Terminology 4
-##From tfidf to the timeseries matrix
+## From tfidf to the timeseries matrix
 In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the 
 tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the 
 period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of 
