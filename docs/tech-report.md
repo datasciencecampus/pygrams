@@ -555,7 +555,21 @@ the forecasts are dealing with large amounts of noise and hence can only give ap
 guidance.
 
 # Outputs 2 IT
-## FDG
+
+To assist the user with understanding the relationship between popular terms, various outputs
+are supported which are now described.
+
+## Force-Directed Graphs (FDG)
+Terms which co-occur in documents are revealed by this visualisation; terms are shown as nodes
+in a graph, with links between nodes if the related terms appear in the same document.
+The size of the node is proportional to the popularity score of the term, and the
+width of the link is proportional to the number of times a term co-occurs.
+
+An example visualisation of the USPTO dataset can be generated with 
+```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, and example output shown below.
+
+ 
+
 ## Word cloud
 ## Graph summary
 
