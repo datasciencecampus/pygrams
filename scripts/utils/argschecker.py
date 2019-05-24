@@ -43,7 +43,8 @@ class ArgsChecker:
             print("The user input words are:")
             for idx, word in enumerate(self.args.search_terms):
                 print(f'{idx}. {word}')
-        if self.args.input_tfidf is not None and self.args.date_header is None:
+
+        if self.args.input_tfidf is None and self.args.date_header is None:
             print()
             print('WARNING: No dates defined - time series analysis will not be possible with the cached object!')
             print()
@@ -102,11 +103,11 @@ class ArgsChecker:
             print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
             app_exit = True
 
-        if self.args.emerging_technology:
-            if self.args.date_header is None:
-                print(f"date_header is None")
-                print(f"Cannot calculate emergence without a specifying a date column")
-                app_exit = True
+        if self.args.emerging_technology and self.args.input_tfidf is None and self.args.date_header is None:
+
+            print(f"date_header is None")
+            print(f"Cannot calculate emergence without a specifying a date column")
+            app_exit = True
 
         if app_exit:
             exit(0)
