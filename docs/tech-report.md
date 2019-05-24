@@ -113,7 +113,7 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 # Producing the TFIDF matrix in our pipeline
 
 # Pre-processing
-The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'This were someone's cars' would become 'this is someone car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix. 
+The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'These were somebody's cars' would become 'this is somebody car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix. 
 
 
 ### Post processing
@@ -343,15 +343,15 @@ the global trend.
 This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations. However we found that it penalises terms that do not follow the desirable pattern, ie. fast emerging at the last three periods.
 It also takes into consideration the global trend, which sometimes may not be desirable 
 
-### Curves
+### Quadratic and Sigmoid fitting
 We decided to investigate alternative methods that would be more generic in the sense that emergence could be 
 scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next 
 thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. 
-Quadratic curves would pick trend patterns similar to Porter's method
+Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
 ![img](img/curves.png)
 
 
-The emergeThe results from quadratic fitting were comparable to porter's method for our dataset as demonstrated in the results below.
+The results from quadratic fitting were comparable to porter's method for our dataset as demonstrated in the results below.
 
 Porter:
 cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
@@ -379,7 +379,7 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
     touch panel: 			    8.340320405278447
     optical fiber: 			    7.853598239644436
 
-Curves:
+Quadratic:
 cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
 
     mobile device: 			    26.93560606060607
@@ -405,8 +405,15 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
     controller configure: 		6.560606060606065
     frequency band: 			6.3212121212121115
 
-Again this method came with its own limitations especially when the timeseries plot had multiple curvatures.
+The main concerns with this method were interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve. 
 ### State space (Sonia)
+A more flexible approach is that of the state space model with a kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the timeseries using the Kalman filter and providing the first gradient of the smoothed time-series. This means we know the slope of the timeseries at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill course or the steepest one using simple calculus. 
+
+![img](img/plot_1_internal_combustion_engine.png) ![img](img/plot_4_internal_combustion_engine.png)
+
+At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disantvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
+
+<<<table with state-space e-scores here and a few plots>>>
 
 ## Prediction 2 IB
 
@@ -494,6 +501,9 @@ stateful single LSTM with single look-ahead and stateful multiple LSTMs with sin
 
 **pyGrams** was run on the example USPTO dataset of 3.2M patents, with predictions generated
 from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
+
+//T: maybe try different focus in outputs, just to show different results and usage examples
+//
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
 
