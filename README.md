@@ -46,19 +46,9 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
    This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
-### System requirements
+### System Performance
 
-We have stress-tested `pygrams.py` using Windows 10 (64-bit) with 8GB memory (VM hosted on 2.1GHz Xeon E5-2620). We observed a linear increase in both execution time and memory usage in relation to number of documents analysed, resulting in:
-
-- Processing time: 41.2 documents/sec
-- Memory usage: 236.9 documents/MB
-
-For the sample files, this was recorded as:
-
-- 1,000 documents: 0:00:37
-- 10,000 documents: 0:04:45 (285s); 283MB
-- 100,000 documents: 0:40:10 (2,410s); 810MB
-- 500,000 documents: 3:22:08 (12,128s); 2,550MB
+The system performance was tested using a 2.7GHz Intel Core i7 16GB MacBook Pro using 3.2M US patent abstracts from approximately 2005 to 2018. Indicatively, it initially takes about 6 hours to produce a specially optimised 100,000 term TFIDF Dictionary with a file size under 100MB. Once this is created however, it takes approximately 1 minute to run a pyGrams popular terminology query, or approximately 7 minutes for an emerging terminology query.
 
 ## User guide
 
