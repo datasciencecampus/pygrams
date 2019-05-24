@@ -260,54 +260,45 @@ the following terms came out as top:
 
 Using the same dataset but adding a terms filter for medical words and a threshold of 0.8:
 
-        python pygrams.py -st pharmacy medical hospital
+        python pygrams.py -st pharmacy medicine hospital chemist
 
 the following terms came out as top:
 
-    1. medical data                   0.414319
-    2. subsequent treatment           0.257790
-    3. treatment objective            0.213937
-    4. ink-repellent treatment        0.211789
-    5. clinical analysis system       0.192105
-    6. heat treatment apparatus       0.187454
-    7. radiation-delivery treatment plan 0.186285
-    8. biocompatibilize implantable medical 0.156199
-    9. implantable medical device     0.156199
-    10. cardiovascular health          0.153314
+    1. medical device                 847.004068
+    2. implantable medical device     376.653856
+    3. heat treatment                 278.582799
+    4. treatment and/or prevention    168.678058
+    5. treatment fluid                132.922168
+    6. medical image                  127.059351
+    7. medical instrument             123.362187
+    8. treatment and/or prophylaxis   114.959887
+    9. incorporate teaching           106.151747
+    10. medical procedure              99.521356
+
+and further below:
+
+    20. heart failure                  67.600492
+    21. medical implant                63.948743
+    22. medical application            63.402052
+    23. plasma treatment               63.163398
+    24. treatment device               59.535794
+    25. prosthetic heart valve         57.293541
+    26. medical system                 56.428033
+    ...
+    33. congestive heart failure       48.263174
+    34. psychiatric disorder           45.962322
+    35. treatment zone                 43.834159
+    36. medical treatment              42.929333
+    37. treatment system               41.644263
+    38. cancer treatment               38.042644
+    39. medical imaging system         38.037687
+    40. water treatment system         36.578996
+
 
 
 
 To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on 
 [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
-
-Example output:
-
-command: -it=USPTO-mdf-0.05 -st pharmacy medicine chemist -on=out-embed | exec time: 1:18 mins
-
-1. pharmaceutical composition     		2446.811441
-2. medical device                 		847.004068
-3. implantable medical device     		376.653856
-4. treat cancer                   		303.083392
-5. treat disease                  		291.440180
-6. work piece                     		279.293397
-7. heat treatment                 		278.582799
-8. food product                   		245.006287
-9. work surface                   		212.500359
-10. work fluid                     		202.991614
-11. patient body                   		196.159483
-12. pharmaceutical formulation     		177.029507
-13. treatment and/or prevention   		168.678058
-14. cancer cell                    		159.921436
-15. provide pharmaceutical composition 	152.719985
-16. treatment fluid                		132.922168
-17. medical image                  		127.059351
-18. medical instrument             		123.362187
-19. treatment and/or prophylaxis   		114.959887
-20. prostate cancer                		108.456828
-
-
-cmd: -it=USPTO-mdf-0.05 | exec time: 52 secs
-
 
 
 
@@ -360,54 +351,54 @@ The emergeThe results were comparable to porter's method for our dataset as demo
 Porter:
 cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
 
-mobile device: 			    33.6833326760551
-electronic device: 		    28.63492052752744
-computing device: 		    25.539666723556127
-display device: 		    23.69755247231993
-compute device: 		    19.604581131580854
-virtual machine: 		    16.725067554171893
-user interface: 		    15.062028899069167
-image form apparatus: 	    14.584135688497181
-client device: 			    13.717931666935373
-computer program product:   13.520757988739204
-light source: 			    13.4761974473862
-display panel: 			    12.987288891969184
-unit configure: 		    11.988598669141473
-display unit: 			    11.928201471077147
-user device: 			    11.207295342544285
-control unit: 			    10.304289943906731
-mobile terminal: 		    8.968774302298257
-far configure: 			    8.710208143729222
-controller configure: 	    8.60326087325161
-determine base: 		    8.435695146267795
-touch panel: 			    8.340320405278447
-optical fiber: 			    7.853598239644436
+    mobile device: 			    33.6833326760551
+    electronic device: 		    28.63492052752744
+    computing device: 		    25.539666723556127
+    display device: 		    23.69755247231993
+    compute device: 		    19.604581131580854
+    virtual machine: 		    16.725067554171893
+    user interface: 		    15.062028899069167
+    image form apparatus: 	    14.584135688497181
+    client device: 			    13.717931666935373
+    computer program product:   13.520757988739204
+    light source: 			    13.4761974473862
+    display panel: 			    12.987288891969184
+    unit configure: 		    11.988598669141473
+    display unit: 			    11.928201471077147
+    user device: 			    11.207295342544285
+    control unit: 			    10.304289943906731
+    mobile terminal: 		    8.968774302298257
+    far configure: 			    8.710208143729222
+    controller configure: 	    8.60326087325161
+    determine base: 		    8.435695146267795
+    touch panel: 			    8.340320405278447
+    optical fiber: 			    7.853598239644436
 
 Curves:
 cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
 
-mobile device: 			    26.93560606060607
-electronic device: 		    24.636363636363637
-computing device: 		    20.659090909090924
-display device: 		    19.962121212121207
-compute device: 		    15.162878787878798
-virtual machine: 		    14.348484848484855
-optical fiber: 			    13.814393939393954
-light source: 			    13.696969696969699
-client device: 			    10.465909090909093
-image form apparatus: 	    10.462121212121222
-display unit: 			    10.272727272727273
-unit configure: 		    10.151515151515154
-user device: 			    9.503787878787884
-display panel: 			    9.223484848484851
-user interface: 		    8.833333333333329
-touch panel: 			    7.844696969696972
-control unit: 			    7.818181818181827
-far configure: 			    7.393939393939394
-computer storage medium: 	7.234848484848488
-mobile terminal: 			6.91287878787879
-controller configure: 		6.560606060606065
-frequency band: 			6.3212121212121115
+    mobile device: 			    26.93560606060607
+    electronic device: 		    24.636363636363637
+    computing device: 		    20.659090909090924
+    display device: 		    19.962121212121207
+    compute device: 		    15.162878787878798
+    virtual machine: 		    14.348484848484855
+    optical fiber: 			    13.814393939393954
+    light source: 			    13.696969696969699
+    client device: 			    10.465909090909093
+    image form apparatus: 	    10.462121212121222
+    display unit: 			    10.272727272727273
+    unit configure: 		    10.151515151515154
+    user device: 			    9.503787878787884
+    display panel: 			    9.223484848484851
+    user interface: 		    8.833333333333329
+    touch panel: 			    7.844696969696972
+    control unit: 			    7.818181818181827
+    far configure: 			    7.393939393939394
+    computer storage medium: 	7.234848484848488
+    mobile terminal: 			6.91287878787879
+    controller configure: 		6.560606060606065
+    frequency band: 			6.3212121212121115
 
 Again this method came with its own limitations especially when the timeseries plot had multiple curvatures.
 ### State space (Sonia)
