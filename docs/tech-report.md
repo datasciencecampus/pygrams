@@ -239,22 +239,23 @@ The above functionality is acheived using the following piece of code:
 
 ##### What is the output?
 
-Using a random selection of 1,000 patents from USPTO and running the following code:
+Using our cached object of 3.2 million US patents:
 
-        python pygrams.py
+        python pygrams.py -it=USPTO-mdf-0.05
 
 the following terms came out as top:
 
-    1. semiconductor substrate        1.678897
-    2. electronic device              1.445151
-    3. semiconductor device           1.347494
-    4. liquid crystal display         1.202028
-    5. top surface                    1.158683
-    6. pharmaceutical composition     1.074344
-    7. corn plant                     1.073920
-    8. longitudinal axis              1.067497
-    9. light source                   1.054303
-    10. power supply                   0.953445
+    1. semiconductor device           		3181.175539
+    2. electronic device              		2974.360838
+    3. light source                   		2861.643506
+    4. semiconductor substrate        		2602.684013
+    5. mobile device                  		2558.832724
+    6. pharmaceutical composition 		    2446.811441
+    7. electrically connect           		2246.935926
+    8. base station                   		2008.353328
+    9. memory cell                    		1955.181403
+    10. display device                 		1939.361315
+
 
 
 Using the same dataset but adding a terms filter for medical words and a threshold of 0.8:
@@ -307,26 +308,7 @@ command: -it=USPTO-mdf-0.05 -st pharmacy medicine chemist -on=out-embed | exec t
 
 cmd: -it=USPTO-mdf-0.05 | exec time: 52 secs
 
-1. semiconductor device           		3181.175539
-2. electronic device              		2974.360838
-3. light source                   		2861.643506
-4. semiconductor substrate        		2602.684013
-5. mobile device                  		2558.832724
-6. pharmaceutical composition 		    2446.811441
-7. electrically connect           		2246.935926
-8. base station                   		2008.353328
-9. memory cell                    		1955.181403
-10. display device                 		1939.361315
-11. image data                     		1807.067937
-12. main body                      		1799.963480
-13. dielectric layer               		1762.330106
-14. semiconductor layer            		1749.876921
-15. control unit                   		1730.955634
-16. circuit board                  		1696.772008
-17. control signal                 		1669.367299
-18. top surface                    		1659.069068
-19. gate electrode                 		1637.708834
-20. input signal                   		1567.315205
+
 
 
 # Objective 2: Emerging Terminology 4
@@ -366,13 +348,11 @@ It also takes into consideration the global trend, which sometimes may not be de
 ### Curves
 We decided to investigate alternative methods that would be more generic in the sense that emergence could be 
 scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next 
-thought was to fit second degree polynomials and sigmoid curves to retrieve emerging patterns in our corpus. 
-
+thought was to fit quadratic and quadratic curves to retrieve retrieve different emerging patterns in our corpus. 
+Quadratic curves would pick trend patterns similar to Porter's method
 ![img](img/curves.png)
 
-Initially we were fitting both sigmoid and polynomial curves and pick the best fit one. However in most cases polynomials
-would fit best, so we decided in favour of keeping just them. The e-score is simply the coefficient of the highest rank 
-term of the fitted curve, which characterises the slope. For a quadratic, y=ax^2 +bx + c, a determines how steeply the
+Initially we were fitting both sigmoid and quadratic curves and pick the best fit one. However, since For a quadratic, y=ax^2 +bx + c, a determines how steeply the
 series emerge (or decline if a is negative).
 
 The emergeThe results were comparable to porter's method for our dataset as demonstrated below.
