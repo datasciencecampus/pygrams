@@ -341,7 +341,28 @@ results are output as an HTML report. For example, using the supplied USPTO data
 
 An extract of the output is shown below:
 
-![img](img/prediction_test.png)
+|--|--|--|--|--|--|--|--|--|--|--|--|--|
+| terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt
+Winters	|LSTM |LSTM |LSTM |LSTM |LSTM |LSTM |
+| | | | | | | | multiLA | multiLA | 1LA | 1LA | multiM 1LA | multiM 1LA |
+| | | | | | | | stateful | stateless | stateful | stateless | stateful | stateless |
+|--|--|--|--|--|--|--|--|--|--|--|--|--|
+| Trimmed (10% cut) | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2%
+| mean of Relative RMSE | | | | | | | | | | | | |
+|--|--|--|--|--|--|--|--|--|--|--|--|--|
+| Standard deviation | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
+| of Relative RMSE | | | | | | | | | | | | |
+|--|--|--|--|--|--|--|--|--|--|--|--|--|
+
+The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the
+different metrics are reported to assist the user with realising that some errors may be relatively large but
+if they are based on very low frequencies, they are less of a concern - absolute error will show this;
+similarly a low relative error may actually be a large absolute error with high frequency counts,
+so we inform the user of both so they can investigate). The summary tables are then followed with
+the breakdown of results against each tested term (by default, 25 terms are tested in each of
+emergent, stationary and declining).
+
+![img](img/prediction_emerging_test.png)
 
 After examining the output, the predictors with lowest trimmed mean and standard deviation of 
 relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters,
@@ -377,6 +398,7 @@ user equipment: 20.68596854844115
 computer program product: 18.63254739799396
 ...
 ``` 
+![img](img/prediction_emergent.png)
 
 Top stationary terms:
 ```
@@ -387,6 +409,7 @@ chemical structure: -1.9375784177676214e-05
 subsequent stage: -8.295764831296043e-05
 ...
 ```
+![img](img/prediction_stationary.png)
 
 Top declining terms:
 ```
@@ -396,10 +419,23 @@ optical disc: -5.487049355577173
 semiconductor substrate: -6.777448387341435
 liquid crystal display: -8.137031419798937
 ```
+![img](img/prediction_declining.png)
 
-![img](img/prediction_test.png)
+Each graph is accompanied with a table, where we flag the forecast to be emergent, stationary
+or declining. The user is provided the table as a synopsis of the results, and they can scroll
+down to the detail in the graphs to discover why a term was flagged. To generate the labels, the 
+predicted term counts are normalised so that the largest count is 1.0; a linear fit is then made
+to the prediction, and the gradient of the line is examined. If it is above 0.02,
+we flag as emergent, below -0.02 as declining otherwise stationary. We have also
+ added "rapidly emergent" if the gradient is above 0.1 to highlight unusually emergent terms.
 
-
+The results show that very few of the terms are predicted to be emergent or decline in the
+future, which reflects the success of the naive predictor in testing. Those terms flagged
+as non-stationary are of interest; such as "liquid crystal display" flagged as declining, 
+which given the move towards OLED and related technologies would appear to be a reasonable
+prediction. This shows, however, that a user needs domain knowledge to confirm the forecasts;
+the forecasts are dealing with large amounts of noise and hence can only give approximate 
+guidance.
 
 # Outputs 2 IT
 ## FDG
