@@ -19,21 +19,15 @@ Write up all commands against the results to show how it worked!
 - Emily Tew: emily.tew@ons.gov.uk
 
 # Objectives and scope 1-2 T
-The present project aimed in generating insights out of large document collections. By large document collections we 
-mean a large number of documents ( >=10000 ) that share the same theme, like patents, job adverts, medical journal 
-publications and others. The insights we are aiming to retrieve from these document collections are:
+The present project aimed in generating insights out of large document collections. By large document collections we mean a large number of documents ( >=10000 ) that share the same theme, like patents, job adverts, medical journal publications and others. The insights we are aiming to retrieve from these document collections are:
 - popular terminology
 - emerging terminology
 
-Popular terminology refers to the most frequent keywords and small phrases ( up  to three words) and emerging 
-terminology is keywords that show emerging ( or declining ) frequency patterns when projected on a time-series scale.
+Popular terminology refers to the most frequent keywords and small phrases ( up  to three words) and emerging terminology is keywords that show emerging ( or declining ) frequency patterns when projected on a time-series scale.
 
 ## Stakeholders
-Initially this project idea came from BEIS and the IPO, where the former was popular key-terminology to be 
-retrieved from patent applications and the latter came with the idea of retrieving emerging terminology. Both approaches
-would aim in providing richer information for various technology sectors for policy. The list below demonstrates the 
-various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working
-on this project.
+The idea for the project came from the Department for Business, Energy and Indistrial Strategy (BEIS) and the Intellectual Property Office (IPO), where the former was popular key-terminology to be retrieved from patent applications and the latter came with the idea of retrieving emerging terminology. Both approaches
+would aim in providing richer information for various technology sectors for policy. The list below demonstrates the various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working on this project.
 - IPO: Emerging terminology from patent data (PATSTAT)
 - BEIS: popular terminology from UK patents
 - ONS:
@@ -48,9 +42,7 @@ on this project.
 
 # Data engineering 1-2 I
 
-To enable the most generic support possible at minimum overhead, we decided to store input data using
-[Pandas](https://pandas.pydata.org/) dataframes; each text sample then becomes a row in a dataframe
-(which is comparable to a database table, only stored directly in memory rather than on disc).
+To enable the most generic support possible at minimum overhead, we decided to store input data using [Pandas](https://pandas.pydata.org/) dataframes; each text sample then becomes a row in a dataframe (which is comparable to a database table, only stored directly in memory rather than on disc).
 
 ## Patent Data
 
@@ -113,33 +105,33 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 # Producing the TFIDF matrix in our pipeline
 
 # Pre-processing
-The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'These were somebody's cars' would become 'this is somebody car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix. 
+The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'These were somebody's cars' would become 'this is somebody car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix.
 
 
 ### Post processing
 
 ## Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram ie. combustion engine, its associated 
+There are some issues when using mixed length phrases. That is for a given tri-gram ie. combustion engine, its associated
 bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine'
 will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to
 have a less biased output of phrases as a result.
 ## Reducing the tfidf matrix size
 The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the
 columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and
-was one of the major challenges for this project. In order to allow for faster processing and greater versatility in 
+was one of the major challenges for this project. In order to allow for faster processing and greater versatility in
 terms of computer specifications needed to run the pygrams pipeline we came up with some optimization ideas.
-We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical 
-format. 
-The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user 
+We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical
+format.
+The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user
 configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to
 reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we
-could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data 
-element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces 
+could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data
+element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces
 the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back.
 This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on
-our github page in https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05 and has been 
+our github page in https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05 and has been
 used to produce all the results in this report. We also append the command line arguments used to generate our outputs
-so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a 
+so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a
 macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and
 a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
 
@@ -150,7 +142,7 @@ Once the cached object is read we filter rows and columns based on the user quer
 Document filtering comprises:
 
 - Time filters, restricting the corpus to documents with publication dates within a specified range.
-- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria. 
+- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria.
 For patent data specifically, documents can be restricted to those with a specified Cooperative Patent Classification (CPC) value.
 
 ### Term filtering 2 B
@@ -158,7 +150,7 @@ For patent data specifically, documents can be restricted to those with a specif
 
 #### Stopwords
 
-Stopwords are handled using three user configurable files. The first one, 'stopwords_glob.txt' contains global stopwords, including a list of standard 
+Stopwords are handled using three user configurable files. The first one, 'stopwords_glob.txt' contains global stopwords, including a list of standard
 English stopwords; These stopwords are applied before tokenization. The file 'stopwords_n.txt' contains bi-gram or tri-gram stopwords. This stopword list is applied after tokenization for phrases containing more than one word. Finally, the file 'stopwords_uni.txt' contains unigram stop words and is applied after tokenization too;
 
 #### Fatima work TF
@@ -233,7 +225,7 @@ The above functionality is acheived using the following piece of code:
                     except:
                         compare.append(0.0)
                         continue
-    
+
             max_similarity_score = max(similarity_score for similarity_score in compare)
             embeddings_vect.append(max_similarity_score)
         #embeddings_vect_norm = ut.normalize_array(embeddings_vect, return_list=True)
@@ -302,31 +294,31 @@ and further below:
 
 
 
-To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on 
+To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on
 [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
 ## Alternative models
-Our pipeline can run with other embedding models too, like fasttext 300d or word2vec 200d. We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can be easily be deployed.
+Our pipeline can run with other embedding models too, like fasttext 300d or word2vec 200d. We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
 
 # Objective 2: Emerging Terminology 4
 ## From tfidf to the timeseries matrix
-In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the 
-tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the 
-period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of 
-seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve 
+In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the
+tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the
+period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of
+seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve
 emerging terminology. These were Porter(2018), curve fitting and a state-space model with kalman filter.
 
 
 ## Escores 2 IT
 ## Previous and related work / Porter
-Our first attempts to generate emerging terminology insights were based on the Porter(2018) publication. This method 
-relied on ten timeseries periods, the three first being the base period and the following seven the active one. The 
+Our first attempts to generate emerging terminology insights were based on the Porter(2018) publication. This method
+relied on ten timeseries periods, the three first being the base period and the following seven the active one. The
 emergence score is calculated using a series of differential equations within the active period counts, normalised by
 the global trend.
 
 /T: TODO: replace this with math from our slides:
 
-        active_period_trend = (sum_term_counts_567 / sum_sqrt_total_counts_567) - (sum_term_counts_123 / 
+        active_period_trend = (sum_term_counts_567 / sum_sqrt_total_counts_567) - (sum_term_counts_123 /
         sum_sqrt_total_counts_123)
 
         recent_trend = 10 * (
@@ -341,12 +333,12 @@ the global trend.
 ![img](img/porter_2018.png)
 
 This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations. However we found that it penalises terms that do not follow the desirable pattern, ie. fast emerging at the last three periods.
-It also takes into consideration the global trend, which sometimes may not be desirable 
+It also takes into consideration the global trend, which sometimes may not be desirable
 
 ### Quadratic and Sigmoid fitting
-We decided to investigate alternative methods that would be more generic in the sense that emergence could be 
-scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next 
-thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. 
+We decided to investigate alternative methods that would be more generic in the sense that emergence could be
+scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next
+thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus.
 Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
 ![img](img/curves.png)
 
@@ -405,9 +397,9 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
     controller configure: 		6.560606060606065
     frequency band: 			6.3212121212121115
 
-The main concerns with this method were interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve. 
+The main concerns with this method were interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve.
 ### State space (Sonia)
-A more flexible approach is that of the state space model with a kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the timeseries using the Kalman filter and providing the first gradient of the smoothed time-series. This means we know the slope of the timeseries at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill course or the steepest one using simple calculus. 
+A more flexible approach is that of the state space model with a kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the timeseries using the Kalman filter and providing the first gradient of the smoothed time-series. This means we know the slope of the timeseries at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill course or the steepest one using simple calculus.
 
 ![img](img/plot_1_internal_combustion_engine.png) ![img](img/plot_4_internal_combustion_engine.png)
 
@@ -461,7 +453,7 @@ compound error as they are independent of each other.
 
 In addition, we use Keras as our neural network library, where LSTMs can be trained as either stateless or stateful.
 This means that when Keras trains the network, with a stateless LSTM, the LSTM state will not propagate between batches.
-Conversely, with a stateful LSTM the state will propagate between batches. 
+Conversely, with a stateful LSTM the state will propagate between batches.
 
 ### Prediction Testing
 **pyGrams** can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting
@@ -473,31 +465,20 @@ results are output as an HTML report. For example, using the supplied USPTO data
 An extract of the output is shown below:
 
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
-| terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt
-Winters	|LSTM |LSTM |LSTM |LSTM |LSTM |LSTM |
-| | | | | | | | multiLA | multiLA | 1LA | 1LA | multiM 1LA | multiM 1LA |
-| | | | | | | | stateful | stateless | stateful | stateless | stateful | stateless |
+| terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt Winters	|LSTM |LSTM |LSTM |LSTM|LSTM |LSTM |
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
+| | | | | | | | **multiLA** | **multiLA** | **1LA** | **1LA** | **multiM 1LA** | **multiM 1LA** |
+| | | | | | | | **stateful** | **stateless** | **stateful** | **stateless** | **stateful** | **stateless** |
 | Trimmed (10% cut) | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2%
 | mean of Relative RMSE | | | | | | | | | | | | |
-|--|--|--|--|--|--|--|--|--|--|--|--|--|
 | Standard deviation | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
 | of Relative RMSE | | | | | | | | | | | | |
-|--|--|--|--|--|--|--|--|--|--|--|--|--|
 
-The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the
-different metrics are reported to assist the user with realising that some errors may be relatively large but
-if they are based on very low frequencies, they are less of a concern - absolute error will show this;
-similarly a low relative error may actually be a large absolute error with high frequency counts,
-so we inform the user of both so they can investigate). The summary tables are then followed with
-the breakdown of results against each tested term (by default, 25 terms are tested in each of
-emergent, stationary and declining).
+The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining).
 
 ![img](img/prediction_emerging_test.png)
 
-After examining the output, the predictors with lowest trimmed mean and standard deviation of 
-relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters,
-stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
+After examining the output, the predictors with lowest trimmed mean and standard deviation of relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters, stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
 
 ### Results and Discussion
 
@@ -510,71 +491,55 @@ from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
 
 Various outputs are produced; first, the top 250 popular terms are listed:
-```
-1. semiconductor device           3181.175539
-2. electronic device              2974.360838
-3. light source                   2861.643506
-4. semiconductor substrate        2602.684013
-5. mobile device                  2558.832724
-6. pharmaceutical composition     2446.811441
-7. electrically connect           2246.935926
-8. base station                   2008.353328
-9. memory cell                    1955.181403
-10. display device                 1939.361315
-...
-```
+
+    1. semiconductor device           3181.175539
+    2. electronic device              2974.360838
+    3. light source                   2861.643506
+    4. semiconductor substrate        2602.684013
+    5. mobile device                  2558.832724
+    6. pharmaceutical composition     2446.811441
+    7. electrically connect           2246.935926
+    8. base station                   2008.353328
+    9. memory cell                    1955.181403
+    10. display device                 1939.361315
+
 
 Top emergent terms:
-```
-mobile device: 29.820764545328476
-base station: 21.845790614296153
-user equipment: 20.68596854844115
-computer program product: 18.63254739799396
-...
-``` 
+
+    mobile device: 29.820764545328476
+    base station: 21.845790614296153
+    user equipment: 20.68596854844115
+    computer program product: 18.63254739799396
+
 ![img](img/prediction_emergent.png)
 
 Top stationary terms:
-```
-...
-fuel injection: 0.0004264722186599623
-key performance indicator: 7.665313838841475e-05
-chemical structure: -1.9375784177676214e-05
-subsequent stage: -8.295764831296043e-05
-...
-```
+
+    fuel injection: 0.0004264722186599623
+    key performance indicator: 7.665313838841475e-05
+    chemical structure: -1.9375784177676214e-05
+    subsequent stage: -8.295764831296043e-05
+
 ![img](img/prediction_stationary.png)
 
 Top declining terms:
-```
-...
-plasma display panel: -5.010357686060525
-optical disc: -5.487049355577173
-semiconductor substrate: -6.777448387341435
-liquid crystal display: -8.137031419798937
-```
+
+
+    plasma display panel: -5.010357686060525
+    optical disc: -5.487049355577173
+    semiconductor substrate: -6.777448387341435
+    liquid crystal display: -8.137031419798937
+
+
 ![img](img/prediction_declining.png)
 
-Each graph is accompanied with a table, where we flag the forecast to be emergent, stationary
-or declining. The user is provided the table as a synopsis of the results, and they can scroll
-down to the detail in the graphs to discover why a term was flagged. To generate the labels, the 
-predicted term counts are normalised so that the largest count is 1.0; a linear fit is then made
-to the prediction, and the gradient of the line is examined. If it is above 0.02,
-we flag as emergent, below -0.02 as declining otherwise stationary. We have also
- added "rapidly emergent" if the gradient is above 0.1 to highlight unusually emergent terms.
+Each graph is accompanied with a table, where we flag the forecast to be emergent, stationary or declining. The user is provided the table as a synopsis of the results, and they can scroll down to the detail in the graphs to discover why a term was flagged. To generate the labels, the predicted term counts are normalised so that the largest count is 1.0; a linear fit is then made to the prediction, and the gradient of the line is examined. If it is above 0.02, we flag as emergent, below -0.02 as declining otherwise stationary. We have also added "rapidly emergent" if the gradient is above 0.1 to highlight unusually emergent terms.
 
-The results show that very few of the terms are predicted to be emergent or decline in the
-future, which reflects the success of the naive predictor in testing. Those terms flagged
-as non-stationary are of interest; such as "liquid crystal display" flagged as declining, 
-which given the move towards OLED and related technologies would appear to be a reasonable
-prediction. This shows, however, that a user needs domain knowledge to confirm the forecasts;
-the forecasts are dealing with large amounts of noise and hence can only give approximate 
-guidance.
+The results show that very few of the terms are predicted to be emergent or decline in the future, which reflects the success of the naive predictor in testing. Those terms flagged a non-stationary are of interest; such as "liquid crystal display" flagged as declining, which given the move towards OLED and related technologies would appear to be a reasonable prediction. This shows, however, that a user needs domain knowledge to confirm the forecasts; the forecasts are dealing with large amounts of noise and hence can only give approximate guidance.
 
 # Outputs 2 IT
 
-To assist the user with understanding the relationship between popular terms, various outputs
-are supported which are now described.
+To assist the user with understanding the relationship between popular terms, various outputs are supported which are now described.
 
 ## Force-Directed Graphs (FDG)
 Terms which co-occur in documents are revealed by this visualisation; terms are shown as nodes
@@ -582,8 +547,8 @@ in a graph, with links between nodes if the related terms appear in the same doc
 The size of the node is proportional to the popularity score of the term, and the
 width of the link is proportional to the number of times a term co-occurs.
 
-An example visualisation of the USPTO dataset can be generated with 
-```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, and example output shown below.
+An example visualisation of the USPTO dataset can be generated with
+```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, an example output is shown below.
 
 ![img](img/fdg.png)
 
@@ -597,14 +562,10 @@ The relationship between co-occurring terms is also output when an FDG is genera
 4. semiconductor substrate:2602.68  -> semiconductor device: 0.59, gate electrode: 0.32, dielectric layer: 0.23, insulating film: 0.21, active region: 0.21, conductivity type: 0.19, semiconductor layer: 0.18, drain region: 0.15, insulating layer: 0.14, channel region: 0.14
 ...
 
-This is output as a text file for further processing, as it indicates a popular term followed by 
-the top 10 co-occurring terms (weighted by term popularity).
+This is output as a text file for further processing, as it indicates a popular term followed by the top 10 co-occurring terms (weighted by term popularity).
 
 ## Word cloud
-Related to the FDG output, the popularity of a term can instead be mapped to the font size
-of the term and the top **n** terms displayed as a wordcloud. 
-An example visualisation of the USPTO dataset can be generated with 
-```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, and example output shown below.
+Related to the FDG output, the popularity of a term can instead be mapped to the font size of the term and the top **n** terms displayed as a wordcloud. An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, an example output isshown below.
 ![img](img/wordcloud.png)
 
 # Conclusion 1
