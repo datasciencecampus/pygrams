@@ -111,7 +111,7 @@ The text corpus is processed so that we strip out accents, ownership and bring i
 ### Post processing
 
 ## Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram ie. combustion engine, its associated
+There are some issues when using mixed length phrases. That is for a given tri-gram ie. 'internal combustion engine', its associated
 bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine'
 will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to
 have a less biased output of phrases as a result.
@@ -298,7 +298,7 @@ To find out how to run term filtering in PyGrams please see the 'Term Filter' se
 [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
 ## Alternative models
-Our pipeline can run with other embedding models too, like fasttext 300d or word2vec 200d. We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
+Our pipeline can run with other embedding models too, like [fasttext 300d](https://fasttext.cc/docs/en/english-vectors.html) or [word2vec 200d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit). We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
 
 # Objective 2: Emerging Terminology 4
 ## From tfidf to the timeseries matrix
