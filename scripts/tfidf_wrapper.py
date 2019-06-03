@@ -56,6 +56,11 @@ class _TFIDF:
             self.__l2_norm = utils.l2normvec(self.__tfidf_matrix)
         self.__tfidf_matrix = utils.apply_l2normvec(self.__tfidf_matrix, self.__l2_norm)
 
+    def apply_weights(self, weights_matrix):
+        self.__count_matrix = self.__count_matrix.multiply(weights_matrix)
+        self.__tfidf_matrix = self.__tfidf_matrix.multiply(weights_matrix)
+        self.__count_matrix.data = np.array([np.uint8(round(x)) for x in self.__count_matrix.data])
+
     @property
     def l2_norm(self):
         return self.__l2_norm
@@ -83,3 +88,4 @@ class _TFIDF:
     @property
     def feature_names(self):
         return self.__feature_names
+
