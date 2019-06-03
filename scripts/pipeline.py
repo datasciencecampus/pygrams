@@ -1,12 +1,11 @@
 import bz2
 import pickle
-import csv
 from os import makedirs, path
 
 from pandas import read_pickle
 from tqdm import tqdm
 
-import scripts.data_factory as datafactory
+import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
 from scripts.algorithms.emergence import Emergence
@@ -20,7 +19,6 @@ from scripts.utils import utils
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
-from tqdm import tqdm
 
 
 class Pipeline(object):
@@ -37,7 +35,7 @@ class Pipeline(object):
         # calculate or fetch tf-idf mat
         if pickled_tfidf_folder_name is None:
 
-            dataframe = datafactory.get(data_filename)
+            dataframe = data_factory.get(data_filename)
             utils.checkdf(dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
             utils.remove_empty_documents(dataframe, text_header)
 
@@ -91,7 +89,8 @@ class Pipeline(object):
             if self.__dates is not None:
                 min_date = min(self.__dates)
                 max_date = max(self.__dates)
-                print(f'Document year-week dates range from {min_date//100}-{(min_date%100):02d} to {max_date//100}-{(max_date%100):02d}')
+                print(f'Document year-week dates range from {min_date // 100}-{(min_date % 100):02d} '
+                      f'to {max_date // 100}-{(max_date % 100):02d}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
@@ -141,7 +140,8 @@ class Pipeline(object):
         tfidf_masked = tfidf_mask.multiply(self.__tfidf_obj.tfidf_matrix)
 
         tfidf_masked, self.__dates = utils.remove_all_null_rows_global(tfidf_masked, self.__dates)
-        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,} / {self.__tfidf_obj.tfidf_matrix.shape[0]:,} documents')
+        print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,}'
+              f' / {self.__tfidf_obj.tfidf_matrix.shape[0]:,} documents')
 
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
 
@@ -152,7 +152,8 @@ class Pipeline(object):
             self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dates)
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-        self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
+        self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
+                                                  WordAnalyzer.stemmed_stop_word_set_n)
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
@@ -241,7 +242,7 @@ class PipelineEmtech(object):
             file.write('Emergent\n')
             for tup in self.__emergence_list[:nterms]:
                 print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1])+ '\n')
+                file.write(tup[0] + ": " + str(tup[1]) + '\n')
             print()
             file.write('\n')
             print('Stationary')
@@ -253,10 +254,10 @@ class PipelineEmtech(object):
             file.write('\n')
 
             print('Declining')
-            file.write('Declining'+ '\n')
+            file.write('Declining' + '\n')
             for tup in self.__emergence_list[-nterms:]:
                 print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1])+ '\n')
+                file.write(tup[0] + ": " + str(tup[1]) + '\n')
             print()
             file.write('\n')
         # construct a terms list for n emergent n stationary? n declining
@@ -288,19 +289,6 @@ class PipelineEmtech(object):
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
                                                                 predictors_to_run, test_terms=terms)
 
-        # save training_values to csv file
-        #
-        # training_values:                                  csv file:
-        # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
-        #                                                   'term2', 2, 4, 1, 3
-        #
-        filename = path.join('outputs', 'emergence', emergence + '_time_series.csv')
-        with open(filename, 'w') as f:
-            w = csv.writer(f)
-            for key, values in training_values.items():
-                my_list = ["'" + str(key) + "'"] + values
-                w.writerow(my_list)
-
         html_results += report_predicted_emergence_labels_html(predicted_emergence)
 
         html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
@@ -309,4 +297,4 @@ class PipelineEmtech(object):
                                                          normalised=normalized,
                                                          test_forecasts=train_test)
 
-        return html_results
+        return html_results, training_values.items()
