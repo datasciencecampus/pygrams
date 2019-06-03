@@ -403,7 +403,7 @@ A more flexible approach is that of the state space model with a kalman filter. 
 
 ![img](img/plot_1_internal_combustion_engine.png) ![img](img/plot_4_internal_combustion_engine.png)
 
-At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disantvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
+At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disadvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
 
 (table with state-space e-scores here and a few plots)
 ### which method is best?
