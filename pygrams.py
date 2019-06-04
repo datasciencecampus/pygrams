@@ -221,7 +221,7 @@ def main(supplied_args):
             # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
             #                                                   'term2', 2, 4, 1, 3
             #
-            filename = path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
+            filename = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
             with open(filename, 'w') as f:
                 w = csv.writer(f)
                 for key, values in training_values:
@@ -241,7 +241,7 @@ def main(supplied_args):
                 </html>
                 '''
 
-            base_file_name = path.join('outputs', 'emergence', args.outputs_name + '_' + emergence)
+            base_file_name = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence)
 
             if args.normalised:
                 base_file_name += '_normalised'
