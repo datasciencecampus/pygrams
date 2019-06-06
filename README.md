@@ -108,10 +108,10 @@ python pygrams.py -th='blurb' -dh='published_date'
 
 #### Using a pre-pickled TFIDF file (-it)
 
-In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source:
+In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source. These files are cached automatically upon the first run with data and the directory hosting them inherits the outputs name given. Running pygrams with cached tfidf matrix:
 
 ```
-python pygrams.py -it -out-tfidf.pkl_1.bz2
+python pygrams.py -it USPTO-mdf-0.05
 ```
 
 ### TFIDF Dictionary
