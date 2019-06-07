@@ -26,8 +26,7 @@ The present project aimed in generating insights out of large document collectio
 Popular terminology refers to the most frequent keywords and small phrases ( up  to three words) and emerging terminology is keywords that show emerging ( or declining ) frequency patterns when projected on a time-series scale.
 
 ## Stakeholders
-The idea for the project came from the Department for Business, Energy and Indistrial Strategy (BEIS) and the Intellectual Property Office (IPO), where the former was popular key-terminology to be retrieved from patent applications and the latter came with the idea of retrieving emerging terminology. Both approaches
-would aim in providing richer information for various technology sectors for policy. The list below demonstrates the various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working on this project.
+The idea for this project initially came from the Department for Business, Energy and Industrial Strategy (BEIS) and the Intellectual Property Office (IPO). BEIS needed popular key-terminology to be retrieved from patent applications and IPO came with the idea of retrieving emerging terminology from the same dataset. Both approaches aimed in providing insights from various technology sectors for policy makers. The list below demonstrates  various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working on this project.
 - IPO: Emerging terminology from patent data (PATSTAT)
 - BEIS: popular terminology from UK patents
 - ONS:
@@ -42,25 +41,18 @@ would aim in providing richer information for various technology sectors for pol
 
 # Data engineering 1-2 I
 
-To enable the most generic support possible at minimum overhead, we decided to store input data using [Pandas](https://pandas.pydata.org/) dataframes; each text sample then becomes a row in a dataframe (which is comparable to a database table, only stored directly in memory rather than on disc).
+The first problem we encountered during this project was that of inhomogeneous data. To be more specific, the data we received to process was coming in different formats, like, xml, sql, csv, excel, etc. To overcome this problem and make our pipeline more generic, we decided to create functions  to convert each data source to [Pandas](https://pandas.pydata.org/) dataframes. For memory, storage and processing efficiency purposes, we decided to only keep three columns in the dataframe, namely text, date and classification (cpc). These fields were adequate to meet the patent project requirements, but could also generalize and process different datasets like job adverts, publications etc.
 
 ## Patent Data
 
-Initially, we did not have access to [PatStat](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1)
-(the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable
+Initially, we did not have access to [PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) (the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable
 us to use large numbers of patent abstract as soon as possible, we imported the USPTO's
-[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was
-stored in a similar XML format). The XML data was scraped from the web using
-[beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame
-format for ingestion into pygrams.
+[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format). The XML data was scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pygrams.
+Later, when patstat became available, we created an import tool which parsed the CSV format data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate database.
 
-Later, when patstat became available, we created an import tool which parsed the CSV format
-data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate
-database.
+# Other Data Sources 1-2
 
-# Data sources 1-2
-
-Suggest this is folded into s/w engineering section.
+Besides patent data, we tried pyGrams with other text data sources like job adverts, survey comments, brexit consultations, coroners reports, tweets to name a few.
 
 # Objective 1: Popular Terminology 7 ETF
 
@@ -70,21 +62,28 @@ When you type text into a computer it can't understand the words in the way that
 
 ## Previous and related work
 ## Tfidf 2 E
-//T: Nice section. Only need to stretch that tfidf is a sparse matrix(mostly zeros). In the example shown as dense
-**PyGrams** uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short.
+//T: Nice section. Only need to stretch that tfidf is a sparse matrix(mostly zeros). In the example shown as dense. Also, tf is the un-normalized term frequency. So if a word appears 5 times in a 200 word doc, tf=5. There is normalization on top of this to address doc size, we use l2 in our code.
+look here for example : http://datameetsmedia.com/bag-of-words-tf-idf-explained/
 
-TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus.  It can be broken down into two parts:
 
-1. **Term Frequency (TF)** = **$\frac{\text{The number of times a term appears in a document}}{\text{Total number of terms in the document}}$**
+**PyGrams** uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short to convert text into numerical form. TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus. TFIDF can be calculated by the following equation:
 
-<br/>
+$
+\displaystyle \begin{array}{lll}\\
+\displaystyle &&tfidf_{ij} = tf_{ij} * log(\frac{\ N}{df_i}) \\\\
+\text{Where:}\\ \\
+N & = & \text{number of documents}\\
+\ tf_{ij} & = & \text{term frequency for term i in document j}\\
+df_i & = & \text{document frequency for term i}\\
+tfidf_{ij} & = & \text{tfidf score for term i in document j}\\
+\end{array}
+$
 
-2. **Inverse Document Frequency (IDF)** = **$\ln(\frac{\text{Total number of documents}}{\text{Number of documents which contains the term}})$**
 
-<br/>
-
+</br>
 For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears 5 times.
 
+T//change to un-normalized
 **Term Frequency** = **$\frac{5}{200}$** = 0.025
 
  Also, assume we have 20 million documents and the term *'nuclear'* appears in ten thousand of these.
@@ -102,6 +101,18 @@ For example, lets say Document 1 contains 200 terms and the term *'nuclear'* app
 |  3 |  0.17 |  0.04 |  0.13 |
 |  **Final_Weight**  |   **0.58**    | **0.17**  | **0.35**  |
 
+Sometimes it is necessary to normalize the tfidf output to address variable document sizes. For example if documents span from 10-200 words, term frequency of 5 in a 30 word document should score higher than the same term frequency on a 200 word document. For this reason we use l2 normalization in pyGrams:
+
+</br>
+
+$\displaystyle l^2_j = \displaystyle\sqrt{\sum_{i=0}^n tf_{ij}}$
+
+</br>
+
+and tfidf becomes:
+
+$tfidf_{ij} = \frac{tf_{ij}}{l^2_j} * log(\frac{\ N}{df_i})$
+
 # Producing the TFIDF matrix in our pipeline
 
 # Pre-processing
@@ -111,29 +122,11 @@ The text corpus is processed so that we strip out accents, ownership and bring i
 ### Post processing
 
 ## Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram ie. 'internal combustion engine', its associated
-bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine'
-will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to
-have a less biased output of phrases as a result.
+There are some issues when using mixed length phrases. That is for a given tri-gram ie. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to have a less biased output of phrases as a result.
 ## Reducing the tfidf matrix size
-The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the
-columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and
-was one of the major challenges for this project. In order to allow for faster processing and greater versatility in
-terms of computer specifications needed to run the pygrams pipeline we came up with some optimization ideas.
-We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical
-format.
-The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user
-configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to
-reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we
-could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data
-element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces
-the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back.
-This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on
-our github page in https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05 and has been
-used to produce all the results in this report. We also append the command line arguments used to generate our outputs
-so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a
-macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and
-a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
+The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project. In order to allow for faster processing and greater versatility in terms of computer specifications needed to run the pygrams pipeline we came up with some optimization ideas.
+We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical format.
+The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back. This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on our [github page](https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05) and has been used to produce all the results in this report. We also append the command line arguments used to generate our outputs so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
 
 ## Filtering 2
 ### Document filtering 0.5-1 B
@@ -141,9 +134,8 @@ Once the cached object is read we filter rows and columns based on the user quer
 
 Document filtering comprises:
 
-- Time filters, restricting the corpus to documents with publication dates within a specified range.
-- Column filters, restricting the corpus to documents where the values of selected columns meet specified (binary) criteria.
-For patent data specifically, documents can be restricted to those with a specified Cooperative Patent Classification (CPC) value.
+- Date-Time filters, restricting the corpus to documents with publication dates within a specified range.
+- Classification filters, restricting the corpus to documents that belong to specified class(es). For the patents example this is cpc classification.
 
 ### Term filtering 2 B
 
@@ -157,13 +149,11 @@ English stopwords; These stopwords are applied before tokenization. The file 'st
 
 #### Word embedding 1 E
 
-The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this,
-it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models like word2vec or fasttext.
-Glove has been chosen for practical purposes as it is low in storage and fast on execution.
+The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this, it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models like word2vec or fasttext. Glove has been chosen for practical purposes as it is low in storage and fast on execution.
 
 ##### What is a GloVe pre-trained word embedding?
 
-**GloVe is an unsupervised learning algorithm for obtaining vector representations for words.** For a model to be 'pre-trained' the algorithm needs to be trained on a corpus of text where it learns to produce word vectors that are meaningful given the word's co-occurance with other words. Once the word vectors have been learnt the Euclidean distance between them can be used to measure semantic similarity of the words.
+**GloVe is an unsupervised learning algorithm for obtaining vector representations for words.** For a model to be 'pre-trained' the algorithm needs to be trained on a corpus of text where it learns to produce word vectors that are meaningful given the word's co-occurance with other words. Once the word vectors have been learnt either the Euclidean or the cosine distance between them can be used to measure semantic similarity of the words.
 
 Below is a visual representation of a vector space for the term MEMS  (Micro-Electro-Mechanical Systems):
 
@@ -205,12 +195,9 @@ where:
 
 ##### How does it work in PyGrams?
 
-Given a distance threshold between user inputted words and words in the corpus, words that are within the threshold distance are included in the output and those which are not are excluded.
+The user defines a set of keywords and a threshold distance. If the set of user keywords is not empty, the terms filter computes the word vectors of our dictionary and user defined terms. Then it masks out the dictionary terms whose cosine distance to the user defined word vectors is below the predefined threshold.
 
-PyGrams does this by using a TFIDF mask. As previously mentioned the TFIDF is used to filter out important words in the corpus and is stored in a TFIDF matrix. The vectors for the user inputted words are compared to the vectors of the words in the TFIDF matrix and those within a given threshold are kept in the output.
-
-
-The above functionality is acheived using the following piece of code:
+The above functionality is achieved using the following piece of code:
 
     def __get_embeddings_vec(self, threshold):
         embeddings_vect = []
@@ -294,41 +281,32 @@ and further below:
 
 
 
-To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on
-[Github](https://github.com/datasciencecampus/pyGrams#term-filters)
+To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
 ## Alternative models
 Our pipeline can run with other embedding models too, like [fasttext 300d](https://fasttext.cc/docs/en/english-vectors.html) or [word2vec 200d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit). We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
 
 # Objective 2: Emerging Terminology 4
 ## From tfidf to the timeseries matrix
-In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the
-tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the
-period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of
-seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve
-emerging terminology. These were Porter(2018), curve fitting and a state-space model with kalman filter.
+In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve emerging terminology. These were Porter(2018), quadratic and sigmoid fitting and a state-space model with kalman filter.
 
 
 ## Escores 2 IT
 ## Previous and related work / Porter
-Our first attempts to generate emerging terminology insights were based on the Porter(2018) publication. This method
-relied on ten timeseries periods, the three first being the base period and the following seven the active one. The
-emergence score is calculated using a series of differential equations within the active period counts, normalised by
-the global trend.
+Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](file:///Users/thanasisanthopoulos/Downloads/PorteretalEmergencescoringtoIDfrontierRDTFSCaspublished.pdf) publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
 
-/T: TODO: replace this with math from our slides:
 
-        active_period_trend = (sum_term_counts_567 / sum_sqrt_total_counts_567) - (sum_term_counts_123 /
-        sum_sqrt_total_counts_123)
 
-        recent_trend = 10 * (
-                (term_counts[5] + term_counts[6]) / (sqrt(total_counts[5]) + sqrt(total_counts[6]))
-                - (term_counts[3] + term_counts[4]) / (sqrt(total_counts[3]) + sqrt(total_counts[4])))
+Active period trend:
+$A_{trend} = \frac {\sum_{i=5}^7 C_i}  {\sum_{i=5}^7 \sqrt{T_i}} - \frac {\sum_{i=1}^3 C_i}  {\sum_{i=1}^3 \sqrt{T_i}}$
 
-        mid_year_to_last_year_slope = 10 * (
-                (term_counts[6] / sqrt(total_counts[6])) - (term_counts[3] / sqrt(total_counts[3]))) / 3
+Recent trend:
+$R_{trend} = 10*(\frac {\sum_{i=5}^7 C_i}  {\sum_{i=5}^7 \sqrt{T_i}} - \frac {\sum_{i=1}^3 C_i}  {\sum_{i=1}^3 \sqrt{T_i}})$
 
-        e_score=  2 * active_period_trend + mid_year_to_last_year_slope + recent_trend
+Mid period to last period trend:
+$S_{mid} = 10*(\frac {C_6}  {\sqrt{T_6}} - \frac { C_3}  { \sqrt{T_3}})$
+
+$e_score=  2 * A_{trend} + R_{trend} + S_{mid}$
 
 ![img](img/porter_2018.png)
 
@@ -336,17 +314,15 @@ This method works well for terms rapidly emerging in the last three periods as i
 It also takes into consideration the global trend, which sometimes may not be desirable
 
 ### Quadratic and Sigmoid fitting
-We decided to investigate alternative methods that would be more generic in the sense that emergence could be
-scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next
-thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus.
-Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
+We decided to investigate alternative methods that would be more generic in the sense that emergence could be scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
 ![img](img/curves.png)
 
 
 The results from quadratic fitting were comparable to porter's method for our dataset as demonstrated in the results below.
 
 Porter:
-cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
+python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt
+exec time: 07:23 secs
 
     mobile device: 			    33.6833326760551
     electronic device: 		    28.63492052752744
@@ -355,9 +331,9 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
     compute device: 		    19.604581131580854
     virtual machine: 		    16.725067554171893
     user interface: 		    15.062028899069167
-    image form apparatus: 	    14.584135688497181
+    image form apparatus: 	            14.584135688497181
     client device: 			    13.717931666935373
-    computer program product:   13.520757988739204
+    computer program product:           13.520757988739204
     light source: 			    13.4761974473862
     display panel: 			    12.987288891969184
     unit configure: 		    11.988598669141473
@@ -366,13 +342,14 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt | exec time: 07:23 secs
     control unit: 			    10.304289943906731
     mobile terminal: 		    8.968774302298257
     far configure: 			    8.710208143729222
-    controller configure: 	    8.60326087325161
+    controller configure: 	            8.60326087325161
     determine base: 		    8.435695146267795
     touch panel: 			    8.340320405278447
     optical fiber: 			    7.853598239644436
 
-Quadratic:
-cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
+  Quadratic:
+  python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt -cf
+  exec time: 07:48 secs
 
     mobile device: 			    26.93560606060607
     electronic device: 		    24.636363636363637
@@ -383,7 +360,7 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
     optical fiber: 			    13.814393939393954
     light source: 			    13.696969696969699
     client device: 			    10.465909090909093
-    image form apparatus: 	    10.462121212121222
+    image form apparatus: 	            10.462121212121222
     display unit: 			    10.272727272727273
     unit configure: 		    10.151515151515154
     user device: 			    9.503787878787884
@@ -392,12 +369,12 @@ cmd: -it=USPTO-mdf-0.05 -cpc=G -emt -cf | exec time: 07:48 secs
     touch panel: 			    7.844696969696972
     control unit: 			    7.818181818181827
     far configure: 			    7.393939393939394
-    computer storage medium: 	7.234848484848488
-    mobile terminal: 			6.91287878787879
-    controller configure: 		6.560606060606065
-    frequency band: 			6.3212121212121115
+    computer storage medium: 	    7.234848484848488
+    mobile terminal: 		    6.91287878787879
+    controller configure: 	            6.560606060606065
+    frequency band: 		    6.3212121212121115
 
-The main concerns with this method were interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve.
+The main concerns with this method were when interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve.
 ### State space (Sonia)
 A more flexible approach is that of the state space model with a kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the timeseries using the Kalman filter and providing the first gradient of the smoothed time-series. This means we know the slope of the timeseries at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill course or the steepest one using simple calculus.
 
