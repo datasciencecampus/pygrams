@@ -121,7 +121,7 @@ class ArgsChecker:
                           'date_header': self.args.date_header
                           }
 
-        if self.args.date_to is not None and self.args.date_from is not None:
+        if self.args.date_to is not None or self.args.date_from is not None:
             date_to = pd.to_datetime('today').date() if self.args.date_to is None else pd.to_datetime(self.args.date_to)
             date_from = pd.to_datetime('1900-01-01') if self.args.date_from is None else pd.to_datetime(
                 self.args.date_from)
