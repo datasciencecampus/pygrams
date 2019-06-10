@@ -1,4 +1,5 @@
 import argparse
+import csv
 import os
 import sys
 import time
@@ -20,18 +21,19 @@ def get_args(command_line_arguments):
                                      conflict_handler='resolve')  # allows overridng of arguments
 
     # suppressed:________________________________________
-    parser.add_argument("-tc", "--term-counts", default=False,  action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-tc", "--term-counts", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-ih", "--id_header", default=None, help=argparse.SUPPRESS)
     parser.add_argument("-c", "--cite", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-pt", "--path", default='data', help=argparse.SUPPRESS)
     parser.add_argument("-nmf", "--n_nmf_topics", type=int, default=0, help=argparse.SUPPRESS)
-                        # help="NMF topic modelling - number of topics (e.g. 20 or 40)")
+    # help="NMF topic modelling - number of topics (e.g. 20 or 40)")
 
     # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help=argparse.SUPPRESS)
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2', help=argparse.SUPPRESS)
-    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'), help=argparse.SUPPRESS)
+    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
+                        help=argparse.SUPPRESS)
 
     parser.add_argument("-j", "--json", default=True, action="store_true",
                         help=argparse.SUPPRESS)
@@ -60,7 +62,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-st", "--search_terms", type=str, nargs='+', default=[],
                         help="Search terms filter: search terms to restrict the tfidf dictionary. "
                              "Outputs will be related to search terms")
-    parser.add_argument("-stthresh", "--search_terms_threshold", type=float, nargs='+', default=0.75,
+    parser.add_argument("-stthresh", "--search_terms_threshold", type=float,  default=0.75,
                         help="Provides the threshold of how related you want search terms to be "
                              "Values between 0 and 1: 0.8 is considered high")
     # Time filters
@@ -142,7 +144,6 @@ def get_args(command_line_arguments):
 
 
 def main(supplied_args):
-
     paths = [os.path.join('outputs', 'reports'), os.path.join('outputs', 'wordclouds'),
              os.path.join('outputs', 'table'), os.path.join('outputs', 'emergence')]
     for path in paths:
@@ -157,7 +158,7 @@ def main(supplied_args):
     outputs.append('report')
     if args.term_counts:
         outputs.append('termcounts')
-    if args.n_nmf_topics >0:
+    if args.n_nmf_topics > 0:
         outputs.append('nmf')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
@@ -210,8 +211,22 @@ def main(supplied_args):
 
             title += f' ({emergence})'
 
-            html_results = pipeline_emtech.run(predictors_to_run, normalized=args.normalised, train_test=args.test,
-                                        emergence=emergence)
+            html_results, training_values = pipeline_emtech.run(predictors_to_run, normalized=args.normalised,
+                                                                train_test=args.test,
+                                                                emergence=emergence)
+
+            # save training_values to csv file
+            #
+            # training_values:                                  csv file:
+            # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
+            #                                                   'term2', 2, 4, 1, 3
+            #
+            filename = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
+            with open(filename, 'w') as f:
+                w = csv.writer(f)
+                for key, values in training_values:
+                    my_list = ["'" + str(key) + "'"] + values
+                    w.writerow(my_list)
 
             html_doc = f'''<!DOCTYPE html>
                 <html lang="en">
@@ -248,9 +263,9 @@ if __name__ == '__main__':
         main(sys.argv[1:])
         end = time.time()
         diff = int(end - start)
-        hours=diff//3600
-        minutes=diff//60
-        seconds=diff%60
+        hours = diff // 3600
+        minutes = diff // 60
+        seconds = diff % 60
 
         print('')
         print(f"pyGrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
