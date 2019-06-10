@@ -292,8 +292,8 @@ In order to assess emergence, our dataset needs to be converted into a time-seri
 
 
 ## Escores 2 IT
-## Previous and related work / Porter<sup1x<\sup>
-Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](file:///Users/thanasisanthopoulos/Downloads/PorteretalEmergencescoringtoIDfrontierRDTFSCaspublished.pdf) publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
+## Previous and related work / Porter
+Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) <a href="#ref1">[1]</a> publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
 
 
 
@@ -404,17 +404,17 @@ These techniques are now covered in the following sub-sections.
 
 A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
 
-### ARIMA<sup>3<\sup>
+### ARIMA<a href="#ref3">[3]</a>
 
 **NOTE: Probably don't need ARIMA and Holt-Winters sub-section headers, e.g. after providing an initial list of techniques at the beginning of the prediction section.**
 
 ARIMA (autoregressive integrated moving average) was applied using a grid search optimisation of its (p, d, q) parameters for each time series, based on training on the earliest 80% of the data and testing on the remaining 20% of data.  The grid search parameters were: p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2].
 
-### Holt-Winters<sup>4<\sup>
+### Holt-Winters<a href="#ref4">[4]</a>
 
 Holt-Winters was applied in its damped exponential smoothing form using an automated option for parameter optimisation for each time series. Holt-Winters' parameters include: alpha (smoothing level), beta (smoothing slope), and phi (damping slope).
 
-### LSTM<sup>5<\sup>
+### LSTM <a href="#ref5">[5]</a>
 
 Long Short-Term Memory (LSTM) recurrent neural networks are a powerful tool for detecting patterns in time series;
 for predicting *n* values, three potential approaches are:
@@ -549,8 +549,8 @@ Related to the FDG output, the popularity of a term can instead be mapped to the
 
 # References
 
-1. Porter, A.,  Garner, J., Carley, S, and Newman, N. (2018). Emergence scoring to identify frontier R&D topics and key players. Technological Forecasting and Social Change. 10.1016/j.techfore.2018.04.016.
-2. de Jong, P. (1991). The diffuse Kalman filter. The Annals of Statistics. Vol.19, No.2, pp.1073-108.
-3. Perktold, J, Seabold, S., and Taylor, J. (2019). Autoregressive Integrated Moving Average ARIMA(p,d,q) Model. https://www.statsmodels.org/dev/generated/statsmodels.tsa.arima_model.ARIMA.html. Retrieved 6.6.2019.
-4. Perktold, J, Seabold, S., and Taylor, J. (2019). Holt Winter’s Exponential Smoothing. https://www.statsmodels.org/dev/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html. Retrieved 6.6.2019.
-5. Zhang, J. and Nawata, K. (2018). Multi-step prediction for influenza outbreak by an adjusted long short-term memory. Epidemeiology and Infection. May 2018, Vol.146, No.7, pp.809-816. doi: 10.1017/S0950268818000705. Epub 2018 Apr 2.
+1. <p id="ref1">Porter, A.,  Garner, J., Carley, S, and Newman, N. (2018). Emergence scoring to identify frontier R&D topics and key players. Technological Forecasting and Social Change. 10.1016/j.techfore.2018.04.016.</p>
+2. <p id="ref2">de Jong, P. (1991). The diffuse Kalman filter. The Annals of Statistics. Vol.19, No.2, pp.1073-108.</p>
+3. <p id="ref3">Perktold, J, Seabold, S., and Taylor, J. (2019). Autoregressive Integrated Moving Average ARIMA(p,d,q) Model. https://www.statsmodels.org/dev/generated/statsmodels.tsa.arima_model.ARIMA.html. Retrieved 6.6.2019.</p>
+4. <p id="ref4"> Perktold, J, Seabold, S., and Taylor, J. (2019). Holt Winter’s Exponential Smoothing. https://www.statsmodels.org/dev/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html. Retrieved 6.6.2019.</p>
+5. <p id="ref5"> Zhang, J. and Nawata, K. (2018). Multi-step prediction for influenza outbreak by an adjusted long short-term memory. Epidemeiology and Infection. May 2018, Vol.146, No.7, pp.809-816. doi: 10.1017/S0950268818000705. Epub 2018 Apr 2.</p>
