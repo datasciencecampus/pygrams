@@ -293,7 +293,7 @@ In order to assess emergence, our dataset needs to be converted into a time-seri
 
 ## Escores 2 IT
 ## Previous and related work / Porter
-Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](file:///Users/thanasisanthopoulos/Downloads/PorteretalEmergencescoringtoIDfrontierRDTFSCaspublished.pdf) publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
+Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
 
 
 
