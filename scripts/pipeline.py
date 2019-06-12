@@ -146,10 +146,10 @@ class Pipeline(object):
         # todo: no advantage in classes - just create term_count and extract_ngrams as functions
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
-        self.__term_counts_data = None
+        self.__timeseries_data = None
         if term_counts or emerging_technology:
             print(f'Creating timeseries matrix...')
-            self.__term_counts_data = self.__tfidf_reduce_obj.create_terms_count(self.__dates)
+            self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries(self.__dates)
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
@@ -162,14 +162,14 @@ class Pipeline(object):
 
     @property
     def term_counts_data(self):
-        return self.__term_counts_data
+        return self.__timeseries_data
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
 
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, term_counts_data=self.__term_counts_data,
+                                  nterms=nterms, timeseries_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
 
