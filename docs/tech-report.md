@@ -456,13 +456,14 @@ The RMSE results are reported in summary form as above for relative RMSE, absolu
 ![img](img/prediction_emerging_test.png)
 
 After examining the output, the predictors with lowest trimmed mean and standard deviation of relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters, stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
+//T: Maybe try the same with 10 periods ahead? Just to show if still naive is top?
 
 ### Results and Discussion
 
 **pyGrams** was run on the example USPTO dataset of 3.2M patents, with predictions generated
 from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 
-//T: maybe try different focus in outputs, just to show different results and usage examples
+//T: maybe try different filters in outputs, just to show different results and usage examples. For example here we could do -G physics or -Y or any other classification? similar below?
 //
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
