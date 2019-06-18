@@ -18,7 +18,7 @@ Write up all commands against the results to show how it worked!
 - Bernard Peat: bernard.peat@ons.gov.uk
 - Emily Tew: emily.tew@ons.gov.uk
 
-# Objectives and scope 1-2 T
+# Objectives and scope
 The present project aimed in generating insights out of large document collections. By large document collections we mean a large number of documents ( >=10000 ) that share the same theme, like patents, job adverts, medical journal publications and others. The insights we are aiming to retrieve from these document collections are:
 - popular terminology
 - emerging terminology
@@ -39,7 +39,7 @@ The idea for this project initially came from the Department for Business, Energ
 - GDS: Emerging terminology in job adverts. Identification of emerging job skills in DDaT profession
 - DIT: Popular terminology on EU Exit consultations
 
-# Data engineering 1-2 I
+# Data engineering
 
 The first problem we encountered during this project was that of inhomogeneous data. To be more specific, the data we received to process was coming in different formats, like, xml, sql, csv, excel, etc. To overcome this problem and make our pipeline more generic, we decided to create functions  to convert each data source to [Pandas](https://pandas.pydata.org/) dataframes. For memory, storage and processing efficiency purposes, we decided to only keep three columns in the dataframe, namely text, date and classification (cpc). These fields were adequate to meet the patent project requirements, but could also generalize and process different datasets like job adverts, publications etc.
 
@@ -52,7 +52,7 @@ Later, when patstat became available, we created an import tool which parsed the
 
 Besides patent data, we tried pyGrams with other text data sources like job adverts, survey comments, brexit consultations, coroners reports, tweets to name a few.
 
-# Objective 1: Popular Terminology 7
+# Objective 1: Popular Terminology
 
 When you type text into a computer it can't understand the words in the way that humans can. Everytime a character is typed that character is converted into a binary number that the computer can read but doesn't assign any meaning to. That said, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data.
 
@@ -117,7 +117,7 @@ $tfidf_{ij} = \frac{tf_{ij}}{l^2_j} * log(\frac{\ N}{df_i})$
 The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'These were somebody's cars' would become 'this is somebody car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix.
 
 
-### Post processing
+# Post processing
 
 ## Issues when using mixed length phrases
 There are some issues when using mixed length phrases. That is for a given tri-gram ie. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to have a less biased output of phrases as a result.
@@ -141,9 +141,8 @@ Document filtering comprises:
 #### Stopwords
 
 Stopwords are handled using three user configurable files. The first one, 'stopwords_glob.txt' contains global stopwords, including a list of standard
-English stopwords; These stopwords are applied before tokenization. The file 'stopwords_n.txt' contains bi-gram or tri-gram stopwords. This stopword list is applied after tokenization for phrases containing more than one word. Finally, the file 'stopwords_uni.txt' contains unigram stop words and is applied after tokenization too;
+English stopwords; These stopwords are applied before tokenization. The file 'stopwords_n.txt' contains bi-gram or tri-gram stopwords. This stopword list is applied after tokenization for phrases containing more than one word. Finally, the file 'stopwords_uni.txt' contains unigram stop words and is applied after tokenization too.
 
-#### Fatima work TF
 
 #### Word embedding
 
@@ -384,7 +383,7 @@ At first we decided to generate escores from this approach using the sum of the 
 ### Which method is best?
 It all depends on what outcome is desirable. If we are after a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the timeseries, then quadratic fitting ( or sigmoid , depending on the pattern we are after) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. Pygrams offers all the above options.
 
-## Prediction 2 IB
+## Prediction
 
 The popular terms are processed using either Porter or quadratic fitting to separate terms into
 emerging (usage is increasing over time), stationary (usage is static) or declining (usage is
