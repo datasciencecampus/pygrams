@@ -50,18 +50,16 @@ us to use large numbers of patent abstract as soon as possible, we imported the 
 [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format). The XML data was scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pygrams.
 Later, when patstat became available, we created an import tool which parsed the CSV format data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate database.
 
-# Other Data Sources 1-2
-
 Besides patent data, we tried pyGrams with other text data sources like job adverts, survey comments, brexit consultations, coroners reports, tweets to name a few.
 
-# Objective 1: Popular Terminology 7 ETF
+# Objective 1: Popular Terminology 7
 
 When you type text into a computer it can't understand the words in the way that humans can. Everytime a character is typed that character is converted into a binary number that the computer can read but doesn't assign any meaning to. That said, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data.
 
 
 
 ## Previous and related work
-## Tfidf 2 E
+## Tfidf
 //T: Nice section. Only need to stretch that tfidf is a sparse matrix(mostly zeros). In the example shown as dense. Also, tf is the un-normalized term frequency. So if a word appears 5 times in a 200 word doc, tf=5. There is normalization on top of this to address doc size, we use l2 in our code.
 look here for example : http://datameetsmedia.com/bag-of-words-tf-idf-explained/
 
@@ -94,12 +92,12 @@ T//change to un-normalized
 
  Eventually this produces a matrix of TF-IDF weights which are summed to create the final TFIDF weight:
 
-| Document_no  | 'nuclear'  | 'electric'  | 'people'  |
-|:---:|:---:|:---:|:---:|
-|  1 | 0.19  | 0.11  |  0.10 |
-|  2 |  0.22 |  0.02 |  0.12 |
-|  3 |  0.17 |  0.04 |  0.13 |
-|  **Final_Weight**  |   **0.58**    | **0.17**  | **0.35**  |
+| Document_no  | 'nuclear'  | 'electric'  | 'people'  | 'nature' | 'hospital'
+|:---:|:---:|:---:|:---:|:---:| :---:|
+|  1 | 0.19  | --  |  0.10 | -- | 0.12 |
+|  2 |  0.22 |  0.02 | --  | 0.34 | --
+|  3 | --  |  0.04 |  0.13 | -- | 0.22
+|  **Final_Weight**  |   **0.41**    | **0.06**  | **0.23**  | **0.34** | **0.34**
 
 Sometimes it is necessary to normalize the tfidf output to address variable document sizes. For example if documents span from 10-200 words, term frequency of 5 in a 30 word document should score higher than the same term frequency on a 200 word document. For this reason we use l2 normalization in pyGrams:
 
@@ -128,8 +126,8 @@ The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are incl
 We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical format.
 The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back. This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on our [github page](https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05) and has been used to produce all the results in this report. We also append the command line arguments used to generate our outputs so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
 
-## Filtering 2
-### Document filtering 0.5-1 B
+## Filtering
+### Document filtering
 Once the cached object is read we filter rows and columns based on the user query in order to produce the right results
 
 Document filtering comprises:
@@ -137,7 +135,7 @@ Document filtering comprises:
 - Date-Time filters, restricting the corpus to documents with publication dates within a specified range.
 - Classification filters, restricting the corpus to documents that belong to specified class(es). For the patents example this is cpc classification.
 
-### Term filtering 2 B
+### Term filtering
 
 
 #### Stopwords
@@ -147,7 +145,7 @@ English stopwords; These stopwords are applied before tokenization. The file 'st
 
 #### Fatima work TF
 
-#### Word embedding 1 E
+#### Word embedding
 
 The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this, it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models like word2vec or fasttext. Glove has been chosen for practical purposes as it is low in storage and fast on execution.
 
@@ -383,7 +381,7 @@ A more flexible approach is that of the state space model with a kalman filter. 
 At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disadvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
 
 (table with state-space e-scores here and a few plots)
-### which method is best?
+### Which method is best?
 It all depends on what outcome is desirable. If we are after a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the timeseries, then quadratic fitting ( or sigmoid , depending on the pattern we are after) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. Pygrams offers all the above options.
 
 ## Prediction 2 IB
@@ -441,15 +439,14 @@ results are output as an HTML report. For example, using the supplied USPTO data
 
 An extract of the output is shown below:
 
-|--|--|--|--|--|--|--|--|--|--|--|--|--|
+
 | terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt Winters	|LSTM |LSTM |LSTM |LSTM|LSTM |LSTM |
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
 | | | | | | | | **multiLA** | **multiLA** | **1LA** | **1LA** | **multiM 1LA** | **multiM 1LA** |
 | | | | | | | | **stateful** | **stateless** | **stateful** | **stateless** | **stateful** | **stateless** |
-| Trimmed (10% cut) | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2%
-| mean of Relative RMSE | | | | | | | | | | | | |
-| Standard deviation | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
-| of Relative RMSE | | | | | | | | | | | | |
+| Trimmed (10% cut) mean of Relative RMSE | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2% |
+| Standard deviation of Relative RMSE | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
+
 
 The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining).
 
