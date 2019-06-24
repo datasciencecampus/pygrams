@@ -417,7 +417,7 @@ class TestPyGrams(unittest.TestCase):
             self.assertListEqual(number_of_documents_per_week, [1])
             self.assertListEqual(week_iso_dates, [200052])
 
-        self.assertTimeseriesOutputs(assert_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTimeSeriesOutputs(assert_outputs, mock_pickle_dump, mock_makedirs)
 
     @unittest.skip("json compulsory now, so not an option")
     def test_args_json_not_requested(self):
