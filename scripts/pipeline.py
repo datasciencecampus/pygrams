@@ -204,7 +204,7 @@ class Pipeline(object):
             output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
                                   wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, term_counts_data=self.__timeseries_data,
+                                  nterms=nterms, timeseries_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
 
