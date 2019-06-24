@@ -32,6 +32,7 @@ class Pipeline(object):
         self.__data_filename = data_filename
         self.__date_dict = docs_mask_dict['date']
         self.__time = docs_mask_dict['time']
+        self.__timeseries_data= []
 
         self.__emergence_list = []
         self.__pick_method = pick_method
@@ -164,8 +165,9 @@ class Pipeline(object):
             return
 
         print(f'Creating timeseries matrix...')
+        self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
-         self.__weekly_iso_dates] = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
+         self.__weekly_iso_dates] = self.__timeseries_data
 
         self.__M = m_steps_ahead
 
@@ -205,10 +207,10 @@ class Pipeline(object):
                                   nterms=nterms, term_counts_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
+
     @property
     def timeseries_data(self):
-        return [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
-         self.__weekly_iso_dates]
+        return self.__timeseries_data
 
     @property
     def term_score_tuples(self):
