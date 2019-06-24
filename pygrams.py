@@ -89,9 +89,6 @@ def get_args(command_line_arguments):
                         help="Initially remove all but the top N terms by TFIDF score before pickling initial TFIDF"
                              " (removes 'noise' terms before main processing pipeline starts)")
 
-    # Time weighting
-    parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
-
     # OUTPUT PARAMETERS
     # select outputs
 
