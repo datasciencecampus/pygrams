@@ -103,6 +103,7 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                 file.write(tup[0] + ": " + str(tup[1]) + '\n')
             print()
             file.write('\n')
+
             print('Stationary')
             file.write('Stationary\n')
 
