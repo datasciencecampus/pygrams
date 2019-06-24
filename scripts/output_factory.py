@@ -9,7 +9,7 @@ from scripts.utils import utils
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
-def create(output_type, output, emergence_list=None, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
+def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
            timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, time=None, nmf_topics=0):
 
     if output_type == 'report':

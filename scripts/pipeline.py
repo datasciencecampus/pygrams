@@ -169,24 +169,6 @@ class Pipeline(object):
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
          self.__weekly_iso_dates] = self.__timeseries_data
 
-    @property
-    def term_counts_data(self):
-        return self.__timeseries_data
-
-    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
-
-        for output_type in output_types:
-            output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
-                                  tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, timeseries_data=self.__timeseries_data,
-                                  date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
-
-    @property
-    def term_score_tuples(self):
-        return self.__term_score_tuples
-
-
         self.__M = m_steps_ahead
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
@@ -219,20 +201,19 @@ class Pipeline(object):
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
-            output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
-                                  wordcloud_title=wordcloud_title,
+            output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, timeseries_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
 
     @property
-    def timeseries_data(self):
-        return self.__timeseries_data
-
-    @property
     def term_score_tuples(self):
         return self.__term_score_tuples
+
+    @property
+    def timeseries_data(self):
+        return self.__timeseries_data
 
     def run(self, predictors_to_run, emergence, normalized=False, train_test=False):
         if emergence == 'emergent':
