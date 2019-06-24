@@ -27,13 +27,13 @@ class EmergenceTests(unittest.TestCase):
 
     def escore_wrapper(self, term_counts_per_week_csc, term_index):
         term_weeks, term_counts = get_row_indices_and_values(term_counts_per_week_csc, term_index)
-        if self.em.init_vars(term_weeks, term_counts):
+        if self.em.init_vars(term_weeks, term_counts, porter=True):
             return self.em.calculate_escore()
         return 0
 
     def emergence_wrapper(self, term_counts_per_week_csc, term_index):
         term_weeks, term_counts = get_row_indices_and_values(term_counts_per_week_csc, term_index)
-        if self.em.init_vars(term_weeks, term_counts):
+        if self.em.init_vars(term_weeks, term_counts, porter=True):
             return self.em.calculate_emergence(term_weeks)
         return False
 

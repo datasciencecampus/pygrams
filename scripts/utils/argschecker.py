@@ -103,7 +103,7 @@ class ArgsChecker:
             print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
             app_exit = True
 
-        if self.args.emerging_technology and self.args.input_tfidf is None and self.args.date_header is None:
+        if self.args.timeseries and self.args.input_tfidf is None and self.args.date_header is None:
 
             print(f"date_header is None")
             print(f"Cannot calculate emergence without a specifying a date column")

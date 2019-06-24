@@ -5,10 +5,11 @@ from os import makedirs, path
 
 from scripts.nmf_wrapper import nmf_topic_modelling
 from scripts.terms_graph import TermsGraph
+from scripts.utils import utils
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
-def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
+def create(output_type, output, emergence_list=None, wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
            term_counts_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, time=None, nmf_topics=0):
 
     if output_type == 'report':
@@ -89,6 +90,34 @@ def create(output_type, output, wordcloud_title=None, tfidf_reduce_obj=None, nam
                     [feature_names[i] for i in term_weights.argsort()[:-topic_terms_to_print - 1:-1]])
                 print(topic_names)
                 file.write(topic_names + '\n')
+            print()
+            file.write('\n')
+    elif output_type == 'emergence_report':
+        filename_and_path = path.join('outputs', 'reports', name + '_timeseries.csv')
+        with open(filename_and_path, 'w') as file:
+            print()
+            print('Emergent')
+            file.write('Emergent\n')
+            for tup in emergence_list[:nterms]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]) + '\n')
+            print()
+            file.write('\n')
+            print('Stationary')
+            file.write('Stationary\n')
+
+            stationary = utils.stationary_terms(emergence_list, nterms)
+            for tup in stationary:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]) + '\n')
+            print()
+            file.write('\n')
+
+            print('Declining')
+            file.write('Declining' + '\n')
+            for tup in emergence_list[-nterms:]:
+                print(tup[0] + ": " + str(tup[1]))
+                file.write(tup[0] + ": " + str(tup[1]) + '\n')
             print()
             file.write('\n')
     else:
