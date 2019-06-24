@@ -147,7 +147,7 @@ class TestPyGrams(unittest.TestCase):
         if not results_checked:
             self.fail('TFIDF results were not matched - were filenames correct?')
 
-    def assertTimeseriesOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
+    def assertTimeSeriesOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
 
