@@ -41,6 +41,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help=argparse.SUPPRESS)
     parser.add_argument("-tst", "--test", default=False, action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-fb", "--filter_by", default='intersection', choices=['union', 'intersection'],
+                        help=argparse.SUPPRESS)
     # end __________________________________________________
 
     # Input files
@@ -56,9 +58,7 @@ def get_args(command_line_arguments):
     # Word filters
     parser.add_argument("-fc", "--filter_columns", default=None,
                         help="list of columns with binary entries by which to filter the rows")
-    parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
-                        help="Returns filter: intersection where all are 'Yes' or '1'"
-                             "or union where any are 'Yes' or '1' in the defined --filter_columns")
+
     parser.add_argument("-st", "--search_terms", type=str, nargs='+', default=[],
                         help="Search terms filter: search terms to restrict the tfidf dictionary. "
                              "Outputs will be related to search terms")
