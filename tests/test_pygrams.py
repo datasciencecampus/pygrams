@@ -293,7 +293,7 @@ class TestPyGrams(unittest.TestCase):
             self.assertListEqual(number_of_documents_per_week, [1])
             self.assertListEqual(week_iso_dates, [200052])
 
-        self.assertTimeseriesOutputs(assert_timeseries_outputs, mock_pickle_dump, mock_output_makedirs)
+        self.assertTimeSeriesOutputs(assert_timeseries_outputs, mock_pickle_dump, mock_output_makedirs)
 
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
