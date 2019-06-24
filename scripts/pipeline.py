@@ -32,7 +32,7 @@ class Pipeline(object):
         self.__data_filename = data_filename
         self.__date_dict = docs_mask_dict['date']
         self.__time = docs_mask_dict['time']
-        self.__timeseries_data= []
+        self.__timeseries_data = []
 
         self.__emergence_list = []
         self.__pick_method = pick_method
