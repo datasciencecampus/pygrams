@@ -66,7 +66,7 @@ def report_predicted_emergence_labels_html(predicted_emergence, emergence_colour
     'stationary': 'black',
     'declining': 'red'}):
     html_string = f'''
-    <h2>Emergence Label Prediction</h1>
+    <h2>Emergence Label Prediction</h2>
 '''
 
     # df = pd.DataFrame(predicted_emergence, index=[0])
