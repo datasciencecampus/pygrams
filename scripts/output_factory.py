@@ -106,7 +106,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
 
             print('Stationary')
             file.write('Stationary\n')
-
             stationary = utils.stationary_terms(emergence_list, nterms)
             for tup in stationary:
                 print(tup[0] + ": " + str(tup[1]))
