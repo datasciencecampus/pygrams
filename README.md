@@ -437,7 +437,6 @@ It continues with a detailed description of the arguments:
                         score before pickling initial TFIDF (removes 'noise'
                         terms before main processing pipeline starts)
                         (default: 100000)
-  -t, --time            weight terms by time (default: False)
   -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
                         Note that this can be defined multiple times to get
                         more than one output. (default: [])
