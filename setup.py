@@ -54,7 +54,7 @@ def setup_package():
             'Programming Language :: Python :: 3.6',
         ],
 
-        install_requires=['matplotlib', 'numpy>=1.16.0', 'scipy==1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn',
+        install_requires=['matplotlib', 'numpy==1.16.2', 'scipy==1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn',
                           'xlrd','python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow', 'keras_tqdm',
                           'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
