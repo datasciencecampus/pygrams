@@ -237,8 +237,6 @@ the following terms came out as top:
     9. memory cell                    		1955.181403
     10. display device                 		1939.361315
 
-
-
 Using the same dataset but adding a terms filter for medical words and a threshold of 0.8:
 
         python pygrams.py -st pharmacy medicine hospital chemist
@@ -275,9 +273,6 @@ and further below:
     39. medical imaging system         38.037687
     40. water treatment system         36.578996
 
-
-
-
 To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
 
 ## Alternative models
@@ -287,12 +282,9 @@ Our pipeline can run with other embedding models too, like [fasttext 300d](https
 ## From tfidf to the timeseries matrix
 In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve emerging terminology. These were Porter(2018)<sup>1<\sup>, quadratic and sigmoid fitting and a state-space model with kalman filter<sup>2<\sup>.
 
-
 ## Escores 2 IT
 ## Previous and related work / Porter
 Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) <a href="#ref1">[1]</a> publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
-
-
 
 Active period trend:
 $A_{trend} = \frac {\sum_{i=5}^7 C_i}  {\sum_{i=5}^7 \sqrt{T_i}} - \frac {\sum_{i=1}^3 C_i}  {\sum_{i=1}^3 \sqrt{T_i}}$
@@ -313,7 +305,6 @@ It also takes into consideration the global trend, which sometimes may not be de
 ### Quadratic and Sigmoid fitting
 We decided to investigate alternative methods that would be more generic in the sense that emergence could be scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
 ![img](img/curves.png)
-
 
 The results from quadratic fitting were comparable to porter's method for our dataset as demonstrated in the results below.
 
@@ -372,6 +363,7 @@ exec time: 07:23 secs
     frequency band: 		    6.3212121212121115
 
 The main concerns with this method were when interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve.
+
 ### State space (Sonia)
 A more flexible approach is that of the state space model with a kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the timeseries using the Kalman filter and providing the first gradient of the smoothed time-series. This means we know the slope of the timeseries at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill course or the steepest one using simple calculus.
 
@@ -380,11 +372,11 @@ A more flexible approach is that of the state space model with a kalman filter. 
 At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disadvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
 
 (table with state-space e-scores here and a few plots)
+
 ### Which method is best?
 It all depends on what outcome is desirable. If we are after a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the timeseries, then quadratic fitting ( or sigmoid , depending on the pattern we are after) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. Pygrams offers all the above options.
 
 ## Prediction
-
 The popular terms are processed using either Porter or quadratic fitting to separate terms into
 emerging (usage is increasing over time), stationary (usage is static) or declining (usage is
 reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
@@ -398,7 +390,6 @@ Different prediction techniques were implemented and tested, to determine the mo
 These techniques are now covered in the following sub-sections.
 
 ### Naive, linear, quadratic, cubic
-
 A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
 
 ### ARIMA<a href="#ref3">[3]</a>
@@ -438,7 +429,6 @@ results are output as an HTML report. For example, using the supplied USPTO data
 
 An extract of the output is shown below:
 
-
 | terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt Winters	|LSTM |LSTM |LSTM |LSTM|LSTM |LSTM |
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
 | | | | | | | | **multiLA** | **multiLA** | **1LA** | **1LA** | **multiM 1LA** | **multiM 1LA** |
@@ -446,13 +436,28 @@ An extract of the output is shown below:
 | Trimmed (10% cut) mean of Relative RMSE | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2% |
 | Standard deviation of Relative RMSE | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
 
-
 The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining).
 
 ![img](img/prediction_emerging_test.png)
 
-After examining the output, the predictors with lowest trimmed mean and standard deviation of relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters, stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
-//T: Maybe try the same with 10 periods ahead? Just to show if still naive is top?
+After examining the output, the predictors for five time periods ahead with lowest trimmed mean and standard deviation of relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters, stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
+
+As a comparison, we also ran a predictor for ten time periods ahead: 
+
+```python pygrams.py -it USPTO-mdf-0.05 -emt --test -pns 0 -stp 10```
+
+| terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt Winters	|LSTM |LSTM |LSTM |LSTM|LSTM |LSTM |
+|--|--|--|--|--|--|--|--|--|--|--|--|--|
+| | | | | | | | **multiLA** | **multiLA** | **1LA** | **1LA** | **multiM 1LA** | **multiM 1LA** |
+| | | | | | | | **stateful** | **stateless** | **stateful** | **stateless** | **stateful** | **stateless** |
+| Trimmed (10% cut) mean of Relative RMSE | 16.6% | 19.9% | 30.2% | 24.1% | N/A | 11.6% | 20.1% | 31.2% | 13.5% | 23.2% | 15.1% | 32.0% |
+| Standard deviation of Relative RMSE | 8.9% | 9.7% | 12.5% | 15.7% | 6.5% | 9.7% | 63.8% | 40.8% | 8.2% | 26.7% | 6.9% | 27.3% |
+
+The RMSE results show that the multiple model stateful LSTM now improves - giving better results than the single model, reflecting the accumulation of error in the single output model LSTM. The multiple outputs single model LSTM is now much worse, indicating that the model had not learnt the complex shape of the data. Finally, the naive results are now worse than ARIMA and the two LSTM models; only Holt-Winters is worse than the naive approach. This indicates that the short term random variation will not move significantly far away from the last known value, but over time it will drift and cause the naive to degrade as an estimate.
+
+![img](img/prediction_emerging_test_10steps.png)
+
+In summary, the naive predictor is suitable for short-term forecasts, whereas ARIMA, Holt-Winters and stateful single model, single output LSTM are better suited to longer term forecasts. The multiple model, single output LSTM produced improved results with longer forecast periods, but runs significantly slower (for _N_ time periods, this requires _N_ models and hence trains _N_ times slower than the single model, single output LSTM).
 
 ### Results and Discussion
 
