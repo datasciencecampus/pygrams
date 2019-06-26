@@ -464,9 +464,6 @@ In summary, the naive predictor is suitable for short-term forecasts, whereas AR
 **pyGrams** was run on the example USPTO dataset of 3.2M patents, with predictions generated
 from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 
-//T: maybe try different filters in outputs, just to show different results and usage examples. For example here we could do -G physics or -Y or any other classification? similar below?
-//
-
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
 
 Various outputs are produced; first, the top 250 popular terms are listed:
@@ -515,6 +512,52 @@ Top declining terms:
 Each graph is accompanied with a table, where we flag the forecast to be emergent, stationary or declining. The user is provided the table as a synopsis of the results, and they can scroll down to the detail in the graphs to discover why a term was flagged. To generate the labels, the predicted term counts are normalised so that the largest count is 1.0; a linear fit is then made to the prediction, and the gradient of the line is examined. If it is above 0.02, we flag as emergent, below -0.02 as declining otherwise stationary. We have also added "rapidly emergent" if the gradient is above 0.1 to highlight unusually emergent terms.
 
 The results show that very few of the terms are predicted to be emergent or decline in the future, which reflects the success of the naive predictor in testing. Those terms flagged a non-stationary are of interest; such as "liquid crystal display" flagged as declining, which given the move towards OLED and related technologies would appear to be a reasonable prediction. This shows, however, that a user needs domain knowledge to confirm the forecasts; the forecasts are dealing with large amounts of noise and hence can only give approximate guidance.
+
+As a comparison, we also ran the same experiment but using term filtering against 'physics': 
+
+```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9 -st physics```
+
+Various outputs are produced; first, the top 250 popular terms are listed:
+
+    1. pharmaceutical composition     2446.811441
+    2. computing device               1086.709665
+    3. provide composition            349.350010
+    4. planetary gear set             325.311414
+    5. information associate          314.077127
+    6. computing system               309.015119
+    7. biological sample              301.999783
+    8. electromagnetic radiation      294.998838
+    9. prior art                      290.421514
+    10. radiation source               287.796504
+
+Top emergent terms:
+
+    computing device: 40.022921674924206
+    pharmaceutical composition: 29.937440463464487
+    information associate: 9.449455399162229
+    radio access technology: 6.712564447400591
+
+![img](img/prediction_emergent_physics.png)
+
+Top stationary terms:
+
+    mechanical connection: 0.010227567459690001
+    laser radiation: 0.0034510619228323436
+    logic unit: -0.0028314722774545054
+    pharmaceutical formulation: -0.003476640251601243
+
+![img](img/prediction_stationary_physics.png)
+
+Top declining terms:
+
+    logic circuit: -3.7455083518431405
+    programmable logic device: -4.228998619987032
+    plasma display: -4.235591159894808
+    plasma display panel: -14.599067980826895
+
+![img](img/prediction_declining_physics.png)
+
+TODO: review the graphs...
 
 # Outputs 2 IT
 
