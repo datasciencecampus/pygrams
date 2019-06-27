@@ -115,7 +115,6 @@ class ArgsChecker:
     def get_docs_mask_dict(self):
         docs_mask_dict = {'filter_by': self.args.filter_by,
                           'cpc': self.args.cpc_classification,
-                          'time': self.args.time,
                           'cite': None, 'columns': self.args.filter_columns,
                           'date': None,
                           'date_header': self.args.date_header

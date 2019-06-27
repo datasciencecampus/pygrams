@@ -31,7 +31,6 @@ class Pipeline(object):
         # load data
         self.__data_filename = data_filename
         self.__date_dict = docs_mask_dict['date']
-        self.__time = docs_mask_dict['time']
         self.__timeseries_data = []
 
         self.__emergence_list = []
@@ -205,7 +204,7 @@ class Pipeline(object):
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, timeseries_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
+                                  doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
 
     @property
     def term_score_tuples(self):

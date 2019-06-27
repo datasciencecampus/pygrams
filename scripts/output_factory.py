@@ -10,7 +10,7 @@ from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, time=None, nmf_topics=0):
+           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0):
 
     if output_type == 'report':
         filename_and_path = path.join('outputs', 'reports', name + '.txt')
@@ -58,8 +58,7 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                 'to': None
             },
             'parameters': {
-                'pick': pick,
-                'time': time
+                'pick': pick
             }
         }
 

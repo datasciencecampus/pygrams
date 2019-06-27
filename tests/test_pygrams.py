@@ -467,21 +467,20 @@ class TestPyGrams(unittest.TestCase):
                 'to': 200048
             },
             'parameters': {
-                'pick': 'sum',
-                'time': False
+                'pick': 'sum'
             }
         }
         self.assertEqual(expected_json, actual_json)
 
     @mock.patch("scripts.output_factory.json.dump", create=True)
     @mock.patch("scripts.output_factory.open", create=True)
-    def test_json_configuration_encoding_maximal_and_time_weighting(self, mock_open, mock_json_dump):
+    def test_json_configuration_encoding_maximal(self, mock_open, mock_json_dump):
         patent_pickle_file_name = 'USPTO-random-100.pkl.bz2'
         patent_pickle_absolute_file_name = os.path.abspath(os.path.join('data', patent_pickle_file_name))
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
-        pygrams.main([f'--outputs_name={output_file_name}', '-t', '-p=max', '-cpc=Y12',
+        pygrams.main([f'--outputs_name={output_file_name}', '-p=max', '-cpc=Y12',
                       '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds',
                       patent_pickle_file_name])
 
