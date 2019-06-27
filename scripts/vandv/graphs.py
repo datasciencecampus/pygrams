@@ -184,7 +184,7 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
 
 def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
                                      test_values, test_terms, training_values, test_forecasts=False, normalised=False):
-    html_string = f'''    <h2>Graphs</h1>
+    html_string = f'''    <h2>Graphs</h2>
 '''
 
     if normalised:

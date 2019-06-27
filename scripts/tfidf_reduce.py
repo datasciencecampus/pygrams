@@ -71,7 +71,7 @@ class TfidfReduce(object):
         ngrams_scores_tuple.sort(key=lambda tup: -tup[0])
         return ngrams_scores_tuple
 
-    def create_timeseries(self, document_week_dates):
+    def create_timeseries_data(self, document_week_dates):
         term_counts_per_week, number_of_documents_per_week, year_week_dates = tfidf_with_dates_to_weekly_term_counts(
             self.__tfidf_masked, document_week_dates)
 

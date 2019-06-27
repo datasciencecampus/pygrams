@@ -23,20 +23,23 @@ from scripts.vandv.predictor import evaluate_prediction
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
-                 term_counts=False, pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
-                 terms_threshold=None, output_name=None, emerging_technology=None):
+                 pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
+                 terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
+                 curves=True, nterms=50, minimum_patents_per_quarter=20,
+                 ):
 
         # load data
         self.__data_filename = data_filename
         self.__date_dict = docs_mask_dict['date']
-        self.__time = docs_mask_dict['time']
+        self.__timeseries_data = []
 
+        self.__emergence_list = []
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
         if pickled_tfidf_folder_name is None:
 
             dataframe = data_factory.get(data_filename)
-            utils.checkdf(dataframe, emerging_technology, docs_mask_dict, text_header, term_counts)
+            utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
 
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
@@ -147,9 +150,7 @@ class Pipeline(object):
 
         self.__tfidf_reduce_obj = TfidfReduce(tfidf_masked, self.__tfidf_obj.feature_names)
         self.__timeseries_data = None
-        if term_counts or emerging_technology:
-            print(f'Creating timeseries matrix...')
-            self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries(self.__dates)
+
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
@@ -159,38 +160,19 @@ class Pipeline(object):
         #  Only supply what they each directly require
 
         # todo: hence Pipeline then becomes a single function
+        if not calculate_timeseries:
+            return
 
-    @property
-    def term_counts_data(self):
-        return self.__timeseries_data
-
-    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
-
-        for output_type in output_types:
-            output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
-                                  tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, timeseries_data=self.__timeseries_data,
-                                  date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, time=self.__time, nmf_topics=n_nmf_topics)
-
-    @property
-    def term_score_tuples(self):
-        return self.__term_score_tuples
-
-
-# 'USPTO-granted-full-random-500000-term_counts.pkl.bz2'
-class PipelineEmtech(object):
-    def __init__(self, term_counts_data, m_steps_ahead=5, curves=True, nterms=50, minimum_patents_per_quarter=20,
-                 outname=None):
-        self.__M = m_steps_ahead
-
+        print(f'Creating timeseries matrix...')
+        self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
         [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
-         self.__weekly_iso_dates] = term_counts_data
+         self.__weekly_iso_dates] = self.__timeseries_data
+
+        self.__M = m_steps_ahead
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
 
         em = Emergence(self.__number_of_patents_per_week)
-        self.__emergence_list = []
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
@@ -205,62 +187,32 @@ class PipelineEmtech(object):
             if max(quarterly_values) < minimum_patents_per_quarter:
                 continue
 
-            if em.init_vars(row_indices, row_values):
+            if em.init_vars(row_indices, row_values, porter=not curves):
                 escore = em.calculate_escore() if not curves else em.escore2()
                 self.__emergence_list.append((term_ngram, escore))
 
-        if len(self.__emergence_list) == 0:
-            self.__emergent = []
-            self.__declining = []
-            self.__stationary = []
-            return
-
+        nterms2 = min(nterms, len(self.__emergence_list))
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
 
-        # for tup in self.__emergence_list:
-        #     print(tup[0] + ": " + str(tup[1]))
+        self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
+        self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
+        self.__stationary = utils.stationary_terms(self.__emergence_list, nterms2)
 
-        self.__emergent = [x[0] for x in self.__emergence_list[:nterms]]
-        self.__declining = [x[0] for x in self.__emergence_list[-nterms:]]
+    def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
+        for output_type in output_types:
+            output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
+                                  tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
+                                  nterms=nterms, timeseries_data=self.__timeseries_data,
+                                  date_dict=self.__date_dict, pick=self.__pick_method,
+                                  doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
 
-        zero_pivot_emergence = None
-        last_emergence = self.__emergence_list[0][1]
+    @property
+    def term_score_tuples(self):
+        return self.__term_score_tuples
 
-        for index, value in enumerate(self.__emergence_list[1:]):
-            if value[1] <= 0.0 < last_emergence:
-                zero_pivot_emergence = index
-                break
-            last_emergence = value[1]
-
-        stationary_start_index = zero_pivot_emergence - nterms // 2
-        stationary_end_index = zero_pivot_emergence + nterms // 2
-        self.__stationary = [x[0] for x in self.__emergence_list[stationary_start_index:stationary_end_index]]
-        filename_and_path = path.join('outputs', 'reports', outname + '_emergence.txt')
-        with open(filename_and_path, 'w') as file:
-            print()
-            print('Emergent')
-            file.write('Emergent\n')
-            for tup in self.__emergence_list[:nterms]:
-                print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1]) + '\n')
-            print()
-            file.write('\n')
-            print('Stationary')
-            file.write('Stationary\n')
-            for tup in self.__emergence_list[stationary_start_index:stationary_end_index]:
-                print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1]) + '\n')
-            print()
-            file.write('\n')
-
-            print('Declining')
-            file.write('Declining' + '\n')
-            for tup in self.__emergence_list[-nterms:]:
-                print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1]) + '\n')
-            print()
-            file.write('\n')
-        # construct a terms list for n emergent n stationary? n declining
+    @property
+    def timeseries_data(self):
+        return self.__timeseries_data
 
     def run(self, predictors_to_run, emergence, normalized=False, train_test=False):
         if emergence == 'emergent':
@@ -275,7 +227,7 @@ class PipelineEmtech(object):
         if len(terms) == 0:
             print(f'Analysis of {emergence} failed as no terms were detected,'
                   f' likely because -mpq is too large for dataset provided')
-            return
+            return '', None
 
         html_results = ''
 

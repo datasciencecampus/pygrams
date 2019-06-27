@@ -89,9 +89,6 @@ def get_args(command_line_arguments):
                         help="Initially remove all but the top N terms by TFIDF score before pickling initial TFIDF"
                              " (removes 'noise' terms before main processing pipeline starts)")
 
-    # Time weighting
-    parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
-
     # OUTPUT PARAMETERS
     # select outputs
 
@@ -118,8 +115,8 @@ def get_args(command_line_arguments):
                         help="the desired cpc classification (for patents only)")
 
     # emtech options
-    parser.add_argument("-emt", "--emerging_technology", default=False, action="store_true",
-                        help="denote whether emerging technology should be forecast")
+    parser.add_argument("-ts", "--timeseries", default=False, action="store_true",
+                        help="denote whether timeseries analysis should take place")
 
     parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
                         help=(", ".join([f"{index}. {value}" for index, value in enumerate(predictor_names)]))
@@ -160,6 +157,8 @@ def main(supplied_args):
         outputs.append('termcounts')
     if args.n_nmf_topics > 0:
         outputs.append('nmf')
+    if args.timeseries:
+        outputs.append('emergence_report')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
@@ -173,18 +172,18 @@ def main(supplied_args):
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
-                        term_counts=args.term_counts, pickled_tfidf_folder_name=pickled_tfidf_folder_name,
+                        pickled_tfidf_folder_name=pickled_tfidf_folder_name,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
-                        output_name=args.outputs_name, emerging_technology=args.emerging_technology)
+                        output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
+                        curves=args.curve_fitting, nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                        )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
                     nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
 
     # emtech integration
-    if args.emerging_technology:
-        from scripts.pipeline import PipelineEmtech
-
+    if args.timeseries:
         if 0 in args.predictor_names:
             algs_codes = list(range(1, len(predictor_names)))
         else:
@@ -194,12 +193,6 @@ def main(supplied_args):
             predictors_to_run = [predictor_names[algs_codes]]
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
-
-        term_counts_data = pipeline.term_counts_data
-
-        pipeline_emtech = PipelineEmtech(term_counts_data, m_steps_ahead=args.steps_ahead, curves=args.curve_fitting,
-                                         nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
-                                         outname=args.outputs_name)
 
         for emergence in ['emergent', 'stationary', 'declining']:
             print(f'Running pipeline for "{emergence}"')
@@ -211,10 +204,10 @@ def main(supplied_args):
 
             title += f' ({emergence})'
 
-            html_results, training_values = pipeline_emtech.run(predictors_to_run, normalized=args.normalised,
-                                                                train_test=args.test,
-                                                                emergence=emergence)
-
+            html_results, training_values = pipeline.run(predictors_to_run, normalized=args.normalised,
+                                                                train_test=args.test, emergence=emergence)
+            if training_values is None:
+                continue
             # save training_values to csv file
             #
             # training_values:                                  csv file:
