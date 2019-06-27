@@ -497,8 +497,7 @@ class TestPyGrams(unittest.TestCase):
                 'to': 200201
             },
             'parameters': {
-                'pick': 'max',
-                'time': True
+                'pick': 'max'
             }
         }
         self.assertEqual(expected_json, actual_json)
