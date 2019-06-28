@@ -560,7 +560,7 @@ Top declining terms:
 
 ![img](img/prediction_declining_physics.png)
 
-TODO: review the graphs...
+The prediction results are as expected - emerging results are predicted to continue to grow, stationary aren't predicted to grow and declining are predicted to decline (or remain at zero usage). Interestingly the use of "logic circuit" is flagged as declining, but isn't obviously showing a dramatic decline such as shown by "programmable logic device"; however, both ARIMA and the LSTM predict decline. 
 
 # Outputs 2 IT
 
