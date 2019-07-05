@@ -5,7 +5,19 @@ import json
 from os import path, walk, makedirs
 from shutil import copy
 
+import nltk
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+
+
+class CustomInstaller(install):
+    def run(self):
+        print('Pre install')
+        install.run(self)
+        print('Post install')
+        nltk.download('punkt')
+        nltk.download('averaged_perceptron_tagger')
+        nltk.download('wordnet')
 
 
 def load_meta(fp):
@@ -59,6 +71,9 @@ def setup_package():
                           'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
         python_requires='>=3.6',
+        cmdclass={
+            'install': CustomInstaller,
+        },
     )
 
 
