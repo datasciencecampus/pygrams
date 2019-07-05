@@ -13,12 +13,15 @@ from setuptools.command.install import install
 
 def _post_install():
     print('Post install')
-    sys.path_importer_cache = {}
-    import nltk
-    nltk.download('punkt')
-    nltk.download('averaged_perceptron_tagger')
-    nltk.download('wordnet')
-
+    # sys.path_importer_cache = {}
+    # import nltk
+    # nltk.download('punkt')
+    # nltk.download('averaged_perceptron_tagger')
+    # nltk.download('wordnet')
+    from subprocess import call
+    call([sys.executable, '-m nltk.downloader punkt averaged_perceptron_tagger wordnet'],
+         # cwd=path.join(dir, 'packagename')
+         )
 
 class CustomInstaller(install):
     def __init__(self, *args, **kwargs):
