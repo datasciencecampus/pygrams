@@ -3,6 +3,7 @@
 import atexit
 import io
 import json
+import sys
 from os import path, walk, makedirs
 from shutil import copy
 
@@ -12,6 +13,7 @@ from setuptools.command.install import install
 
 def _post_install():
     print('Post install')
+    sys.path_importer_cache = {}
     import nltk
     nltk.download('punkt')
     nltk.download('averaged_perceptron_tagger')
