@@ -45,25 +45,22 @@ The first problem we encountered during this project was receiving data in diffe
 
 ## Patent Data
 
-Initially, we did not have access to [PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) (the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable
-us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's
-[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format). The XML data was scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pygrams.
-Later, when patstat became available, we created an import tool which parsed the CSV format data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate database.
+Initially, we did not have access to [PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) (the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's
+[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format). The XML data was scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pyGrams. Later, when patstat became available, we created an import tool which parsed the CSV format data supplied by patstat and directly exported this in dataframe format, to avoid the need for an intermediate database.
 
-Besides patent data, we tried pyGrams with other text data sources like job adverts, survey comments, brexit consultations, coroners reports, tweets to name a few.
+Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, brexit consultations, coroners reports and tweets.
 
 # Objective 1: Popular Terminology
 
 When you type text into a computer it can't understand the words in the way that humans can. Everytime a character is typed that character is converted into a binary number that the computer can read but doesn't assign any meaning to. That said, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data.
 
 
-## Previous and related work
-## Tfidf
-//T: Nice section. Only need to stretch that tfidf is a sparse matrix(mostly zeros). In the example shown as dense. Also, tf is the un-normalized term frequency. So if a word appears 5 times in a 200 word doc, tf=5. There is normalization on top of this to address doc size, we use l2 in our code.
+## Term Frequency - Inverse Document Frequency (TF-IDF)
+//T: Nice section. Only need to stretch that TF-IDF is a sparse matrix(mostly zeros)[Ian - suggest knocking a few values out of the matrix to make it sparse - only a few zeros in it at the moment]. In the example shown as dense. Also, tf is the un-normalized term frequency. So if a word appears 5 times in a 200 word doc, tf=5. There is normalization on top of this to address doc size, we use l2 in our code. [Ian - l2 is mentioned later in the section - so just needs to be clear its unnormalised initially?]
 look here for example : http://datameetsmedia.com/bag-of-words-tf-idf-explained/
 
 
-**PyGrams** uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short to convert text into numerical form. TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus. TFIDF can be calculated by the following equation:
+pyGrams uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short to convert text into numerical form. TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus. TF-IDF can be calculated by the following equation:
 
 $
 \displaystyle \begin{array}{lll}\\
@@ -72,13 +69,11 @@ $
 N & = & \text{number of documents}\\
 \ tf_{ij} & = & \text{term frequency for term i in document j}\\
 df_i & = & \text{document frequency for term i}\\
-tfidf_{ij} & = & \text{tfidf score for term i in document j}\\
+tfidf_{ij} & = & \text{TF-IDF score for term i in document j}\\
 \end{array}
 $
 
-
-</br>
-For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears 5 times.
+For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times.
 
 T//change to un-normalized
 **Term Frequency** = **$\frac{5}{200}$** = 0.025
@@ -98,7 +93,7 @@ T//change to un-normalized
 |  3 | --  |  0.04 |  0.13 | -- | 0.22
 |  **Final_Weight**  |   **0.41**    | **0.06**  | **0.23**  | **0.34** | **0.34**
 
-Sometimes it is necessary to normalize the tfidf output to address variable document sizes. For example if documents span from 10-200 words, term frequency of 5 in a 30 word document should score higher than the same term frequency on a 200 word document. For this reason we use l2 normalization in pyGrams:
+Sometimes it is necessary to normalize the TF-IDF output to address variable document sizes. For example if documents span from 10-200 words, a term frequency of 5 in a 30 word document should score higher than the same term frequency on a 200 word document. For this reason we use l2 normalization in pyGrams:
 
 </br>
 
@@ -106,66 +101,67 @@ $\displaystyle l^2_j = \displaystyle\sqrt{\sum_{i=0}^n tf_{ij}}$
 
 </br>
 
-and tfidf becomes:
+and TF-IDF becomes:
 
 $tfidf_{ij} = \frac{tf_{ij}}{l^2_j} * log(\frac{\ N}{df_i})$
 
-# Producing the TFIDF matrix in our pipeline
+# Producing the TF-IDF matrix in our pipeline
 
 # Pre-processing
-The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatization. For example the sentence 'These were somebody's cars' would become 'this is somebody car'. Once this is done, each document is tokenized according to the phrase range requested. The tokens then go through a stopword elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the idf weights are computed for each term and when applied form the tfidf matrix.
+The text corpus is processed so that we strip out accents, ownership and bring individual words into a base form using Lemmatisation. For example, the sentence 'These were somebody's cars' would become 'this is somebody car'. Once this is done, each document is tokenised according to the phrase range requested. The tokens then go through a stop word elimination process and the remaining tokens will contribute towards the dictionary and term-frequency matrix. After the term-count matrix is formed, the inverse document frequency weights are computed for each term and when applied form the TF-IDF matrix.
 
 
 # Post processing
 
 ## Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram ie. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to have a less biased output of phrases as a result.
+There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result.
 
-## Reducing the tfidf matrix size
-The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project. In order to allow for faster processing and greater versatility in terms of computer specification needed to run the pygrams pipeline we investigated various optimizations
+## Reducing the TF-IDF matrix size
+The TF-IDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases which forms the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project. In order to allow for faster processing and greater versatility in terms of computer specification needed to run the pyGrams pipeline we investigated various optimisations
 
-We decided to discard non-significant features from the matrix and cache these, along with the document dates stored as a single integer rather than a datetime object.
-The matrix optimization is performed by choosing the top _n_ phrases (uni-bi-tri-grams) where _n_ is user configurable and defaults to 100,000. The top _n_ phrases are ranked by their sum of tf-idf over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we could use uint8 (i.e. a single byte) instead of the tf-idf data, which defaults to float64 and is eight bytes per non-zero data element. When the cached object is read back, it takes linear time to calculate and apply the weights so as an acceptable trade-off against storing the full tf-idf matrix. This reduces the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back. This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bzip2 compression. This file is stored on our [github page](https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05) and has been used to produce all the results in this report.
+We decided to discard non-significant n-grams from the matrix, and also stored document dates as a single integer (rather than a datetime object). The resulting data was then cached.
+The matrix optimisation is performed by choosing the top _n_ phrases (uni-bi-tri-grams) where _n_ is user configurable and defaults to 100,000. The top _n_ phrases are ranked by their sum of TF-IDF over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the TF-IDF as this would mean that we could use uint8 (i.e. a single byte) instead of the TF-IDF data, which defaults to float64 and is eight bytes per non-zero data element. When the cached object is read back, it takes linear time to calculate and apply the weights so as an acceptable trade-off against storing the full TF-IDF matrix. This reduces the size of the cached serialised object by a large factor, which means in turn it can be de-serialised faster when read back. This way we managed to store 3.2M US patent data documents in just 56.5 Mb with bzip2 compression. This file is stored on our [github page](https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05) and has been used to produce the results in this report.
 
-We also append the command line arguments used to generate our outputs so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a macbook pro with 16GB of RAM and i7 processor, but subsequent queries run in the order of one minute for popular terminology and a 7-8 minutes for timeseries outputs without forecasting.
+We also append the command line arguments used to generate our outputs so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a macbook pro with 16GB of RAM and i7 processor, but subsequent queries run in the order of one minute for popular terminology and a 7-8 minutes for time series outputs without forecasting.
 
 ## Filtering
-### Document filtering
-Once the cached object is read we filter rows and columns based on the user query in order to produce the right results
+Once the cached object is read we filter rows and columns based on the user query to reduce the number of patents examined and to focus the n-grams we analyse.
 
+### Document filtering
 Document filtering comprises:
 
 - Date-Time filters, restricting the corpus to documents with publication dates within a specified range.
-- Classification filters, restricting the corpus to documents that belong to specified class(es). For the patents example this is cpc classification.
+- Classification filters, restricting the corpus to documents that belong to specified class(es). For the patents example this is the CPC classification.
 
 ### Term filtering
 
+Term filtering removes individual n-grams from the TF-IDF matrix as opposed to entire patents. The different filters are now explained.
 
-#### Stopwords
+#### Stop words
 
-Stopwords are handled using three user configurable files. The first one, 'stopwords_glob.txt' contains global stopwords, including a list of standard
-English stopwords; These stopwords are applied before tokenization. The file 'stopwords_n.txt' contains bi-gram or tri-gram stopwords. This stopword list is applied after tokenization for phrases containing more than one word. Finally, the file 'stopwords_uni.txt' contains unigram stop words and is applied after tokenization too.
-
+Stop words are words that are ignored as they are are regarded as noise when stastically examining a body of text, and handled using three user configurable files. `stopwords_glob.txt` contains global stop words, including a list of standard English stop words; these stop words are applied before tokenisation. The file `stopwords_n.txt` contains bi-gram or tri-gram stop words. This stop word list is applied after tokenisation for phrases containing more than one word. Finally, the file `stopwords_uni.txt` contains unigram stop words and is also applied after tokenisation.
 
 #### Word embedding
 
-The terms filter in PyGrams is used to filter out terms which are not relevant to terms inputted by the user. To do this, it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models like word2vec or fasttext. Glove has been chosen for practical purposes as it is low in storage and fast on execution.
+The terms filter in pyGrams is used to filter out terms which are not relevant to terms selected by the user. To do this, it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models such as word2vec or fasttext. Glove has been chosen for practical purposes as it is low in storage and fast on execution.
 
 ##### What is a GloVe pre-trained word embedding?
 
-**GloVe is an unsupervised learning algorithm for obtaining vector representations for words.** For a model to be 'pre-trained' the algorithm needs to be trained on a corpus of text where it learns to produce word vectors that are meaningful given the word's co-occurance with other words. Once the word vectors have been learnt either the Euclidean or the cosine distance between them can be used to measure semantic similarity of the words.
+GloVe is an unsupervised learning algorithm for obtaining vector representations for words. For a model to be 'pre-trained' the algorithm needs to be trained on a corpus of text where it learns to produce word vectors that are meaningful given the word's co-occurrence with other words. Once the word vectors have been learnt either the Euclidean or the cosine distance between them can be used to measure semantic similarity of the words.
 
 Below is a visual representation of a vector space for the term MEMS  (Micro-Electro-Mechanical Systems):
 
 ![img](img/embedding.png)
 
-The model used for PyGrams has been trained on a vocabulary of 400,000 words from Wikipedia 2014 and an archive of newswire text data called Gigaword 5. For our purposes, the 50 dimensional vector is used to reduce the time it takes for the filter to run (particularly with a large dataset).
+The model used for pyGrams has been trained on a vocabulary of 400,000 words from Wikipedia 2014 and an archive of newswire text data called Gigaword 5. For our purposes, the 50 dimensional vector is sufficient as it reduces the time it takes for the filter to run (particularly with a large dataset).
 
-All GloVe word vectors can be downloaded [here](https://nlp.stanford.edu/projects/glove/).
+You can download the [GloVe word vectors](https://nlp.stanford.edu/projects/glove/) directly from Stanford University.
 
 ##### How does it learn word vectors?
 
-Unlike other embedding models, GloVe is a count-based model meaning it is a based on a counts matrix of co-occuring words where the rows are words and the columns are context words. The rows are then factorized to a lower dimensionality (in our case 50) to yield a vector representation that is able to explain the variance in the high dimensionality vector.
+Unlike other embedding models, GloVe is a count-based model meaning it is a based on a counts matrix of co-occurring words where the rows are words and the columns are context words. The rows are then factorised to a lower dimensionality (in our case 50) to yield a vector representation that is able to explain the variance in the high dimensionality vector.
+
+[Ian - don't need this detail - link to the Stanford paper?]
 
 The steps go as follows:
 
@@ -193,9 +189,11 @@ where:
 - $V$ is the size of the vocabulary.
 - $f$ is a weighting function to prevent overweighting the common word pairs.
 
-##### How does it work in PyGrams?
+##### How does it work in pyGrams?
 
 The user defines a set of keywords and a threshold distance. If the set of user keywords is not empty, the terms filter computes the word vectors of our dictionary and user defined terms. Then it masks out the dictionary terms whose cosine distance to the user defined word vectors is below the predefined threshold.
+
+[Ian - remove source code, explanation will do and it'll drift out of sync with the GitHub code]
 
 The above functionality is achieved using the following piece of code:
 
@@ -276,18 +274,19 @@ and further below:
     39. medical imaging system         38.037687
     40. water treatment system         36.578996
 
-To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on [Github](https://github.com/datasciencecampus/pyGrams#term-filters)
+To find out how to run term filtering in pyGrams please see the 'Term Filter' section in the [pyGrams README](https://github.com/datasciencecampus/pyGrams#term-filters) found on GitHub.
 
 ## Alternative models
-Our pipeline can run with other embedding models too, like [fasttext 300d](https://fasttext.cc/docs/en/english-vectors.html) or [word2vec 200d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit). We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
+Our pipeline can run with other embedding models, such as [fasttext 300d](https://fasttext.cc/docs/en/english-vectors.html) or [word2vec 200d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit). We decided to default to the GloVe 50 model as it is lightweight and meets GitHub's storage requirements, and for patents it performed similar to other usually better performing models like fasttext. However, on a different text corpus that may not be the case, so the user should feel free to experiment with other models. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
 
-# Objective 2: Emerging Terminology 4
-## From tfidf to the timeseries matrix
-In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve emerging terminology. These were Porter(2018)<sup>1<\sup>, quadratic and sigmoid fitting and a state-space model with kalman filter<sup>2<\sup>.
+# Objective 2: Emerging Terminology
+## From TF-IDF to the time series matrix
+In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the TF-IDF matrix into a time series matrix where each term is receiving a document count over a period. For example, if the period we set is a month and term 'fuel cell' had a non-zero TF-IDF for seventeen documents, it would get a count of seventeen for this month. Once we obtain the time series matrix, we benchmarked three different methods to retrieve emerging terminology. These were Porter(2018)<sup>1<\sup>, quadratic and sigmoid fitting and a state-space model with kalman filter<sup>2<\sup>.
 
-## Escores 2 IT
-## Previous and related work / Porter
-Our first attempts to generate emerging terminology insights were based on the [Porter(2018)](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) <a href="#ref1">[1]</a> publication. This method relied on ten timeseries periods, the three first being the base period and the following seven the active one. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
+## Emergence scores
+
+### Porter (2018)
+Our first attempts to generate emerging terminology insights were based on emergence scores defined by [Porter (2018)](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) <a href="#ref1">[1]</a>. This method relied on ten time series periods, the three first being the base period and the following seven the active period. The emergence score is calculated using a series of differential equations within the active period counts, normalised by the global trend.
 
 Active period trend:
 $A_{trend} = \frac {\sum_{i=5}^7 C_i}  {\sum_{i=5}^7 \sqrt{T_i}} - \frac {\sum_{i=1}^3 C_i}  {\sum_{i=1}^3 \sqrt{T_i}}$
@@ -298,22 +297,22 @@ $R_{trend} = 10*(\frac {\sum_{i=5}^7 C_i}  {\sum_{i=5}^7 \sqrt{T_i}} - \frac {\s
 Mid period to last period trend:
 $S_{mid} = 10*(\frac {C_6}  {\sqrt{T_6}} - \frac { C_3}  { \sqrt{T_3}})$
 
-$e_score=  2 * A_{trend} + R_{trend} + S_{mid}$
+Emergence score:
+$escore=  2 * A_{trend} + R_{trend} + S_{mid}$
 
+This can be visualised, for example with the term 'display device', as:
 ![img](img/porter_2018.png)
 
-This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations. However we found that it penalises terms that do not follow the desirable pattern, ie. fast emerging at the last three periods.
-It also takes into consideration the global trend, which sometimes may not be desirable
+This method works well for terms rapidly emerging in the last three periods as it is expected looking at the equations. However we found that it penalises terms that do not follow the desirable pattern, such as fast emergence at the last three periods. It also takes into consideration the global trend, which sometimes may not be desirable
 
 ### Quadratic and Sigmoid fitting
-We decided to investigate alternative methods that would be more generic in the sense that emergence could be scored uniformly in the given timeseries and normalization by the global trend would be optional. Our immediate next thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
+We decided to investigate alternative methods that would be more generic in the sense that emergence could be scored uniformly in the given time series and normalisation by the global trend would be optional. Our immediate next thought was to fit quadratic and/or sigmoid curves to retrieve different emerging patterns in our corpus. Quadratic curves would pick trend patterns similar to Porter's method and sigmoid curves would highlight emerged terminology that became stationary.
 ![img](img/curves.png)
 
 The results from quadratic fitting were comparable to porter's method for our dataset as demonstrated in the results below.
 
-Porter:
-python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt
-exec time: 07:23 secs
+#### Porter emergence scores
+```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt``` (execution time: 07:23 secs)
 
     mobile device: 			    33.6833326760551
     electronic device: 		    28.63492052752744
@@ -338,9 +337,8 @@ exec time: 07:23 secs
     touch panel: 			    8.340320405278447
     optical fiber: 			    7.853598239644436
 
-  Quadratic:
-  python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt -cf
-  exec time: 07:48 secs
+#### Quadratic emergence scores
+```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt -cf``` (execution time: 07:48 secs)
 
     mobile device: 			    26.93560606060607
     electronic device: 		    24.636363636363637
@@ -365,39 +363,31 @@ exec time: 07:23 secs
     controller configure: 	            6.560606060606065
     frequency band: 		    6.3212121212121115
 
-The main concerns with this method were when interpreting timeseries with multiple curvature and the fact that not every timeseries pattern matches a quadratic or a sigmoid curve.
+The main concern with this method is that not every time series pattern matches a quadratic or a sigmoid curve, in particular time series with multiple curves and stationary points.
 
-### State space (Sonia)
-A more flexible approach is that of the state space model with a kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the timeseries using the Kalman filter and providing the first gradient of the smoothed time-series. This means we know the slope of the timeseries at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill course or the steepest one using simple calculus.
+### State space models
+A more flexible approach is that of the state space model with a Kalman filter. This solves the problem of the variety of curvature patterns mentioned above, by smoothing the time series using the Kalman filter and providing the first gradient of the smoothed time series. This means we know the slope of the time series at each point and we can assess emergence in a very flexible way. We can either look for an emergence score between two user defined points or look at the longest uphill curve section or the steepest section using simple calculus.
 
 ![img](img/plot_1_internal_combustion_engine.png) ![img](img/plot_4_internal_combustion_engine.png)
 
-At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disadvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
+At first we decided to generate emergence scores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis (document counts). Another option could be standardising the time series values between 0 and 1. The disadvantage of this method over the previous two is the fact that it is slower as the Kalman filter needs parameter optimisation.
 
 (table with state-space e-scores here and a few plots)
 
 ### Which method is best?
-It all depends on what outcome is desirable. If we are after a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the timeseries, then quadratic fitting ( or sigmoid , depending on the pattern we are after) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. Pygrams offers all the above options.
+It all depends on what outcome is desirable. If we wish for a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the time series, then quadratic fitting (or sigmoid , depending on the pattern we are searching for) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. pyGrams offers all the above options.
 
 ## Prediction
-The popular terms are processed using either Porter or quadratic fitting to separate terms into
-emerging (usage is increasing over time), stationary (usage is static) or declining (usage is
-reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
+The popular terms are processed to generate emergence scores, and then labelled as emerging (usage is increasing over time), stationary (usage is static) or declining (usage is reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
 
-Given the labels, we take the top 25 emergent, top 25 stationary and top 25 declining terms
-and run usage predictions on these terms.
-The top emergent terms are defined as those with the most positive emergence score, the top stationary terms
-those with a score around 0, and top declining those with the most negative score.
+Given the labels, we take the top 25 emergent, top 25 stationary and top 25 declining terms and run usage predictions on these terms. The top emergent terms are defined as those with the most positive emergence score, the top stationary terms those with a score around 0, and top declining those with the most negative score.
 
-Different prediction techniques were implemented and tested, to determine the most suitable approach to predict future trends.
-These techniques are now covered in the following sub-sections.
+Different prediction techniques were implemented and tested, to determine the most suitable approach to predict future trends. These techniques are now covered in the following sub-sections.
 
 ### Naive, linear, quadratic, cubic
-A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series   to extrapolate future predicted values using those fitted parameters.
+A naive predictor used the last value in each time series as the predicted value for all future time instances. Linear, quadratic, or cubic predictors utilised linear, quadratic, or cubic functions fitted to each time series to extrapolate future predicted values using those fitted parameters.
 
 ### ARIMA<a href="#ref3">[3]</a>
-
-**NOTE: Probably don't need ARIMA and Holt-Winters sub-section headers, e.g. after providing an initial list of techniques at the beginning of the prediction section.**
 
 ARIMA (autoregressive integrated moving average) was applied using a grid search optimisation of its (p, d, q) parameters for each time series, based on training on the earliest 80% of the data and testing on the remaining 20% of data.  The grid search parameters were: p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2].
 
@@ -407,26 +397,18 @@ Holt-Winters was applied in its damped exponential smoothing form using an autom
 
 ### LSTM <a href="#ref5">[5]</a>
 
-Long Short-Term Memory (LSTM) recurrent neural networks are a powerful tool for detecting patterns in time series;
-for predicting *n* values, three potential approaches are:
+Long Short-Term Memory (LSTM) recurrent neural networks are a powerful tool for detecting patterns in time series; for predicting *n* values, three potential approaches are:
 
 1. Single LSTM that can predict 1 value ahead (but is called *n* times on its own prediction to generate *n* values ahead)
 2. Single LSTM that can predict *n* values ahead
 3. *n* LSTM models, each model predicts different steps ahead (so merge all results to produce *n* values ahead)
 
-The single LSTM with single lookahead can fail due to compound errors - once it goes wrong, its further predictions
-are then based on erroneous output. A single LSTM predicting *n* outputs at once will have a single prediction pass and
-in theory be less prone to compound error. Finally, multiple LSTMs each predicting a different step cannot suffer from
-compound error as they are independent of each other.
+The single LSTM with single lookahead can fail due to compound errors - once it goes wrong, its further predictions are then based on erroneous output. A single LSTM predicting *n* outputs at once will have a single prediction pass and in theory be less prone to compound error. Finally, multiple LSTMs each predicting a different step cannot suffer from compound error as they are independent of each other.
 
-In addition, we use Keras as our neural network library, where LSTMs can be trained as either stateless or stateful.
-This means that when Keras trains the network, with a stateless LSTM, the LSTM state will not propagate between batches.
-Conversely, with a stateful LSTM the state will propagate between batches.
+In addition, we use Keras as our neural network library, where LSTMs can be trained as either stateless or stateful. This means that when Keras trains the network, with a stateless LSTM, the LSTM state will not propagate between batches. Conversely, with a stateful LSTM the state will propagate between batches.
 
 ### Prediction Testing
-**pyGrams** can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting
-algorithm - they are used to test its prediction. The residuals of the predictions are recorded and analysed; these
-results are output as an HTML report. For example, using the supplied USPTO dataset:
+pyGrams can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting algorithm - they are used to test its prediction. The residuals of the predictions are recorded and analysed; these results are output as an HTML report. For example, using the supplied USPTO dataset:
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt --test -pns 0```
 
@@ -439,7 +421,7 @@ An extract of the output is shown below:
 | Trimmed (10% cut) mean of Relative RMSE | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2% |
 | Standard deviation of Relative RMSE | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
 
-The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining).
+The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining). An example test output is shown below for two emergent terms:
 
 ![img](img/prediction_emerging_test.png)
 
@@ -456,16 +438,17 @@ As a comparison, we also ran a predictor for ten time periods ahead:
 | Trimmed (10% cut) mean of Relative RMSE | 16.6% | 19.9% | 30.2% | 24.1% | N/A | 11.6% | 20.1% | 31.2% | 13.5% | 23.2% | 15.1% | 32.0% |
 | Standard deviation of Relative RMSE | 8.9% | 9.7% | 12.5% | 15.7% | 6.5% | 9.7% | 63.8% | 40.8% | 8.2% | 26.7% | 6.9% | 27.3% |
 
-The RMSE results show that the multiple model stateful LSTM now improves - giving better results than the single model, reflecting the accumulation of error in the single output model LSTM. The multiple outputs single model LSTM is now much worse, indicating that the model had not learnt the complex shape of the data. Finally, the naive results are now worse than ARIMA and the two LSTM models; only Holt-Winters is worse than the naive approach. This indicates that the short term random variation will not move significantly far away from the last known value, but over time it will drift and cause the naive to degrade as an estimate.
+The same two terms have their test output below for comparison with the previous five time period results:
 
 ![img](img/prediction_emerging_test_10steps.png)
+
+The RMSE results show that the multiple model stateful LSTM now improves - giving better results than the single model, reflecting the accumulation of error in the single output model LSTM. The multiple outputs single model LSTM is now much worse, indicating that the model had not learnt the complex shape of the data. Finally, the naive results are now worse than ARIMA and the two LSTM models; only Holt-Winters is worse than the naive approach. This indicates that the short term random variation will not move significantly far away from the last known value, but over time it will drift and cause the naive approach to degrade as an estimate.
 
 In summary, the naive predictor is suitable for short-term forecasts, whereas ARIMA, Holt-Winters and stateful single model, single output LSTM are better suited to longer term forecasts. The multiple model, single output LSTM produced improved results with longer forecast periods, but runs significantly slower (for _N_ time periods, this requires _N_ models and hence trains _N_ times slower than the single model, single output LSTM).
 
 ### Results and Discussion
 
-**pyGrams** was run on the example USPTO dataset of 3.2M patents, with predictions generated
-from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
+pyGrams was run on the example USPTO dataset of 3.2M patents, with predictions generated from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
 
@@ -562,7 +545,7 @@ Top declining terms:
 
 The prediction results are as expected - emerging results are predicted to continue to grow, stationary aren't predicted to grow and declining are predicted to decline (or remain at zero usage). Interestingly the use of "logic circuit" is flagged as declining, but isn't obviously showing a dramatic decline such as shown by "programmable logic device"; however, both ARIMA and the LSTM predict decline.
 
-# Outputs 2 IT
+# Outputs
 
 To assist the user with understanding the relationship between popular terms, various outputs are supported which are now described.
 
@@ -572,8 +555,7 @@ in a graph, with links between nodes if the related terms appear in the same doc
 The size of the node is proportional to the popularity score of the term, and the
 width of the link is proportional to the number of times a term co-occurs.
 
-An example visualisation of the USPTO dataset can be generated with
-```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, an example output is shown below.
+An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, an example output is shown below.
 
 ![img](img/fdg.png)
 
@@ -590,10 +572,11 @@ The relationship between co-occurring terms is also output when an FDG is genera
 This is output as a text file for further processing, as it indicates a popular term followed by the top 10 co-occurring terms (weighted by term popularity).
 
 ## Word cloud
-Related to the FDG output, the popularity of a term can instead be mapped to the font size of the term and the top **n** terms displayed as a wordcloud. An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, an example output isshown below.
+Related to the FDG output, the popularity of a term can instead be mapped to the font size of the term and the top **n** terms displayed as a wordcloud. An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, an example output is shown below.
+
 ![img](img/wordcloud.png)
 
-# Conclusion 1
+# Conclusion
 
 # References
 
