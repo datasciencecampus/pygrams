@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import atexit
 import io
 import json
 from os import path, walk, makedirs
@@ -9,15 +10,19 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 
+def _post_install():
+    print('Post install')
+    import nltk
+    nltk.download('punkt')
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('wordnet')
+
+
 class CustomInstaller(install):
-    def run(self):
+    def __init__(self, *args, **kwargs):
         print('Pre install')
-        install.run(self)
-        print('Post install')
-        import nltk
-        nltk.download('punkt')
-        nltk.download('averaged_perceptron_tagger')
-        nltk.download('wordnet')
+        super(CustomInstaller, self).__init__(*args, **kwargs)
+        atexit.register(_post_install)
 
 
 def load_meta(fp):
