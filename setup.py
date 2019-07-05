@@ -12,20 +12,12 @@ from setuptools.command.install import install
 
 
 def _post_install():
-    print('Post install')
-    # sys.path_importer_cache = {}
-    # import nltk
-    # nltk.download('punkt')
-    # nltk.download('averaged_perceptron_tagger')
-    # nltk.download('wordnet')
     from subprocess import call
-    call([sys.executable, '-m', 'nltk.downloader', 'punkt', 'averaged_perceptron_tagger', 'wordnet'],
-         # cwd=path.join(dir, 'packagename')
-         )
+    call([sys.executable, '-m', 'nltk.downloader', 'punkt', 'averaged_perceptron_tagger', 'wordnet'])
+
 
 class CustomInstaller(install):
     def __init__(self, *args, **kwargs):
-        print('Pre install')
         super(CustomInstaller, self).__init__(*args, **kwargs)
         atexit.register(_post_install)
 
@@ -77,8 +69,8 @@ def setup_package():
         ],
 
         install_requires=['matplotlib', 'numpy', 'scipy==1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn',
-                          'xlrd','python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow', 'keras_tqdm',
-                          'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
+                          'xlrd', 'python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow',
+                          'keras_tqdm', 'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
         python_requires='>=3.6',
         cmdclass={
