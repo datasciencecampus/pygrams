@@ -1,7 +1,7 @@
 # Style guide
 
 Use large USPTO pickle which has been prefiltered for all results - reproducable. DataFrame will be pickled and stored
-in GitHub. Example; ```python pygrams.py -it USPTO-mdf-0.05
+in GitHub. Example: ```python pygrams.py -it USPTO-mdf-0.05```
 
 Write up all commands against the results to show how it worked!
 
@@ -19,34 +19,34 @@ Write up all commands against the results to show how it worked!
 - Emily Tew: emily.tew@ons.gov.uk
 
 # Objectives and scope
-The present project aimed in generating insights out of large document collections. By large document collections we mean a large number of documents ( >=10000 ) that share the same theme, like patents, job adverts, medical journal publications and others. The insights we are aiming to retrieve from these document collections are:
+The objective of the project is to aid in generating insights from large document collections (≥10,000 documents). Such a collection will share the same theme, such as patents, job adverts and medical journal publications. The insights we are aiming to retrieve from these document collections are:
 - popular terminology
 - emerging terminology
 
-Popular terminology refers to the most frequent keywords and small phrases ( up  to three words) and emerging terminology is keywords that show emerging ( or declining ) frequency patterns when projected on a time-series scale.
+Popular terminology refers to the most frequent keywords and small phrases (up to three words) and emerging terminology refers to keywords that show emerging (or declining) frequency patterns when projected on a time-series scale.
 
 ## Stakeholders
-The idea for this project initially came from the Department for Business, Energy and Industrial Strategy (BEIS) and the Intellectual Property Office (IPO). BEIS needed popular key-terminology to be retrieved from patent applications and IPO came with the idea of retrieving emerging terminology from the same dataset. Both approaches aimed in providing insights from various technology sectors for policy makers. The list below demonstrates  various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working on this project.
-- IPO: Emerging terminology from patent data (PATSTAT)
+The idea for this project initially came from the Department for Business, Energy and Industrial Strategy (BEIS) and the Intellectual Property Office (IPO). BEIS needed popular key-terminology to be retrieved from patent applications and IPO came with the idea of retrieving emerging terminology from the same dataset. Both approaches aimed in providing insights from various technology sectors for policy makers. The list below demonstrates various stakeholders that have expressed an interest in using our pipeline for similar datasets since we started working on this project.
+- IPO: emerging terminology from patent data (PATSTAT)
 - BEIS: popular terminology from UK patents
 - ONS:
     - popular terminology on people survey free-text comments
-    - Emerging terminology on statistical journal publications data
-    - Emerging terminology on coroners reports
-- DIRAC: Emerging terminology in job adverts. Identification of emerging job skills
-- Innovate UK: Emerging and popular terminology on project grant applications
+    - emerging terminology on statistical journal publications data
+    - emerging terminology on coroners reports
+- DIRAC: emerging terminology in job adverts. Identification of emerging job skills
+- Innovate UK: emerging and popular terminology on project grant applications
 - MOJ: popular terminology on people survey free-text comments
-- GDS: Emerging terminology in job adverts. Identification of emerging job skills in DDaT profession
-- DIT: Popular terminology on EU Exit consultations
+- GDS: emerging terminology in job adverts and identification of emerging job skills in DDaT profession
+- DIT: popular terminology on EU Exit consultations
 
 # Data engineering
 
-The first problem we encountered during this project was that of inhomogeneous data. To be more specific, the data we received to process was coming in different formats, like, xml, sql, csv, excel, etc. To overcome this problem and make our pipeline more generic, we decided to create functions  to convert each data source to [Pandas](https://pandas.pydata.org/) dataframes. For memory, storage and processing efficiency purposes, we decided to only keep three columns in the dataframe, namely text, date and classification (cpc). These fields were adequate to meet the patent project requirements, but could also generalize and process different datasets like job adverts, publications etc.
+The first problem we encountered during this project was receiving data in different formats, such as XML, SQL, CSV, Excel, etc. To overcome this problem and make our pipeline more generic, we decided to create functions to convert each data source to [Pandas](https://pandas.pydata.org/) dataframes. For memory, storage and processing efficiency purposes, we decided to only keep three columns in the dataframe, namely text, date and classification (patent CPC). These fields were adequate to meet the patent project requirements, but could also generalise and process different datasets like job adverts, publications etc.
 
 ## Patent Data
 
 Initially, we did not have access to [PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) (the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable
-us to use large numbers of patent abstract as soon as possible, we imported the USPTO's
+us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's
 [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format). The XML data was scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pygrams.
 Later, when patstat became available, we created an import tool which parsed the CSV format data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate database.
 
@@ -445,7 +445,7 @@ The RMSE results are reported in summary form as above for relative RMSE, absolu
 
 After examining the output, the predictors for five time periods ahead with lowest trimmed mean and standard deviation of relative root mean square error (of predicted vs actual) were found to be: naive, ARIMA, Holt-Winters, stateful single LSTM with single look-ahead and stateful multiple LSTMs with single look-ahead.
 
-As a comparison, we also ran a predictor for ten time periods ahead: 
+As a comparison, we also ran a predictor for ten time periods ahead:
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt --test -pns 0 -stp 10```
 
@@ -516,7 +516,7 @@ Each graph is accompanied with a table, where we flag the forecast to be emergen
 
 The results show that very few of the terms are predicted to be emergent or decline in the future, which reflects the success of the naive predictor in testing. Those terms flagged a non-stationary are of interest; such as "liquid crystal display" flagged as declining, which given the move towards OLED and related technologies would appear to be a reasonable prediction. This shows, however, that a user needs domain knowledge to confirm the forecasts; the forecasts are dealing with large amounts of noise and hence can only give approximate guidance.
 
-As a comparison, we also ran the same experiment but using term filtering against 'physics': 
+As a comparison, we also ran the same experiment but using term filtering against 'physics':
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9 -st physics```
 
@@ -560,7 +560,7 @@ Top declining terms:
 
 ![img](img/prediction_declining_physics.png)
 
-The prediction results are as expected - emerging results are predicted to continue to grow, stationary aren't predicted to grow and declining are predicted to decline (or remain at zero usage). Interestingly the use of "logic circuit" is flagged as declining, but isn't obviously showing a dramatic decline such as shown by "programmable logic device"; however, both ARIMA and the LSTM predict decline. 
+The prediction results are as expected - emerging results are predicted to continue to grow, stationary aren't predicted to grow and declining are predicted to decline (or remain at zero usage). Interestingly the use of "logic circuit" is flagged as declining, but isn't obviously showing a dramatic decline such as shown by "programmable logic device"; however, both ARIMA and the LSTM predict decline.
 
 # Outputs 2 IT
 
