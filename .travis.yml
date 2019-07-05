@@ -46,9 +46,8 @@ install:
   - python -m pip install -U pip
   - python -m easy_install -U setuptools
   # command to install dependencies
-  - python setup.py install
-  # also need to download punkt tokeniser, wordnet and averaged_perceptron_tagger data
-  - travis_wait 30 python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
+  #  - python setup.py install
+  - pip install -e .
 
 script:
   # for codecov support
