@@ -56,8 +56,7 @@ When you type text into a computer it can't understand the words in the way that
 
 
 ## Term Frequency - Inverse Document Frequency (TF-IDF)
-//T: Nice section. Only need to stretch that TF-IDF is a sparse matrix(mostly zeros)[Ian - suggest knocking a few values out of the matrix to make it sparse - only a few zeros in it at the moment]. In the example shown as dense. Also, tf is the un-normalized term frequency. So if a word appears 5 times in a 200 word doc, tf=5. There is normalization on top of this to address doc size, we use l2 in our code. [Ian - l2 is mentioned later in the section - so just needs to be clear its unnormalised initially?]
-look here for example : http://datameetsmedia.com/bag-of-words-tf-idf-explained/
+
 
 
 pyGrams uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short to convert text into numerical form. TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus. TF-IDF can be calculated by the following equation:
@@ -73,25 +72,24 @@ tfidf_{ij} & = & \text{TF-IDF score for term i in document j}\\
 \end{array}
 $
 
-For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times.
+For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are non-normlised:
 
-T//change to un-normalized
-**Term Frequency** = **$\frac{5}{200}$** = 0.025
+**Term Frequency** = 5
 
  Also, assume we have 20 million documents and the term *'nuclear'* appears in ten thousand of these.
 
 **Inverse Document Frequency** = $\ln(\frac{20,000,000}{10,000})$ = 7.6
 
- Therefore, **TF-IDF weight** for *'nuclear'* in Document 1 = $0.025 \times7.6 = 0.19$.
+ Therefore, **TF-IDF weight** for *'nuclear'* in Document 1 = $5 \times7.6 = 38$.
 
  Eventually this produces a matrix of TF-IDF weights which are summed to create the final TFIDF weight:
 
 | Document_no  | 'nuclear'  | 'electric'  | 'people'  | 'nature' | 'hospital'
 |:---:|:---:|:---:|:---:|:---:| :---:|
 |  1 | 0.19  | --  |  0.10 | -- | 0.12 |
-|  2 |  0.22 |  0.02 | --  | 0.34 | --
-|  3 | --  |  0.04 |  0.13 | -- | 0.22
-|  **Final_Weight**  |   **0.41**    | **0.06**  | **0.23**  | **0.34** | **0.34**
+|  2 |  -- |  0.02 | --  | 0.34 | --
+|  3 | --  |  -- |  -- | -- | 0.22
+|  **Final_Weight**  |   **0.19**    | **0.02**  | **0.10**  | **0.34** | **0.34**
 
 Sometimes it is necessary to normalize the TF-IDF output to address variable document sizes. For example if documents span from 10-200 words, a term frequency of 5 in a 30 word document should score higher than the same term frequency on a 200 word document. For this reason we use l2 normalization in pyGrams:
 
@@ -161,62 +159,14 @@ You can download the [GloVe word vectors](https://nlp.stanford.edu/projects/glov
 
 Unlike other embedding models, GloVe is a count-based model meaning it is a based on a counts matrix of co-occurring words where the rows are words and the columns are context words. The rows are then factorised to a lower dimensionality (in our case 50) to yield a vector representation that is able to explain the variance in the high dimensionality vector.
 
-[Ian - don't need this detail - link to the Stanford paper?]
 
-The steps go as follows:
-
-###### Step 1: Counts matrix
-
-- Collect counts of co-occuring words and record them in matrix $X$.
-- Each cell, $X_{ij}$, refers to how often word $i$ occurs with word $j$ using a pre-defined window size before and after the word.
-
-###### Step 2: Soft Constraints
-
-- For each word pair define soft contraints as follows:
-</b>
-    $w_{i}^Tw_j + b_i + b_j = \text{log}(X_{ij})$
-
-where:
-- $w_i$ is the vector for the main word.
-- $w_j$ is the vector for the context word.
-- $b_i$ and $b_j$ are biases for the main and context words respectively.
-
-###### Step 3: Cost Function
-
-$ J = \sum_{i=1}^V\sum_{j=1}^V f(X_{ij})(w_{i}^Tw_j + b_i + b_j = \text{log}(X_{ij})^2$
-
-where:
-- $V$ is the size of the vocabulary.
-- $f$ is a weighting function to prevent overweighting the common word pairs.
 
 ##### How does it work in pyGrams?
 
 The user defines a set of keywords and a threshold distance. If the set of user keywords is not empty, the terms filter computes the word vectors of our dictionary and user defined terms. Then it masks out the dictionary terms whose cosine distance to the user defined word vectors is below the predefined threshold.
 
-[Ian - remove source code, explanation will do and it'll drift out of sync with the GitHub code]
 
-The above functionality is achieved using the following piece of code:
 
-    def __get_embeddings_vec(self, threshold):
-        embeddings_vect = []
-        for term in tqdm(self.__tfidf_ngrams, desc='Evaluating terms distance with: ' + ' '.join(self.__user_ngrams), unit='term',
-                         total=len(self.__tfidf_ngrams)):
-            compare = []
-            for ind_term in term.split():
-                for user_term in self.__user_ngrams:
-                    try:
-                        similarity_score = self.__model.similarity(ind_term, user_term)
-                        compare.append(similarity_score)
-                    except:
-                        compare.append(0.0)
-                        continue
-
-            max_similarity_score = max(similarity_score for similarity_score in compare)
-            embeddings_vect.append(max_similarity_score)
-        #embeddings_vect_norm = ut.normalize_array(embeddings_vect, return_list=True)
-        if threshold is not None:
-            return [float(x>threshold) for x in embeddings_vect]
-        return embeddings_vect
 
 
 ##### What is the output?
@@ -240,7 +190,7 @@ the following terms came out as top:
 
 Using the same dataset but adding a terms filter for medical words and a threshold of 0.8:
 
-        python pygrams.py -st pharmacy medicine hospital chemist
+    python pygrams.py -st pharmacy medicine hospital chemist
 
 the following terms came out as top:
 
