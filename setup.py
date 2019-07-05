@@ -5,7 +5,6 @@ import json
 from os import path, walk, makedirs
 from shutil import copy
 
-import nltk
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
@@ -15,6 +14,7 @@ class CustomInstaller(install):
         print('Pre install')
         install.run(self)
         print('Post install')
+        import nltk
         nltk.download('punkt')
         nltk.download('averaged_perceptron_tagger')
         nltk.download('wordnet')
