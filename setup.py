@@ -19,7 +19,7 @@ def _post_install():
     # nltk.download('averaged_perceptron_tagger')
     # nltk.download('wordnet')
     from subprocess import call
-    call([sys.executable, '-m nltk.downloader punkt averaged_perceptron_tagger wordnet'],
+    call([sys.executable, '-m', 'nltk.downloader', 'punkt', 'averaged_perceptron_tagger', 'wordnet'],
          # cwd=path.join(dir, 'packagename')
          )
 
