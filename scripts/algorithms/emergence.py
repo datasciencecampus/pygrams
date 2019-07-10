@@ -12,7 +12,7 @@ from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score, normal
 
 class Emergence(object):
 
-    def __init__(self, number_of_patents_per_week):
+    def __init__(self, number_of_patents_per_week, num_weeks_period=52):
         self.TERM_BASE_RECS_THRESHOLD = 5000
         self.BASE_TERM2ALL_RATIO_THRESHOLD = 0.15
         self.MIN_DOCS_FOR_EMERGENCE = 7
@@ -21,7 +21,7 @@ class Emergence(object):
         self.NUM_PERIODS_ACTIVE = 7
         self.NUM_PERIODS = self.NUM_PERIODS_BASE + self.NUM_PERIODS_ACTIVE
 
-        self.NUM_WEEKS_PER_PERIOD = 52
+        self.NUM_WEEKS_PER_PERIOD = num_weeks_period
 
         self.__number_of_patents_per_week = arr.array('i', number_of_patents_per_week)
 
@@ -30,13 +30,13 @@ class Emergence(object):
         self.__per_period_counts_all = arr.array('i', [0] * self.NUM_PERIODS)
         self.__per_period_counts_term = arr.array('i', [0] * self.NUM_PERIODS)
 
-    def __check_records(self, num_term_records, term_start_week, term_end_week):
+    def __check_records(self, num_term_records, term_start_week, term_end_week, porter=False):
         if num_term_records < self.MIN_DOCS_FOR_EMERGENCE:
             return False
 
         diff_periods = (term_end_week - term_start_week + 1) / self.NUM_WEEKS_PER_PERIOD
 
-        if ceil(diff_periods) < self.NUM_PERIODS:
+        if ceil(diff_periods) < self.NUM_PERIODS and porter:
             return False
 
         return True
@@ -61,7 +61,7 @@ class Emergence(object):
 
         return counts_term
 
-    def init_vars(self, term_weeks, term_counts):
+    def init_vars(self, term_weeks, term_counts, porter=False):
         # TODO: if len(term_counts) > self.NUM_WEEKS_PER_PERIOD has the same accuracy and 40% performance increase?
 
         num_term_records = len(term_weeks)
@@ -71,7 +71,7 @@ class Emergence(object):
         term_start_week = term_weeks[0]
         term_end_week = term_weeks[-1]
 
-        if self.__check_records(num_term_records, term_start_week, term_end_week):
+        if self.__check_records(num_term_records, term_start_week, term_end_week, porter=porter):
             start_dates = arr.array('i', [term_start_week + period * self.NUM_WEEKS_PER_PERIOD
                                           for period in range(self.NUM_PERIODS + 1)])
             self.__per_period_counts_term = self.__calculate_counts_term(term_weeks, term_counts, start_dates)
@@ -133,7 +133,6 @@ class Emergence(object):
 
         normalized_all = normalize(self.__per_period_counts_all)
         normalized_term = self.__per_period_counts_term
-        normalized_y = normalized_term - normalized_all
 
         trend = np.polyfit(xdata, normalized_term, 2)
         y_fit = trend[2] + (trend[1] * xdata) + (trend[0] * xdata * xdata)

@@ -46,7 +46,7 @@ def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
     week_dates = []
     week_total = 0
 
-    for current_row_index in tqdm(range(number_of_rows), 'Counting terms per week', unit='patent'):
+    for current_row_index in tqdm(range(number_of_rows), 'Calculating weekly term document-counts', unit='document'):
         new_week = int(uspto_week_dates[current_row_index])
 
         while new_week > current_week:

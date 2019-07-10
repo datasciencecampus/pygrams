@@ -35,7 +35,7 @@ class TestTfidfReduce(unittest.TestCase):
         filename = os.path.join('tests', 'data', 'USPTO-random-100.csv')
 
         cls.__pipeline = Pipeline(filename, docs_mask_dict, ngram_range=ngram_range, text_header='abstract',
-                                  term_counts=True, max_df=max_df, output_name='test')
+                                  max_df=max_df, output_name='test', calculate_timeseries=True)
 
         cls.__term_score_tuples = cls.__pipeline.term_score_tuples
 
@@ -93,5 +93,5 @@ class TestTfidfReduce(unittest.TestCase):
         support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)
 
     def test_timeseries_mat(self):
-        timeseries_mat = self.__pipeline.term_counts_data
-        self.assertEqual(sum(timeseries_mat[2]), 100)
+        timeseries_data = self.__pipeline.timeseries_data
+        self.assertEqual(sum(timeseries_data[2]), 100)

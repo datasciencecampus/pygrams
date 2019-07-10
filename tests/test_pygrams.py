@@ -133,6 +133,7 @@ class TestPyGrams(unittest.TestCase):
         self.assertTrue(self.patent_id_auto_tested)
 
         mock_makedirs.assert_called_with(self.tfidfOutputFolder(self.out_name, max_df), exist_ok=True)
+
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == self.tfidfFileName(self.out_name, max_df):
@@ -146,7 +147,7 @@ class TestPyGrams(unittest.TestCase):
         if not results_checked:
             self.fail('TFIDF results were not matched - were filenames correct?')
 
-    def assertTermCountOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
+    def assertTimeSeriesOutputs(self, assert_func, mock_pickle_dump, mock_makedirs):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
 
@@ -196,7 +197,8 @@ class TestPyGrams(unittest.TestCase):
         }
         max_df = 1.0
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency', str(max_df)]
+        args = ['-ds', self.data_source_name, '--date_header', 'publication_date', '--max_document_frequency',
+                str(max_df)]
 
         pygrams.main(args)
 
@@ -214,10 +216,13 @@ class TestPyGrams(unittest.TestCase):
     @mock.patch("scripts.pipeline.makedirs", create=True)
     @mock.patch("scripts.output_factory.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
-    def test_simple_output_tfidf_pickle_and_unpickle(self, mock_path_isfile, mock_output_makedirs,
-                                                     mock_pipeline_makedirs, mock_bz2file, mock_open,
-                                                     mock_pickle_dump,
-                                                     mock_factory_read_pickle, mock_pipeline_read_pickle):
+    def test_simple_output_tfidf_pickle_and_unpickle_and_write_to_timeseries(self, mock_path_isfile,
+                                                                             mock_output_makedirs,
+                                                                             mock_pipeline_makedirs, mock_bz2file,
+                                                                             mock_open,
+                                                                             mock_pickle_dump,
+                                                                             mock_factory_read_pickle,
+                                                                             mock_pipeline_read_pickle):
         fake_df_data = {
             'abstract': [
                 'abstract'
@@ -274,19 +279,21 @@ class TestPyGrams(unittest.TestCase):
 
         mock_pipeline_read_pickle.side_effect = pipeline_read_pickle_fake
         mock_pipeline_read_pickle.return_value = self.dumped_tfidf
-        args = ['-tc', '-ds', self.data_source_name, '--date_header',
+        args = ['-ds', self.data_source_name, '-ts', '-tc',
+                '-it', self.tfidfOutputFolder(self.data_source_name, 1.0), '--date_header',
                 'publication_date', '--max_document_frequency', '1.0',
                 '--input_tfidf', self.out_name + '-mdf-1.0']
         pygrams.main(args)
 
-        def assert_tfidf_outputs(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates):
+        def assert_timeseries_outputs(term_counts_per_week, feature_names, number_of_documents_per_week,
+                                      week_iso_dates):
             self.assertEqual(term_counts_per_week.todense(), np.ones(shape=(1, 1)),
                              'term counts should be 1x1 matrix of 1')
             self.assertListEqual(feature_names, ['abstract'])
             self.assertListEqual(number_of_documents_per_week, [1])
             self.assertListEqual(week_iso_dates, [200052])
 
-        self.assertTermCountOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_output_makedirs)
+        self.assertTimeSeriesOutputs(assert_timeseries_outputs, mock_pickle_dump, mock_output_makedirs)
 
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
@@ -337,6 +344,7 @@ class TestPyGrams(unittest.TestCase):
     """
     Extended from test_simple_two_patents_unigrams_only_output_tfidf - sets prefilter-terms to remove 'noise' terms
     """
+
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("pickle.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)
@@ -397,19 +405,19 @@ class TestPyGrams(unittest.TestCase):
         }
 
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
-        args = ['-tc', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
+        args = ['-ts', '-tc', '-ds', self.data_source_name, '--id_header', 'patent_id', '--date_header',
                 'publication_date', '--max_document_frequency', '1.0']
 
         pygrams.main(args)
 
         def assert_outputs(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates):
-            self.assertListEqual(feature_names, ['abstract',  'extra stuff', 'patent', 'with'])
+            self.assertListEqual(feature_names, ['abstract', 'extra stuff', 'patent', 'with'])
             term_counts_as_lists = term_counts_per_week.todense().tolist()
-            self.assertListEqual(term_counts_as_lists[0], [1,  1, 1,  1])
+            self.assertListEqual(term_counts_as_lists[0], [1, 1, 1, 1])
             self.assertListEqual(number_of_documents_per_week, [1])
             self.assertListEqual(week_iso_dates, [200052])
 
-        self.assertTermCountOutputs(assert_outputs, mock_pickle_dump, mock_makedirs)
+        self.assertTimeSeriesOutputs(assert_outputs, mock_pickle_dump, mock_makedirs)
 
     @unittest.skip("json compulsory now, so not an option")
     def test_args_json_not_requested(self):
@@ -443,7 +451,8 @@ class TestPyGrams(unittest.TestCase):
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
         pygrams.main([f'--outputs_name={output_file_name}', '-f=set', '-p=sum', '-cpc=Y12',
-                      '--date_from=1999/03/12', '--date_to=2000/11/30', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+                      '--date_from=1999/03/12', '--date_to=2000/11/30', '-dh', 'publication_date', '-ds',
+                      patent_pickle_file_name])
 
         mock_open.assert_any_call(json_file_name, 'w')
 
@@ -458,22 +467,22 @@ class TestPyGrams(unittest.TestCase):
                 'to': 200048
             },
             'parameters': {
-                'pick': 'sum',
-                'time': False
+                'pick': 'sum'
             }
         }
         self.assertEqual(expected_json, actual_json)
 
     @mock.patch("scripts.output_factory.json.dump", create=True)
     @mock.patch("scripts.output_factory.open", create=True)
-    def test_json_configuration_encoding_maximal_and_time_weighting(self, mock_open, mock_json_dump):
+    def test_json_configuration_encoding_maximal(self, mock_open, mock_json_dump):
         patent_pickle_file_name = 'USPTO-random-100.pkl.bz2'
         patent_pickle_absolute_file_name = os.path.abspath(os.path.join('data', patent_pickle_file_name))
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
         json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
-        pygrams.main([f'--outputs_name={output_file_name}', '-t', '-p=max', '-cpc=Y12',
-                      '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds', patent_pickle_file_name])
+        pygrams.main([f'--outputs_name={output_file_name}', '-p=max', '-cpc=Y12',
+                      '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds',
+                      patent_pickle_file_name])
 
         mock_open.assert_any_call(json_file_name, 'w')
 
@@ -488,8 +497,7 @@ class TestPyGrams(unittest.TestCase):
                 'to': 200201
             },
             'parameters': {
-                'pick': 'max',
-                'time': True
+                'pick': 'max'
             }
         }
         self.assertEqual(expected_json, actual_json)
