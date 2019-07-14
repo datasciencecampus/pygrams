@@ -409,8 +409,7 @@ It seems that the naive model performs well for short predictions due to the 'wh
 It will be interesting to repeat these experiments on the smoothed timeseries that we can get using the state-space model with the kalman filter. This should demonstrate less bias compared to the predictions made with the noisy series and make the naive model less strong a predictor compared to the others.
 
 ## Usage Examples
-
-pyGrams was run on the example USPTO dataset of 3.2M patents, with predictions generated from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
+This section  demostrates example usage and outputs from the pyGrams pipeline  run on the example USPTO dataset of 3.2M patents. Emergence scoring performed using Porter and predictions generated from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 
 ```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
 
@@ -557,7 +556,7 @@ This is another project proposal currently implemented in partnership with Cardi
 - investigate relationships between keywords in similar groups. Is one technology enabling another?
 - analyze clusters in isolation for faster or more focused processing. For example analyze and forecast emergence for terms showing a sigmoid timeseries pattern.
 
-# Conclusions
+## Conclusions
 
 # References
 
