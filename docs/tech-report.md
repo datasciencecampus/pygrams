@@ -261,7 +261,7 @@ Recent trend:
 $R_{trend} = 10*(\frac {\sum_{i=5}^7 C_i}  {\sum_{i=5}^7 \sqrt{T_i}} - \frac {\sum_{i=1}^3 C_i}  {\sum_{i=1}^3 \sqrt{T_i}})$
 
 Mid period to last period trend:
-$S_{mid} = 10*(\frac {C_6}  {\sqrt{T_6}} - \frac { C_3}  { \sqrt{T_3}})$
+$S_{mid} = 10*(\frac {C_7}  {\sqrt{T_7}} - \frac {C_4}  { \sqrt{T_4}}) / (7-4)$
 
 Emergence score:
 $escore=  2 * A_{trend} + R_{trend} + S_{mid}$
