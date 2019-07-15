@@ -86,7 +86,7 @@ tfidf_{ij} & = & \text{TF-IDF score for term i in document j}\\
 \end{array}
 $
 
-For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are non-normlised:
+For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are not normalised:
 
 **Term Frequency** = 5
 
