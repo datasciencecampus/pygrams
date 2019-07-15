@@ -41,7 +41,7 @@ The idea for this project initially came from the Department for Business, Energ
 - DIT: popular terminology on EU Exit consultations
 
 ## Data and methods
-I the following sections we list the datasets we used as well as methods employed to process thesed data and generate the desired outputs to meet our objectives.
+In the following sections we list the datasets we used as well as methods employed to process these data and generate the desired outputs to meet our objectives.
 
 #### Data Engineering
 
