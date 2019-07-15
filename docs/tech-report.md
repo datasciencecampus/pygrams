@@ -548,7 +548,7 @@ State space models with a Kalman filter have proved to be a very flexible approa
 
 ![img](img/plot_1_internal_combustion_engine.png) ![img](img/plot_4_internal_combustion_engine.png)
 
-We have been experimenting with different emergence scoring formulas and we concluded into using the growth rate to assess emergence [emergence_index_paper_link_here]. The disadvantage of this method over the previous two (Porter and quadratic or sigmoid fit) is the fact that it is slower as the Kalman filter needs parameter optimisation.
+We have been experimenting with different emergence scoring formulas and we concluded that using the growth rate to assess emergence [emergence_index_paper_link_here] was most effective. The disadvantage of this method over the previous two (Porter and quadratic or sigmoid fit) is the fact that it is slower as the Kalman filter needs parameter optimisation.
 
 ### b-splines
 This was a lower priority proposal for us and we decided to partner with the data-science department of Cardiff University to investigate initially as a master's thesis. We endeavour to compare results between b-splines and the state-space model once ready in terms of execution performance and accuracy. Potentially we hope to be able to integrate into the pyGrams pipeline.
