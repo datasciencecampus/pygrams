@@ -541,7 +541,7 @@ This is a map that displays where and when different technologies have been inve
 
 ## Ongoing and future work
 
-The methods and results so far refer to completed an reproducable work available through [pyGrams](https://github.com/datasciencecampus/pyGrams) github repository. There is a backlog of ideas and methods that we are currently evaluating and include in the tool on future versions. Most of them in the area of timeseries interpretation and emergence scoring. The present section lists the most notable ones.
+The methods and results presented refer to completed and reproducible work available through [pyGrams](https://github.com/datasciencecampus/pyGrams) GitHub repository. There is a backlog of ideas and methods that we are currently evaluating and we aim to include in the tool in future versions. This section presents the most notable ideas.
 
 ### State space models
 State space models with a Kalman filter have proved to be a very flexible approach in timeseries analysis. We decided to experiment with this method for our patents dataset and we immidiately seen some potential in the sense that we could analyze a smoothed version of the timeseries whose derivative gives us the growth rate. This growth rate we believe would be more accurate from second degree polynomial fittings that we tried in the past as it will not suffer from poorly fit curves anymore.Using this method, we can either look for an emergence score between two user defined points or look at the longest uphill curve section or the steepest section using simple calculus equations.
