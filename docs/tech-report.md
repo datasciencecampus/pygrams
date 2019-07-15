@@ -281,7 +281,7 @@ We benchmarked quadratic fitting with porter's method for our dataset and the re
 One of the big disadvantages of this approach, is the fact that there are many different common curve patterns that a timeseries could look like, such as polynomial ( linear, quadratic, cubic plus others), sigmoid, exponential, logarithmic. It is impossible and costly in runtime and coding to fit all and pick best. However, this gave us the idea that timeseries can be clustered first and different clusters can be analyzed using different curve patterns. At present we only offer quadratic fitting through our pipeline. Also we investigate the use of [Dynamic Time Warping](#dynamic-time-warping) to cluster terms on their timeseries curve pattern. This will help us observe the presence of dominant clusters in various datasets and add other curve fitting methods as we find fit.
 
 #### Porter emergence scores
-```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt``` (execution time: 07:23 secs)
+```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -ts``` (execution time: 07:23 secs)
 
     mobile device: 			    33.6833326760551
     electronic device: 		    28.63492052752744
@@ -307,7 +307,7 @@ One of the big disadvantages of this approach, is the fact that there are many d
     optical fiber: 			    7.853598239644436
 
 #### Quadratic emergence scores
-```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -emt -cf``` (execution time: 07:48 secs)
+```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -ts -cf``` (execution time: 07:48 secs)
 
     mobile device: 			    26.93560606060607
     electronic device: 		    24.636363636363637
@@ -370,7 +370,7 @@ In addition, we use Keras as our neural network library, where LSTMs can be trai
 #### Prediction Testing - Results and Discussion
 pyGrams can be run in a testing mode, where the last *n* values are retained and not presented to the forecasting algorithm - they are used to test its prediction. The residuals of the predictions are recorded and analysed; these results are output as an HTML report. For example, using the supplied USPTO dataset:
 
-```python pygrams.py -it USPTO-mdf-0.05 -emt --test -pns 0```
+```python pygrams.py -it USPTO-mdf-0.05 -ts --test -pns 0```
 
 An extract of the output is shown below:
 
