@@ -361,7 +361,7 @@ Long Short-Term Memory (LSTM) recurrent neural networks are a powerful tool for 
 
 1. Single LSTM that can predict 1 value ahead (but is called *n* times on its own prediction to generate *n* values ahead)
 2. Single LSTM that can predict *n* values ahead
-3. *n* LSTM models, each model predicts different steps ahead (so merge all results to produce *n* values ahead)
+3. *n* LSTM models, each model predicts a different single step ahead (so merging all results produces *n* values ahead)
 
 The single LSTM with single lookahead can fail due to compound errors - once it goes wrong, its further predictions are then based on erroneous output. A single LSTM predicting *n* outputs at once will have a single prediction pass and in theory be less prone to compound error. Finally, multiple LSTMs each predicting a different step cannot suffer from compound error as they are independent of each other.
 
