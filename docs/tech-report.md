@@ -64,7 +64,7 @@ The UK's patent data in the order of 4 million counts dating from the 1960s was 
 ##### US Data
 To enable us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format to the UK data). This dataset dates from 2004 onwards. The XML data were scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pyGrams. Due to its open source nature and lack of licensing restrictions, this was our dataset of choice to demonstrate results coming out of our pipeline.
 ## Other datasets
-Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, consultation responses and tweeter feeds.
+Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, consultation responses and twitter feeds.
 
 ## Objective 1: Popular Terminology
 
