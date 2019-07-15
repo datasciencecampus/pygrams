@@ -126,7 +126,7 @@ The text corpus is processed so that we strip out accents, ownership and bring i
 #### Post processing
 
 #### Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result. There are alternatives reported in literature, like the [c-value](https://personalpages.manchester.ac.uk/staff/sophia.ananiadou/IJODL2000.pdf) formula, that we endeavour to include in future versions.
+There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result. There are alternatives reported in literature, like the [c-value](https://personalpages.manchester.ac.uk/staff/sophia.ananiadou/IJODL2000.pdf) formula[6], that we endeavour to include in future versions.
 
 #### Reducing the TF-IDF matrix size
 The TF-IDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases which forms the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project, especially when processing datasets like PATSTAT (~32M rows). In order to allow for faster processing and greater versatility in terms of computer specification needed to run the pyGrams pipeline we investigated various optimisations.
@@ -506,36 +506,38 @@ Top declining terms:
 
 The prediction results are as expected - emerging results are predicted to continue to grow, stationary aren't predicted to grow and declining are predicted to decline (or remain at zero usage). Interestingly the use of "logic circuit" is flagged as declining, but isn't obviously showing a dramatic decline such as shown by "programmable logic device"; however, both ARIMA and the LSTM predict decline.
 
-# Outputs
+## Outputs
 
-To assist the user with understanding the relationship between popular terms, various outputs are supported which are now described.
+All the outputs we have seen so far came from running different commands in pyGrams. The emerging and popular terminology is listed with scores in two different text files. Also all the timeseries data are saved as a .csv file available for the user to visualize or further process at will. The timeseries along with the requested predictions (if any), are also available in html format to display in browser, one for each outcome: emerging, stationary and declining terms. All these outputs can be found in the /outputs folder. Further to these outputs pygrams can generate wordclouds and term graphs invisual and textual format
 
-## Force-Directed Graphs (FDG)
-Terms which co-occur in documents are revealed by this visualisation; terms are shown as nodes
-in a graph, with links between nodes if the related terms appear in the same document.
-The size of the node is proportional to the popularity score of the term, and the
-width of the link is proportional to the number of times a term co-occurs.
-
+### Terms Graph
+When graph is requested by the user, a graph data-structure is created where neighbouring nodes are co-occuring terms in a document. Links between neighbouring nodes store the frequency at which the two-terms co-occur. This graph can be output as a visual force-directed graph or a summary text.
+### Force-Directed Graphs (FDG)
+Terms which co-occur in documents are revealed by this visualisation; terms are shown as nodes in a graph, with links between nodes if the related terms appear in the same document.
+The size of the node is proportional to the popularity score of the term, and the width of the link is proportional to the number of times a term co-occurs.
 An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=graph```, an example output is shown below.
 
 ![img](img/fdg.png)
 
 
-## Graph summary
-The relationship between co-occurring terms is also output when an FDG is generated; it is of the form:
+### Graph summary
+The graph of co-occurring terms is also output on a text report when an FDG is generated; it is of the form:
 
-1. semiconductor device:3181.18  -> semiconductor substrate: 1.00, gate electrode: 0.56, semiconductor chip: 0.48, semiconductor layer: 0.46, insulating film: 0.36, dielectric layer: 0.34, conductive layer: 0.33, active region: 0.31, insulating layer: 0.29, gate structure: 0.27
-2. electronic device:2974.36  -> circuit board: 0.14, main body : 0.12, electronic component: 0.10, electrically connect: 0.08, portable electronic device: 0.07, display unit: 0.06, electronic device base: 0.06, user interface: 0.06, external device: 0.05, power supply: 0.05
-3. light source:2861.64  -> light guide plate: 0.33, light beam: 0.32, light emit: 0.23, light guide: 0.20, emit light: 0.17, light source unit: 0.13, optical element: 0.12, optical system: 0.12, lighting device: 0.11, liquid crystal display: 0.11
-4. semiconductor substrate:2602.68  -> semiconductor device: 0.59, gate electrode: 0.32, dielectric layer: 0.23, insulating film: 0.21, active region: 0.21, conductivity type: 0.19, semiconductor layer: 0.18, drain region: 0.15, insulating layer: 0.14, channel region: 0.14
+1. semiconductor device: 3181.18  -> semiconductor substrate: 1.00, gate electrode: 0.56, semiconductor chip: 0.48, semiconductor layer: 0.46, insulating film: 0.36, dielectric layer: 0.34, conductive layer: 0.33, active region: 0.31, insulating layer: 0.29, gate structure: 0.27
+2. electronic device: 2974.36  -> circuit board: 0.14, main body : 0.12, electronic component: 0.10, electrically connect: 0.08, portable electronic device: 0.07, display unit: 0.06, electronic device base: 0.06, user interface: 0.06, external device: 0.05, power supply: 0.05
+3. light source: 2861.64  -> light guide plate: 0.33, light beam: 0.32, light emit: 0.23, light guide: 0.20, emit light: 0.17, light source unit: 0.13, optical element: 0.12, optical system: 0.12, lighting device: 0.11, liquid crystal display: 0.11
+4. semiconductor substrate: 2602.68  -> semiconductor device: 0.59, gate electrode: 0.32, dielectric layer: 0.23, insulating film: 0.21, active region: 0.21, conductivity type: 0.19, semiconductor layer: 0.18, drain region: 0.15, insulating layer: 0.14, channel region: 0.14
 ...
 
-This is output as a text file for further processing, as it indicates a popular term followed by the top 10 co-occurring terms (weighted by term popularity).
+This is output can act as a summary and also as context. It is important to see how popular or emerging terminology is mostly used in the documents.
 
-## Word cloud
-Related to the FDG output, the popularity of a term can instead be mapped to the font size of the term and the top **n** terms displayed as a wordcloud. An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, an example output is shown below.
+### Word clouds
+pyGrams can also generate the ever so popular wordclouds. As it stands at the moment we only do this for popular terminology, but can easily extend to emerging terms if there is demand for it. An example visualisation of the USPTO dataset can be generated with ```python pygrams.py  -it USPTO-mdf-0.05 -o=wordcloud```, an example output is shown below.
 
 ![img](img/wordcloud.png)
+
+## C-ChartoGram
+This is a map that displays where and when different technologies have been invented. Most terminology coming out of the patent documents is associated with a particular technology that was invented at some place at a particular time point. The [Patents C-Chartogram](https://pygrams-patloc.s3.eu-west-2.amazonaws.com/index.html) ( sort for ChronoChartoGram ) has been designed with the js cross-filter library, which allows for fast filtering between the time-place-technologies dimensions. For technical details on its technical design please [read-this-blog] (#c-chart-blog).
 
 ## Ongoing and Future work
 
@@ -546,7 +548,7 @@ State space models with a Kalman filter have proved to be a very flexible approa
 
 ![img](img/plot_1_internal_combustion_engine.png) ![img](img/plot_4_internal_combustion_engine.png)
 
-We have been experimenting with different emergence scoring approaches and we concluded into using the growth rate to assess emergence, but the final shape of the emergence formula is still work in progress. The disadvantage of this method over the previous two (Porter and quadratic or sigmoid fit) is the fact that it is slower as the Kalman filter needs parameter optimisation.
+We have been experimenting with different emergence scoring formulas and we concluded into using the growth rate to assess emergence [emergence_index_paper_link_here]. The disadvantage of this method over the previous two (Porter and quadratic or sigmoid fit) is the fact that it is slower as the Kalman filter needs parameter optimisation.
 
 ### b-splines
 This was a lower priority proposal for us and we decided to partner with the data-science department of Cardiff University to investigate initially as a master's thesis. We endeavour to compare results between b-splines and the state-space model once ready in terms of execution performance and accuracy. Potentially we hope to be able to integrate into pyGrams pipeline.
@@ -557,11 +559,13 @@ This is another project proposal currently implemented in partnership with Cardi
 - analyze clusters in isolation for faster or more focused processing. For example analyze and forecast emergence for terms showing a sigmoid timeseries pattern.
 
 ## Conclusions
+This report demonstrates methodology and results from pyGrams, an open source text processing pipeline that we developed in DSC that outputs timeseries trends from large document collections. Our results in this report were random information retrieval queries to demonstrate how the tool works. Evaluation of the tool will be done in due course form the IPO and possibly from other research groups in ONS analyzing research publications.
 
-# References
+## References
 
 1. <p id="ref1">Porter, A.,  Garner, J., Carley, S, and Newman, N. (2018). Emergence scoring to identify frontier R&D topics and key players. Technological Forecasting and Social Change. 10.1016/j.techfore.2018.04.016.</p>
 2. <p id="ref2">de Jong, P. (1991). The diffuse Kalman filter. The Annals of Statistics. Vol.19, No.2, pp.1073-108.</p>
 3. <p id="ref3">Perktold, J, Seabold, S., and Taylor, J. (2019). Autoregressive Integrated Moving Average ARIMA(p,d,q) Model. https://www.statsmodels.org/dev/generated/statsmodels.tsa.arima_model.ARIMA.html. Retrieved 6.6.2019.</p>
 4. <p id="ref4"> Perktold, J, Seabold, S., and Taylor, J. (2019). Holt Winter’s Exponential Smoothing. https://www.statsmodels.org/dev/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html. Retrieved 6.6.2019.</p>
 5. <p id="ref5"> Zhang, J. and Nawata, K. (2018). Multi-step prediction for influenza outbreak by an adjusted long short-term memory. Epidemeiology and Infection. May 2018, Vol.146, No.7, pp.809-816. doi: 10.1017/S0950268818000705. Epub 2018 Apr 2.</p>
+6. <p id="ref5"> Frantzi K. Ananiadou S, Mima H. (2000). Automatic Recognition of Multi-Word Terms: the C-value/NC-value Method. International Journal on Digital Libraries.</p>
