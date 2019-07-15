@@ -54,21 +54,21 @@ The patent datasets we experimented with in this project were:
 - UK patents
 
 ##### PATSTAT
-[PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) is the global patent archive, including approximately ~100 Million worldwide patents dating from the 1780s. The dataset came in a normalised database schema with a number of tables. Dealing with a worldwide patent dataset is tricky as a single patent can be filed in a number of countries, resulting in a number of different data entries. PATSTAT keeps a record of this via 'patent family', where patents in the same family denote a single invention filled in different countries. However, there are more issues when dealing with worldwide text data, as not all countries speak the same language! So if a patent application is not filed in an English speaking territory, its content is lost from our application as it stands today. In the future we could investigate using translators to process these applications under the same dictionary of words. After the aforementioned data-processing, including sifting patents without recorded abstracts, this resulted in ~32 million patent documents. The code for processing PATSAT into a pyGrams readable format is included in our [opensource package](https://github.com/datasciencecampus/pyGrams/blob/develop/scripts/utils/import_patstat.py).
+[PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) is the global patent archive, including approximately ~100 Million worldwide patents dating from the 1960s. The dataset came in a normalised database schema with a number of tables. Dealing with a worldwide patent dataset is tricky as a single patent can be filed in a number of countries, resulting in a number of different data entries. Thankfully PATSTAT keeps a record of this in most of the cases called 'patent family'. Patents in the same family denote a single invention filled in different countries. However, there are more issues when dealing with worldwide text data, as not all countries speak the same language! So if a patent application is not filed in an English speaking territory, its content is lost from our application as it stands today. In the future we could investigate using translators to process these applications in order to include them under the same dictionary of words. After the aforementioned data-processing, the resulting patent counts for this dataset was in the order of ~32 Million documents. The code for processing PATSAT into a pyGrams readable format is included in our [opensource package](https://github.com/datasciencecampus/pyGrams/blob/develop/scripts/utils/import_patstat.py).
 
 ##### UK Data
 
-The UK's patent data in the order of 4 million counts dating from the 1960s was supplied in XML format. The code for parsing these files is not included in our package yet due to licensing restrictions.
+The UK's patent data in the order of 4 Million counts dating from the 1960s too came in XML format. The code for parsing these files is not included in our package yet due to licensing restrictions.
 
 
 ##### US Data
-To enable us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format to the UK data). This dataset dates from 2004 onwards. The XML data were scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pyGrams. Due to its open source nature and lack of licensing restrictions, this was our dataset of choice to demonstrate results coming out of our pipeline.
+To enable us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format to the UK ones). This dataset dates from 2004 onwards. The XML data were scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pyGrams. Due to its open source nature and lack of licensing restrictions, this was our dataset of choice to demonstrate results coming out of our pipeline.
 ## Other datasets
-Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, consultation responses and twitter feeds.
+Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, consultation responses and tweeter feeds.
 
 ## Objective 1: Popular Terminology
 
-When you type text into a computer it can't understand the words in the way that humans can. For example, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data. There are two main methodologies for converting text in numerical format in NLP, namely the bag of words (BOW) approach and the word vector representation. Both come with their strengths and weaknesses. The BOW model is a sparse matrix of a dictionary of words or phrases with frequency counts. It is accurate for keyword extraction and allows for small phrases to be included, however it cannot capture context. Word vector representations convert terms into high dimensional vectors (50-300d) and can capture context for single words, but cannot easily scale to phrases with the same accuracy. Our tool uses both approaches in different parts of our pipeline.
+When you type text into a computer it can't understand the words in the way that humans can. For example, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data. There are two main methodologies for converting text in numerical format in NLP, namely the bag of words (BOW) approach and the word vector representation. Both come with their strengths and weaknesses. The BOW model is a sparse matrix of a dictionary of words or phrases with frequency counts. It is accurate for keyword extraction and allows for small phrases to be included, however it cannot capture context. Word vector representations on the other side, converts terms into high dimensional vectors (50-300d). It can capture context really well for single words, but cannot scale to phrases easily with the same accuracy. Our tool, uses both approaches in different parts of our pipeline
 
 
 #### Term Frequency - Inverse Document Frequency (TF-IDF)
@@ -86,7 +86,7 @@ tfidf_{ij} & = & \text{TF-IDF score for term i in document j}\\
 \end{array}
 $
 
-For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are not normalised:
+For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are non-normlised:
 
 **Term Frequency** = 5
 
@@ -126,7 +126,7 @@ The text corpus is processed so that we strip out accents, ownership and bring i
 #### Post processing
 
 #### Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result. There are alternatives reported in literature, such as the [c-value](https://personalpages.manchester.ac.uk/staff/sophia.ananiadou/IJODL2000.pdf) formula[6], that we may include in future versions.
+There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result. There are alternatives reported in literature, like the [c-value](https://personalpages.manchester.ac.uk/staff/sophia.ananiadou/IJODL2000.pdf) formula<a href="#ref6">[6]</a>, that we endeavour to include in future versions.
 
 #### Reducing the TF-IDF matrix size
 The TF-IDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases which forms the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project, especially when processing datasets like PATSTAT (~32M rows). In order to allow for faster processing and greater versatility in terms of computer specification needed to run the pyGrams pipeline we investigated various optimisations.
@@ -389,7 +389,7 @@ After examining the output, the predictors for five time periods ahead with lowe
 
 As a comparison, we also ran a predictor for ten time periods ahead:
 
-```python pygrams.py -it USPTO-mdf-0.05 -emt --test -pns 0 -stp 10```
+```python pygrams.py -it USPTO-mdf-0.05 -ts --test -pns 0 -stp 10```
 
 | terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt Winters	|LSTM |LSTM |LSTM |LSTM|LSTM |LSTM |
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
@@ -411,7 +411,7 @@ It will be interesting to repeat these experiments on the smoothed timeseries th
 ## Usage Examples
 This section  demostrates example usage and outputs from the pyGrams pipeline  run on the example USPTO dataset of 3.2M patents. Emergence scoring performed using Porter and predictions generated from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 
-```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9```
+```python pygrams.py -it USPTO-mdf-0.05 -ts -pns 1 5 6 9```
 
 Various outputs are produced; first, the top 250 popular terms are listed:
 
@@ -462,7 +462,7 @@ The results show that very few of the terms are predicted to be emergent or decl
 
 As a comparison, we also ran the same experiment but using term filtering against 'physics':
 
-```python pygrams.py -it USPTO-mdf-0.05 -emt -pns 1 5 6 9 -st physics```
+```python pygrams.py -it USPTO-mdf-0.05 -ts -pns 1 5 6 9 -st physics```
 
 Various outputs are produced; first, the top 250 popular terms are listed:
 
@@ -568,4 +568,4 @@ This report demonstrates methodology and results from pyGrams, an open source te
 3. <p id="ref3">Perktold, J, Seabold, S., and Taylor, J. (2019). Autoregressive Integrated Moving Average ARIMA(p,d,q) Model. https://www.statsmodels.org/dev/generated/statsmodels.tsa.arima_model.ARIMA.html. Retrieved 6.6.2019.</p>
 4. <p id="ref4"> Perktold, J, Seabold, S., and Taylor, J. (2019). Holt Winter’s Exponential Smoothing. https://www.statsmodels.org/dev/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html. Retrieved 6.6.2019.</p>
 5. <p id="ref5"> Zhang, J. and Nawata, K. (2018). Multi-step prediction for influenza outbreak by an adjusted long short-term memory. Epidemeiology and Infection. May 2018, Vol.146, No.7, pp.809-816. doi: 10.1017/S0950268818000705. Epub 2018 Apr 2.</p>
-6. <p id="ref5"> Frantzi K. Ananiadou S, Mima H. (2000). Automatic Recognition of Multi-Word Terms: the C-value/NC-value Method. International Journal on Digital Libraries.</p>
+6. <p id="ref6"> Frantzi K. Ananiadou S, Mima H. (2000). Automatic Recognition of Multi-Word Terms: the C-value/NC-value Method. International Journal on Digital Libraries.</p>
