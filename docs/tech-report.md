@@ -247,7 +247,7 @@ Our pipeline can run with other embedding models, such as [fasttext 300d](https:
 In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the TF-IDF matrix into a time series matrix where each term is receiving a document count over a period. For example, if the period we set is a month and term 'fuel cell' had a non-zero TF-IDF for seventeen documents, it would get a count of seventeen for this month. Once we obtain the time series matrix, we benchmarked three different methods to retrieve emerging terminology. These were:
 - Porter(2018)
 - quadratic and sigmoid fitting
-- state-space model with kalman filter
+- state-space model with Kalman filter
 
 ### Emergence scores
 
