@@ -2,7 +2,7 @@ import numpy as np
 
 
 class TfidfMask(object):
-    def __init__(self, tfidf_obj, ngram_range=(2, 3), uni_factor=0.8):
+    def __init__(self, tfidf_obj, ngram_range=(2, 3), uni_factor=0.8, unbias=False):
         self.__tfidf_matrix = tfidf_obj.tfidf_matrix
         self.__feature_names = tfidf_obj.feature_names
         self.__tfidf_mask = self.__tfidf_matrix.copy()
@@ -11,12 +11,13 @@ class TfidfMask(object):
         self.__uni_factor = uni_factor
         self.__idf = tfidf_obj.idf
 
-        # do unigrams
-        if ngram_range[0] == 1:
-            self.__clean_unigrams(self.__max_bigram())
+        if unbias:
+            # do unigrams
+            if ngram_range[0] == 1:
+                self.__clean_unigrams(self.__max_bigram())
 
-        for i in range(ngram_range[0], ngram_range[1]):
-            self.__unbias_ngrams(i + 1)
+            for i in range(ngram_range[0], ngram_range[1]):
+                self.__unbias_ngrams(i + 1)
 
     @property
     def tfidf_mask(self):

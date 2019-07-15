@@ -1,8 +1,8 @@
 import unittest
 
 from scripts.algorithms.term_focus import TermFocus
-from scripts.text_processing import  LemmaTokenizer
-from scripts.tfidf_wrapper import TFIDF
+from scripts.text_processing import LemmaTokenizer
+from scripts.tfidf_wrapper import tfidf_from_text
 from tests.utils import ReferenceData
 
 
@@ -12,8 +12,8 @@ class TestFocus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.num_ngrams = 5
-        cold_tfidf = TFIDF(ReferenceData.cold_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
-        random_tfidf = TFIDF(ReferenceData.random_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
+        cold_tfidf = tfidf_from_text(ReferenceData.cold_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
+        random_tfidf = tfidf_from_text(ReferenceData.random_df, tokenizer=LemmaTokenizer(), ngram_range=(2, 3))
         cls.tfocus = TermFocus(cold_tfidf, random_tfidf)
 
     def test_popular_ngrams_by_no_focus(self):

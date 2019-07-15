@@ -16,7 +16,7 @@ The app pipeline (more details in the user option section):
 2. **[TFIDF Dictionary](#tfidf-dictionary)**  This is the processed list of terms (ngrams) out of the whole corpus. These terms are the columns of the [TFIDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) sparse matrix. The user can control the following parameters: minimum document frequency, stopwords, ngram range. 
 3. **TFIDF Computation** Grab a coffee if your text corpus is long (>1 million docs) :)
 4. **Filters** These are filters to use on the computed TFIDF matrix. They consist of document filters and term filters
-   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification), document length normalisation and time weighting.
+   1. **[Document Filters](#document-filters)** These filters work on document level. Examples are: date range, column features (eg. cpc classification).
    2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **[Emergence](#emergence-calculations)**
@@ -41,24 +41,15 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
 2. To install pyGrams packages and dependencies, from the root directory (./pyGrams) run:
 
    ``` 
-   pip install -e
+   pip install -e .
    ```
 
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
+   This will install all the libraries and then download their required datasets (namely NLTK's data). Once installed, 
+   setup will run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
-### System requirements
+### System Performance
 
-We have stress-tested `pygrams.py` using Windows 10 (64-bit) with 8GB memory (VM hosted on 2.1GHz Xeon E5-2620). We observed a linear increase in both execution time and memory usage in relation to number of documents analysed, resulting in:
-
-- Processing time: 41.2 documents/sec
-- Memory usage: 236.9 documents/MB
-
-For the sample files, this was recorded as:
-
-- 1,000 documents: 0:00:37
-- 10,000 documents: 0:04:45 (285s); 283MB
-- 100,000 documents: 0:40:10 (2,410s); 810MB
-- 500,000 documents: 3:22:08 (12,128s); 2,550MB
+The system performance was tested using a 2.7GHz Intel Core i7 16GB MacBook Pro using 3.2M US patent abstracts from approximately 2005 to 2018. Indicatively, it initially takes about 6 hours to produce a specially optimised 100,000 term TFIDF Dictionary with a file size under 100MB. Once this is created however, it takes approximately 1 minute to run a pyGrams popular terminology query, or approximately 7 minutes for an emerging terminology query.
 
 ## User guide
 
@@ -118,10 +109,10 @@ python pygrams.py -th='blurb' -dh='published_date'
 
 #### Using a pre-pickled TFIDF file (-it)
 
-In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source:
+In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source. These files are cached automatically upon the first run with data and the directory hosting them inherits the outputs name given. Running pygrams with cached tfidf matrix:
 
 ```
-python pygrams.py -it -out-tfidf.pkl_1.bz2
+python pygrams.py -it USPTO-mdf-0.05
 ```
 
 ### TFIDF Dictionary
@@ -164,6 +155,23 @@ There are three configuration files available inside the config directory:
 
 The first file (stopwords_glob.txt) contains stopwords that are applied to all n-grams. The second file contains stopwords that are applied to all n-grams for n > 1 (bigrams and trigrams). The last file (stopwords_uni.txt) contains stopwords that apply only to unigrams. The users can append stopwords into this files, to stop undesirable output terms.
 
+#### Pre-filter Terms
+
+Given that many of the terms will actually be very rare, they will not be of use when looking for popular terms.
+The total number of terms can easily exceed 1,000,000 and slow down pygrams with
+irrelevant terms. To circumvent this, a prefilter is applied as soon as the TFIDF matrix is created
+which will retain the highest scoring terms by TFIDF (as is calculated and reported at the end of the main pipeline).
+The default is to retain the top 100,000 terms; setting it to 0 will disable it, viz:
+```
+python pygrams.py -pt 0
+```
+Or changed to a different threshold such as 10,000 terms (using the longer argument name for comparison):
+```
+python pygrams.py -prefilter_terms 10000
+```
+Note that the prefilter will change TFIDF results as it will remove rare n-grams - which will
+result in bi-grams & tri-grams having increased scores when rare uni-grams and bi-grams are removed, as we
+unbias results to avoid double or triple counting contained n-grams.
 
 ### Document Filters
 
@@ -194,21 +202,6 @@ python pygrams.py -fh=['female','british'] -fb='union'
 
 This filter assumes that values are '0'/'1', or 'Yes'/'No'.
 
-#### Normalise by document length filter (-ndl)
-
-This option normalises the TFIDF scores by document length.
-
-```
-python pygrams.py -ndl
-```
-
-#### Time-weighting filter (-t)
-
-This option applies a linear weight that starts from 0.01 and ends at 1 between the time limits.
-
-```
-python pygrams.py -t
-```
 
 #### Choosing CPC classification (Patent specific) (-cpc)
 
@@ -226,17 +219,17 @@ In the console the number of subset patents will be stated. For example, for `py
 
 This subsets the TFIDF term dictionary by only keeping terms related to the given search terms.
 ```
-python pygrams.py -st ['pharmacy', 'medicine', 'chemist']
+python pygrams.py -st pharmacy medicine chemist
 ```
 
-### Emergence Calculations
+### Timeseries Calculations
 
-#### Emergence (-emt)
+#### Timeseries (-ts)
 
 An option to choose between popular or emergent terminology outputs. Popular terminology is the default option; emergent terminology can be used by typing:
 
 ```
-python pygrams.py -emt
+python pygrams.py -ts
 ```
 
 #### Curve Fitting (-cf)
@@ -244,10 +237,10 @@ python pygrams.py -emt
 An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
 
 ```
-python pygrams.py -emt -cf
+python pygrams.py -ts -cf
 ```
 
-### Emergence Forecasts
+### Timeseries Forecasts
 
 Various options are available to control how emergence is forecasted.
 
@@ -380,25 +373,25 @@ python pygrams.py -h
 The help output is included below. This starts with a summary of arguments:
 
 ```
-python pygrams.py -h
 usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-dh DATE_HEADER] [-fc FILTER_COLUMNS]
-                  [-fb {union,intersection}] [-df DATE_FROM] [-dt DATE_TO]
-                  [-mn {1,2,3}] [-mx {1,2,3}] [-mdf MAX_DOCUMENT_FREQUENCY]
-                  [-p {median,max,sum,avg}] [-ndl] [-t]
-                  [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
+                  [-fb {union,intersection}]
+                  [-st SEARCH_TERMS [SEARCH_TERMS ...]]
+                  [-stthresh SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...]]
+                  [-df DATE_FROM] [-dt DATE_TO] [-mn {1,2,3}] [-mx {1,2,3}]
+                  [-mdf MAX_DOCUMENT_FREQUENCY] [-ndl] [-pt PREFILTER_TERMS]
+                  [-t] [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
-                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-emt]
+                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-ts]
                   [-pns PREDICTOR_NAMES [PREDICTOR_NAMES ...]] [-nts NTERMS]
-                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cur] [-tst]
-                  [-nrm]
-                  
+                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cf] [-nrm]
+
 extract popular n-grams (words or short phrases) from a corpus of documents
 ```
 It continues with a detailed description of the arguments:
 ```
--h, --help            show this help message and exit
+  -h, --help            show this help message and exit
   -ds DOC_SOURCE, --doc_source DOC_SOURCE
                         the document source to process (default: USPTO-
                         random-1000.pkl.bz2)
@@ -420,6 +413,10 @@ It continues with a detailed description of the arguments:
                         Search terms filter: search terms to restrict the
                         tfidf dictionary. Outputs will be related to search
                         terms (default: [])
+  -stthresh SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...], --search_terms_threshold SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...]
+                        Provides the threshold of how related you want search
+                        terms to be Values between 0 and 1: 0.8 is considered
+                        high (default: 0.75)
   -df DATE_FROM, --date_from DATE_FROM
                         The first date for the document cohort in YYYY/MM/DD
                         format (default: None)
@@ -436,11 +433,14 @@ It continues with a detailed description of the arguments:
   -ndl, --normalize_doc_length
                         normalize tf-idf scores by document length (default:
                         False)
-  -t, --time            weight terms by time (default: False)
+  -pt PREFILTER_TERMS, --prefilter_terms PREFILTER_TERMS
+                        Initially remove all but the top N terms by TFIDF
+                        score before pickling initial TFIDF (removes 'noise'
+                        terms before main processing pipeline starts)
+                        (default: 100000)
   -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
                         Note that this can be defined multiple times to get
-                        more than one output. termcounts represents the term
-                        frequency component of tfidf (default: [])
+                        more than one output. (default: [])
   -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
                         outputs filename (default: out)
   -wt WORDCLOUD_TITLE, --wordcloud_title WORDCLOUD_TITLE
@@ -458,40 +458,19 @@ It continues with a detailed description of the arguments:
   -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
                         the desired cpc classification (for patents only)
                         (default: None)
-  -emt, --emerging_technology
+  -ts, --timeseries
                         denote whether emerging technology should be forecast
                         (default: False)
   -pns PREDICTOR_NAMES [PREDICTOR_NAMES ...], --predictor_names PREDICTOR_NAMES [PREDICTOR_NAMES ...]
-                        0. All options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        1. Naive options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        2. Linear options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        3. Quadratic options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 4. Cubic options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 5. ARIMA options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 6. Holt-Winters options for predictor
-                        algorithms, multiple inputs are allowed, default is to
-                        select Linear (2): 7. LSTM-multiLA-stateful options
-                        for predictor algorithms, multiple inputs are allowed,
-                        default is to select Linear (2): 8. LSTM-multiLA-
-                        stateless options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        9. LSTM-1LA-stateful options for predictor algorithms,
-                        multiple inputs are allowed, default is to select
-                        Linear (2): 10. LSTM-1LA-stateless options for
-                        predictor algorithms, multiple inputs are allowed,
-                        default is to select Linear (2): 11. LSTM-multiM-1LA-
-                        stateful options for predictor algorithms, multiple
-                        inputs are allowed, default is to select Linear (2):
-                        12. LSTM-multiM-1LA-stateless (default: [2])
+                        0. All, 1. Naive, 2. Linear, 3. Quadratic, 4. Cubic,
+                        5. ARIMA, 6. Holt-Winters, 7. LSTM-multiLA-stateful,
+                        8. LSTM-multiLA-stateless, 9. LSTM-1LA-stateful, 10.
+                        LSTM-1LA-stateless, 11. LSTM-multiM-1LA-stateful, 12.
+                        LSTM-multiM-1LA-stateless; multiple inputs are
+                        allowed. (default: [2])
   -nts NTERMS, --nterms NTERMS
                         number of terms to analyse (default: 25)
- mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
+  -mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
                         minimum number of patents per quarter referencing a
                         term (default: 15)
   -stp STEPS_AHEAD, --steps_ahead STEPS_AHEAD

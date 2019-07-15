@@ -15,20 +15,7 @@ from scipy.stats import trim_mean
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from tqdm import tqdm
 
-from scripts.utils.utils import iso_to_gregorian
-
-
-def trim_leading_zero_counts(dates, values):
-    first_non_zero_index = None
-    for index, value in enumerate(values):
-        if value != 0.0:
-            first_non_zero_index = index
-            break
-
-    if first_non_zero_index is None:
-        return [], []
-
-    return dates[first_non_zero_index:], values[first_non_zero_index:]
+from scripts.utils.date_utils import year_week_to_gregorian
 
 
 def plot_to_html_image(plt):
@@ -197,14 +184,14 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
 
 def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
                                      test_values, test_terms, training_values, test_forecasts=False, normalised=False):
-    html_string = f'''    <h2>Graphs</h1>
+    html_string = f'''    <h2>Graphs</h2>
 '''
 
     if normalised:
         test_terms = ['__ number of patents'] + list(test_terms)
 
-    first_patent_date = iso_to_gregorian(weekly_iso_dates[0])
-    last_patent_date = iso_to_gregorian(weekly_iso_dates[-1])
+    first_patent_date = year_week_to_gregorian(weekly_iso_dates[0])
+    last_patent_date = year_week_to_gregorian(weekly_iso_dates[-1])
     html_string += f'Patents from {first_patent_date:%d %B %Y} to {last_patent_date:%d %B %Y}.<p/>\n'
 
     if test_forecasts:
