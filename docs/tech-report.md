@@ -155,7 +155,7 @@ Stop words are words that are ignored as they are are regarded as noise when sta
 
 #### Word embedding
 
-The terms filter in pyGrams is used to filter out terms which are not relevant to terms selected by the user. To do this, it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models such as word2vec or fasttext. Glove has been chosen for practical purposes as it is low in storage and fast on execution.
+The terms filter in pyGrams is used to filter out terms which are not relevant to terms selected by the user. To do this, it uses a GloVe pre-trained word embedding. However, our pipeline can be used with other models such as word2vec or fasttext. GloVe has been chosen for practical purposes as it is low in storage and fast on execution.
 
 ##### What is a GloVe pre-trained word embedding?
 
