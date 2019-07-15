@@ -559,7 +559,7 @@ This is another project proposal currently being investigated in partnership wit
 - analyze clusters in isolation for faster or more focused processing. For example analyze and forecast emergence for terms showing a sigmoid timeseries pattern.
 
 ## Conclusions
-This report demonstrates methodology and results from pyGrams, an open source text processing pipeline that we developed in DSC that outputs timeseries trends from large document collections. Our results in this report were random information retrieval queries to demonstrate how the tool works. Evaluation of the tool will be done in due course form the IPO and possibly from other research groups in ONS analyzing research publications.
+This report demonstrates methodology and results from pyGrams, an open source text processing pipeline that we developed in DSC that outputs timeseries trends from large document collections. Our results in this report were random information retrieval queries to demonstrate how the tool works. Evaluation of the tool will be completed in due course by the IPO and possibly from other research groups in ONS analysing research publications.
 
 ## References
 
