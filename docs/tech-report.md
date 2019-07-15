@@ -539,7 +539,7 @@ pyGrams can also generate the ever so popular wordclouds. As it stands at the mo
 ## C-ChartoGram
 This is a map that displays where and when different technologies have been invented. Most terminology coming out of the patent documents is associated with a particular technology that was invented at some place at a particular time point. The [Patents C-Chartogram](https://pygrams-patloc.s3.eu-west-2.amazonaws.com/index.html) (short for ChronoChartoGram) has been designed with the js cross-filter library, which allows for fast filtering between the time-place-technologies dimensions. For technical details on its technical design please [read-this-blog] (#c-chart-blog).
 
-## Ongoing and Future work
+## Ongoing and future work
 
 The methods and results so far refer to completed an reproducable work available through [pyGrams](https://github.com/datasciencecampus/pyGrams) github repository. There is a backlog of ideas and methods that we are currently evaluating and include in the tool on future versions. Most of them in the area of timeseries interpretation and emergence scoring. The present section lists the most notable ones.
 
