@@ -508,7 +508,7 @@ The prediction results are as expected - emerging results are predicted to conti
 
 ## Outputs
 
-All the outputs we have seen so far came from running different commands in pyGrams. The emerging and popular terminology is listed with scores in two different text files. Also all the timeseries data are saved as a .csv file available for the user to visualize or further process at will. The timeseries along with the requested predictions (if any), are also available in html format to display in browser, one for each outcome: emerging, stationary and declining terms. All these outputs can be found in the /outputs folder. Further to these outputs pygrams can generate wordclouds and term graphs invisual and textual format
+All the outputs we have seen so far came from running different commands in pyGrams. The emerging and popular terminology is listed with scores in two different text files. Also all the timeseries data are saved as a .csv file available for the user to visualize or further process at will. The timeseries along with the requested predictions (if any), are also available in html format to display in a web browser, one for each outcome: emerging, stationary and declining terms. All of these outputs can be found in the /outputs folder. Further to these outputs, pyGrams can generate wordclouds and term graphs in visual and textual format as described below.
 
 ### Terms Graph
 When graph is requested by the user, a graph data-structure is created where neighbouring nodes are co-occuring terms in a document. Links between neighbouring nodes store the frequency at which the two-terms co-occur. This graph can be output as a visual force-directed graph or a summary text.
