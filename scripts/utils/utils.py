@@ -8,6 +8,21 @@ from pandas import to_datetime
 from pandas.api.types import is_string_dtype
 
 
+def stationary_terms(emergence_list, nterms):
+    if len(emergence_list)==0:
+        return []
+    zero_pivot_emergence = 1
+    last_emergence = emergence_list[0][1]
+    for index, value in enumerate(emergence_list[1:]):
+        if value[1] <= 0.0 < last_emergence:
+            zero_pivot_emergence = index
+            break
+        last_emergence = value[1]
+    stationary_start_index = zero_pivot_emergence - nterms // 2
+    stationary_end_index = zero_pivot_emergence + nterms // 2
+    return emergence_list[stationary_start_index:stationary_end_index]
+
+
 def cpc_dict(df):
     if 'classifications_cpc' not in df.columns:
         return None
@@ -172,10 +187,10 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
     return new_tuples
 
 
-def checkdf(df, emtec, docs_mask_dict, text_header, term_counts):
+def checkdf(df, emtec, docs_mask_dict, text_header):
     app_exit = False
 
-    if emtec or docs_mask_dict['time'] or docs_mask_dict['date'] is not None or term_counts:
+    if emtec or docs_mask_dict['date'] is not None :
         if docs_mask_dict['date_header'] not in df.columns:
             print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
             app_exit = True

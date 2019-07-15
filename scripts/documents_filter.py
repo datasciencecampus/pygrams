@@ -41,7 +41,8 @@ class DocumentsFilter(object):
 
     def __filter_cpc(self, cpc):
         indices_set = set()
-        for cpc_item in self.__cpc_dict:
+        for cpc_item in tqdm(self.__cpc_dict, desc='Sifting documents for cpc class: ' +
+                             str(cpc), unit='document', total=len(self.__cpc_dict)):
             if cpc_item.startswith(cpc):
                 indices_set |= self.__cpc_dict[cpc_item]
 

@@ -44,7 +44,8 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
    pip install -e .
    ```
 
-   This will install all the libraries and run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
+   This will install all the libraries and then download their required datasets (namely NLTK's data). Once installed, 
+   setup will run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
 ### System Performance
 
@@ -108,10 +109,10 @@ python pygrams.py -th='blurb' -dh='published_date'
 
 #### Using a pre-pickled TFIDF file (-it)
 
-In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source:
+In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source. These files are cached automatically upon the first run with data and the directory hosting them inherits the outputs name given. Running pygrams with cached tfidf matrix:
 
 ```
-python pygrams.py -it -out-tfidf.pkl_1.bz2
+python pygrams.py -it USPTO-mdf-0.05
 ```
 
 ### TFIDF Dictionary
@@ -221,14 +222,14 @@ This subsets the TFIDF term dictionary by only keeping terms related to the give
 python pygrams.py -st pharmacy medicine chemist
 ```
 
-### Emergence Calculations
+### Timeseries Calculations
 
-#### Emergence (-emt)
+#### Timeseries (-ts)
 
 An option to choose between popular or emergent terminology outputs. Popular terminology is the default option; emergent terminology can be used by typing:
 
 ```
-python pygrams.py -emt
+python pygrams.py -ts
 ```
 
 #### Curve Fitting (-cf)
@@ -236,10 +237,10 @@ python pygrams.py -emt
 An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
 
 ```
-python pygrams.py -emt -cf
+python pygrams.py -ts -cf
 ```
 
-### Emergence Forecasts
+### Timeseries Forecasts
 
 Various options are available to control how emergence is forecasted.
 
@@ -382,7 +383,7 @@ usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-t] [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
-                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-emt]
+                  [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-ts]
                   [-pns PREDICTOR_NAMES [PREDICTOR_NAMES ...]] [-nts NTERMS]
                   [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cf] [-nrm]
 
@@ -437,7 +438,6 @@ It continues with a detailed description of the arguments:
                         score before pickling initial TFIDF (removes 'noise'
                         terms before main processing pipeline starts)
                         (default: 100000)
-  -t, --time            weight terms by time (default: False)
   -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
                         Note that this can be defined multiple times to get
                         more than one output. (default: [])
@@ -458,7 +458,7 @@ It continues with a detailed description of the arguments:
   -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
                         the desired cpc classification (for patents only)
                         (default: None)
-  -emt, --emerging_technology
+  -ts, --timeseries
                         denote whether emerging technology should be forecast
                         (default: False)
   -pns PREDICTOR_NAMES [PREDICTOR_NAMES ...], --predictor_names PREDICTOR_NAMES [PREDICTOR_NAMES ...]
