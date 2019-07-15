@@ -142,7 +142,7 @@ Once the cached object is read we filter rows and columns based on the user quer
 ### Document filtering
 Document filtering comprises:
 
-- Date-Time filters, restricting the corpus to documents with publication dates within a specified range.
+- date-time filters, restricting the corpus to documents with publication dates within a specified range
 - Classification filters, restricting the corpus to documents that belong to specified class(es). For the patents example this is the CPC classification.
 
 ### Term filtering
