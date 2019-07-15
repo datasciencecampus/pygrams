@@ -151,7 +151,7 @@ Term filtering removes individual n-grams (columns) from the TF-IDF matrix as op
 
 #### Stop words
 
-Stop words are words that are ignored as they are are regarded as noise when statistically examining a body of text, and handled using three user configurable files. `stopwords_glob.txt` contains global stop words, including a list of standard English stop words; these stop words are applied before tokenisation. The file `stopwords_n.txt` contains bi-gram or tri-gram stop words. This stop word list is applied after tokenisation for phrases containing more than one word. Finally, the file `stopwords_uni.txt` contains unigram stop words and is also applied after tokenisation.
+Stop words are words that are ignored as they are are regarded as noise when statistically examining a body of text, and handled using three user configurable files. `stopwords_glob.txt` contains global stop words, including a list of standard English stop words; these stop words are applied before tokenisation. The file `stopwords_n.txt` contains bi-gram or tri-gram stop words; these stop words are applied after tokenisation for phrases containing more than one word. Finally, the file `stopwords_uni.txt` contains unigram stop words and is also applied after tokenisation.
 
 #### Word embedding
 
