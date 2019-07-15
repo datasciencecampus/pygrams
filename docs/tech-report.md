@@ -553,7 +553,7 @@ We have been experimenting with different emergence scoring formulas and we conc
 ### b-splines
 This was a lower priority proposal for us and we decided to partner with the data-science department of Cardiff University to investigate initially as a master's thesis. We endeavour to compare results between b-splines and the state-space model once ready in terms of execution performance and accuracy. Potentially we hope to be able to integrate into the pyGrams pipeline.
 
-### Dynamic Time Warping
+### Dynamic time warping
 This is another project proposal currently implemented in partnership with Cardiff University. We aim to be able to cluster 100s of thousands of timeseries resulting from our datasets processed through our pipeline. If successful, this can contribute in a number of ways towards our outputs:
 - investigate relationships between keywords in similar groups. Is one technology enabling another?
 - analyze clusters in isolation for faster or more focused processing. For example analyze and forecast emergence for terms showing a sigmoid timeseries pattern.
