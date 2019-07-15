@@ -349,7 +349,7 @@ A naive predictor used the last value in each time series as the predicted value
 
 #### ARIMA<a href="#ref3">[3]</a>
 
-ARIMA (autoregressive integrated moving average) was applied using a grid search optimisation of its (p, d, q) parameters for each time series, based on training on the earliest 80% of the data and testing on the remaining 20% of data.  The grid search parameters were: p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2].
+ARIMA (Autoregressive Integrated Moving Average) was applied using a grid search optimisation of its (p, d, q) parameters for each time series, based on training on the earliest 80% of the data and testing on the remaining 20% of data.  The grid search parameters were: p = [0, 1, 2, 4, 6], d = [0, 1, 2], q = [0, 1, 2].
 
 #### Holt-Winters<a href="#ref4">[4]</a>
 
