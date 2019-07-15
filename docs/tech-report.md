@@ -332,7 +332,7 @@ One of the big disadvantages of this approach, is that there are many different 
     controller configure: 	            6.560606060606065
     frequency band: 		    6.3212121212121115
 
-The main concern with this method is that not every time series pattern matches a quadratic or a sigmoid curve, in particular time series with multiple curves and stationary points. For this reason we are experimenting with other more flexible approaches like the [state-space model](#state-space-models) and [b-splines](#b-splines).
+The main concern with this method is that not every time series pattern matches a quadratic or a sigmoid curve, in particular time series with multiple curves and stationary points. For this reason we are experimenting with other more flexible approaches such as [state-space models](#state-space-models) and [b-splines](#b-splines).
 
 #### Which method is best?
 It all depends on what outcome is desirable. If we wish for a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns matching a quadratic curve, anywhere in the time series, then quadratic fitting is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter, is the best option. pyGrams offers all the above options.
