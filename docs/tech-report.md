@@ -284,7 +284,7 @@ We benchmarked quadratic fitting with porter's method for our dataset and the re
 One of the big disadvantages of this approach, is that there are many different common curve patterns that a timeseries could match, such as polynomial (linear, quadratic, cubic plus others), sigmoid, exponential, logarithmic. It is impossible and costly in runtime and coding to fit all and pick the best. However, this gave us the idea that timeseries can be clustered first and different clusters can be analysed using different curve patterns. At present we only offer quadratic fitting through our pipeline. We aim to investigate the use of [Dynamic Time Warping](#dynamic-time-warping) to cluster terms on their timeseries curve pattern, as this will help us observe the presence of dominant clusters in various datasets and add other curve fitting methods as required.
 
 #### Porter emergence scores
-```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -ts``` (execution time: 07:23 secs)
+```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -ts``` (execution time: 7m23s)
 
     mobile device: 			    33.6833326760551
     electronic device: 		    28.63492052752744
@@ -310,7 +310,7 @@ One of the big disadvantages of this approach, is that there are many different 
     optical fiber: 			    7.853598239644436
 
 #### Quadratic emergence scores
-```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -ts -cf``` (execution time: 07:48 secs)
+```python pygrams.py -it=USPTO-mdf-0.05 -cpc=G -ts -cf``` (execution time: 7m48s)
 
     mobile device: 			    26.93560606060607
     electronic device: 		    24.636363636363637
@@ -408,11 +408,13 @@ The same two terms have their test output below for comparison with the previous
 The RMSE results show that the multiple model stateful LSTM now improves - giving better results than the single model, reflecting the accumulation of error in the single output model LSTM. The multiple outputs single model LSTM is now much worse, indicating that the model had not learnt the complex shape of the data. Finally, the naive results are now worse than ARIMA and the two LSTM models; only Holt-Winters is worse than the naive approach. This indicates that the short term random variation will not move significantly far away from the last known value, but over time it will drift and cause the naive approach to degrade as an estimate.
 
 In summary and for our USPTO patent dataset, the naive predictor is suitable for short-term forecasts, whereas ARIMA, Holt-Winters and stateful single model, single output LSTM are better suited to longer term forecasts. The multiple model, single output LSTM produced improved results with longer forecast periods, but runs significantly slower (for _n_ time periods, this requires _n_ models and hence trains _n_ times slower than the single model, single output LSTM).
+
 It seems that the naive model performs well for short predictions due to the 'white noise' that our dataset demonstrates. Repeating the same value for the short term prediction has a good chance to get the lowest error on a noisy series. In the long term, where the timeseries may have drifted away from the last historical point, the naive has less chance of successful predictions and a good algorithm should perform better.
-It will be interesting to repeat these experiments on the smoothed timeseries that we can get using the state-space model with the kalman filter. This should demonstrate less bias compared to the predictions made with the noisy series and make the naive model less strong a predictor compared to the others.
+
+It will be interesting to repeat these experiments on the smoothed timeseries that we can get using the state-space model with the Kalman filter. This should demonstrate less bias compared to the predictions made with the noisy series and make the naive model less strong a predictor compared to the others.
 
 ## Usage Examples
-This section  demostrates example usage and outputs from the pyGrams pipeline  run on the example USPTO dataset of 3.2M patents. Emergence scoring performed using Porter and predictions generated from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
+This section demonstrates example usage and outputs from the pyGrams pipeline  run on the example USPTO dataset of 3.2M patents. Emergence scoring performed using Porter and predictions generated from naive, ARIMA, Holt-Winters and stateful single LSTM with single look-ahead:
 
 ```python pygrams.py -it USPTO-mdf-0.05 -ts -pns 1 5 6 9```
 
@@ -511,7 +513,7 @@ The prediction results are as expected - emerging results are predicted to conti
 
 ## Outputs
 
-All the outputs we have seen so far came from running different commands in pyGrams. The emerging and popular terminology is listed with scores in two different text files. Also all the timeseries data are saved as a .csv file available for the user to visualize or further process at will. The timeseries along with the requested predictions (if any), are also available in html format to display in a web browser, one for each outcome: emerging, stationary and declining terms. All of these outputs can be found in the /outputs folder. Further to these outputs, pyGrams can generate wordclouds and term graphs in visual and textual format as described below.
+All the outputs we have seen so far came from running different commands in pyGrams. The emerging and popular terminology is listed with scores in two different text files. Also all the timeseries data are saved as a .csv file available for the user to visualise or further process at will. The timeseries along with the requested predictions (if any), are also available in html format to display in a web browser, one for each outcome: emerging, stationary and declining terms. All of these outputs can be found in the /outputs folder. Further to these outputs, pyGrams can generate wordclouds and term graphs in visual and textual format as described below.
 
 ### Terms Graph
 When graph is requested by the user, a graph data-structure is created where neighbouring nodes are co-occuring terms in a document. Links between neighbouring nodes store the frequency at which the two-terms co-occur. This graph can be output as a visual force-directed graph or a summary text.
