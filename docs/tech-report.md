@@ -14,7 +14,7 @@
 ## Introduction
 Large document collections like patent data, scientific journal applications, job adverts, news articles, tweeter feeds etc. can include valuable insights for policy makers and other government functions. Frequency based methods like TF-IDF or Bag of Word models have proven to be accurate in extracting the key terms and small phrases (2-3 words), but as the number of documents scales up a few technical challenges emerge:
 - memory requirements and compute-running time complexity also scale up
-- different users maybe have different information retrieval needs. For example, analyzing scientific journal publications one user may be interested for trends in micro-electronics and another in pharmacy
+- different users have different information retrieval needs. For example, analyzing scientific journal publications one user may be interested for trends in micro-electronics and another in pharmacy
 
 Recent advances in text processing have also demonstrated that it is possible to analyze trends in text documents, by converting the frequency count matrix into a timeseries.
 The present report describes the data and methods used to generate such insights from large document collections. The report methods and outcomes are demonstrated using patent data, however the scope of this tool is not limited, but can generate results from any large document collections that feature text and date information.
@@ -54,22 +54,21 @@ The patent datasets we experimented with in this project were:
 - UK patents
 
 ##### PATSTAT
-[PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) is the global patent archive, including approximately ~100 million worldwide patents. The dataset came in a normalised database schema with a number of tables. Dealing with a worldwide patent dataset is tricky as a single invention is often filed as a number of individual patent applications in each country (jurisdiction) in which patent protection is sought. This results in a number of different data entries for each invention. Thankfully PATSTAT keeps a record of this in most of the cases called 'patent family'. Patents in the same family denote a single invention filled in different countries. However, there are more issues when dealing with worldwide text data, as not all countries speak the same language! So if a patent application is not filed in an English speaking territory, its content is lost from our application as it stands today. In the future we could investigate using translators to process these applications in order to include them under the same dictionary of words. After the aforementioned data-processing, the resulting patent counts for this dataset was in the order of ~32 million documents. The code for processing PATSAT into a pyGrams readable format is included in our [opensource package](https://github.com/datasciencecampus/pyGrams/blob/develop/scripts/utils/import_patstat.py).
-
+[PATSTAT](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) is the global patent archive, including approximately ~100 million worldwide patents. The dataset came in a normalised database schema with a number of tables. Dealing with a worldwide patent dataset is tricky as a single invention is often filed as a number of individual patent applications in each country (jurisdiction) in which patent protection is sought. This results in a number of different data entries for each invention. PATSTAT keeps a record of this via 'patent family', where patents in the same family denote a single invention filled in different countries. However, there are more issues when dealing with worldwide text data, as not all countries speak the same language! So if a patent application is not filed in an English speaking territory, its content is lost from our application as it stands today. In the future we could investigate using translators to process these applications in order to include them under the same dictionary of words. After the aforementioned data-processing, including sifting patents without recorded abstracts, this resulted in ~32 million patent documents. The code for processing PATSAT into a pyGrams readable format is included in our [opensource package](https://github.com/datasciencecampus/pyGrams/blob/develop/scripts/utils/import_patstat.py).
 
 ##### UK Data
 
-The UK's patent data consist of approximately 1 million entries, dating from the 1960s and came in XML format. The code for parsing these files is not included in our package yet due to licensing restrictions.
-
+The UK's patent data consist of approximately 1 million entries, dating from the 1960s and was supplied in XML format. The code for parsing these files is not included in our package yet due to licensing restrictions.
 
 ##### US Data
-To enable us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format to the UK ones). This dataset dates from 2004 onwards. The XML data were scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pyGrams. Due to its open source nature and lack of licensing restrictions, this was our dataset of choice to demonstrate results coming out of our pipeline.
+To enable us to use large numbers of patent abstracts as soon as possible, we imported the USPTO's [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format to the UK data). This dataset dates from 2004 onwards. The XML data were scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pyGrams. Due to its open source nature and lack of licensing restrictions, this was our dataset of choice to demonstrate results coming out of our pipeline.
+
 ## Other datasets
-Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, consultation responses and tweeter feeds.
+Besides patent data, we have used pyGrams with other text data sources such as job adverts, survey comments, consultation responses and twitter feeds.
 
 ## Objective 1: Popular Terminology
 
-When you type text into a computer it can't understand the words in the way that humans can. For example, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data. There are two main methodologies for converting text in numerical format in NLP, namely the bag of words (BOW) approach and the word vector representation. Both come with their strengths and weaknesses. The BOW model is a sparse matrix of a dictionary of words or phrases with frequency counts. It is accurate for keyword extraction and allows for small phrases to be included, however it cannot capture context. Word vector representations on the other side, converts terms into high dimensional vectors (50-300d). It can capture context really well for single words, but cannot scale to phrases easily with the same accuracy. Our tool, uses both approaches in different parts of our pipeline
+When you type text into a computer it can't understand the words in the way that humans can. For example, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data. There are two main methodologies for converting text in numerical format in NLP, namely the bag of words (BOW) approach and the word vector representation. Both come with their strengths and weaknesses. The BOW model is a sparse matrix of a dictionary of words or phrases with frequency counts. It is accurate for keyword extraction and allows for small phrases to be included, however it cannot capture context. Word vector representations convert terms into high dimensional vectors (50-300d). It can capture context really well for single words, but cannot scale to phrases easily with the same accuracy. Our tool uses both approaches in different parts of our pipeline.
 
 
 #### Term Frequency - Inverse Document Frequency (TF-IDF)
@@ -77,17 +76,21 @@ When you type text into a computer it can't understand the words in the way that
 pyGrams uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short to convert text into numerical form (BOW model with inverse document frequency weighting). TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus. TF-IDF can be calculated by the following equation:
 
 $
+tfidf_{ij} = tf_{ij} * log(\frac{N}{df_i})
+$
+
+Where:
+
+$
 \displaystyle \begin{array}{lll}\\
-\displaystyle &&tfidf_{ij} = tf_{ij} * log(\frac{\ N}{df_i}) \\\\
-\text{Where:}\\ \\
 N & = & \text{number of documents}\\
-\ tf_{ij} & = & \text{term frequency for term i in document j}\\
-df_i & = & \text{document frequency for term i}\\
-tfidf_{ij} & = & \text{TF-IDF score for term i in document j}\\
+\ tf_{ij} & = & \text{term frequency for term {\it i} in document {\it j}}\\
+df_i & = & \text{document frequency for term {\it i}}\\
+tfidf_{ij} & = & \text{TF-IDF score for term {\it i} in document {\it j}}\\
 \end{array}
 $
 
-For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are non-normlised:
+For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are not normalised:
 
 **Term Frequency** = 5
 
@@ -127,13 +130,12 @@ The text corpus is processed so that we strip out accents, ownership and bring i
 #### Post processing
 
 #### Issues when using mixed length phrases
-There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result. There are alternatives reported in literature, like the [c-value](https://personalpages.manchester.ac.uk/staff/sophia.ananiadou/IJODL2000.pdf) formula<a href="#ref6">[6]</a>, that we endeavour to include in future versions.
+There are some issues when using mixed length phrases. That is for a given tri-gram, e.g. 'internal combustion engine', its associated bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams 'internal', 'combustion' and 'engine' will also be counted. To remove double-counting of terms, we post-process the counts and deduct the higher-gram counts from the lower-gram counts in order to have a less biased output of phrases as a result. There are alternatives reported in literature, like the [c-value](https://personalpages.manchester.ac.uk/staff/sophia.ananiadou/IJODL2000.pdf) formula<a href="#ref6">[6]</a>, that we may include in future versions.
 
 #### Reducing the TF-IDF matrix size
 The TF-IDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases which forms the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project, especially when processing datasets like PATSTAT (~32M rows). In order to allow for faster processing and greater versatility in terms of computer specification needed to run the pyGrams pipeline we investigated various optimisations.
 
-We decided to discard low ranked n-grams from the matrix, and also stored document dates as a single integer (rather than a datetime object). The resulting data was then cached.
-The matrix optimisation is performed by choosing the top _n_ phrases (uni-bi-tri-grams) where _n_ is user configurable and defaults to 100,000. The top _n_ phrases are ranked by their sum of TF-IDF over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the TF-IDF as this would mean that we could use uint8 (i.e. a single byte) instead of the TF-IDF data, which defaults to float64 and is eight bytes per non-zero data element. When the cached object is read back, it takes linear time to calculate and apply the weights so is an acceptable trade-off against storing the full TF-IDF matrix. This reduces the size of the cached serialised object by several orders of magnitude, which means in turn it can be de-serialised faster when read back. This way we managed to store 3.2M US patent data documents in just 56.5 Mb with bzip2 compression. This file is stored on our [github page](https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05) and has been used to produce the results in this report.
+We decided to discard low ranked n-grams from the matrix, and also stored document dates as a single integer (rather than a datetime object). The resulting data was then cached. The matrix optimisation is performed by choosing the top _n_ phrases (uni-bi-tri-grams) where _n_ is user configurable and defaults to 100,000. The top _n_ phrases are ranked by their sum of TF-IDF over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the TF-IDF as this would mean that we could use uint8 (i.e. a single byte) instead of the TF-IDF data, which defaults to float64 and is eight bytes per non-zero data element. When the cached object is read back, it takes linear time to calculate and apply the weights so is an acceptable trade-off against storing the full TF-IDF matrix. This reduces the size of the cached serialised object by several orders of magnitude, which means in turn it can be de-serialised faster when read back. This way we managed to store 3.2M US patent data documents in just 56.5 Mb with bzip2 compression. This file is stored on our [github page](https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05) and has been used to produce the results in this report.
 
 We also append the command line arguments used to generate our outputs so that readers can reproduce them if they wish. The time it takes to cache the object for the USPTO dataset is six and a half hours on a macbook pro with 16GB of RAM and i7 processor, but subsequent queries run in the order of one minute for popular terminology and a 7-8 minutes for time series outputs without forecasting.
 
