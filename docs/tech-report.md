@@ -59,7 +59,7 @@ The patent datasets we experimented with in this project were:
 
 ##### UK Data
 
-The UK's patent data in the order of 4 Million counts dating from the 1960s too came in XML format. The code for parsing these files is not included in our package yet due to licensing restrictions.
+The UK's patent data consist of approximately 1 million entries, dating from the 1960s too, came in XML format. The code for parsing these files is not included in our package yet due to licensing restrictions.
 
 
 ##### US Data
