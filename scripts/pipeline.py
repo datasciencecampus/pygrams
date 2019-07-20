@@ -2,7 +2,8 @@ import bz2
 import pickle
 from os import makedirs, path
 
-from pandas import read_pickle
+from pandas import read_pickle, to_datetime
+from pandas.api.types import is_string_dtype
 from tqdm import tqdm
 
 import scripts.data_factory as data_factory
@@ -155,6 +156,7 @@ class Pipeline(object):
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
                                                   WordAnalyzer.stemmed_stop_word_set_n)
+
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require

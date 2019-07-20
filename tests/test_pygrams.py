@@ -139,6 +139,7 @@ class TestPyGrams(unittest.TestCase):
             if dump_args[0][1] == self.tfidfFileName(self.out_name, max_df):
                 tfidf_obj = dump_args[0][0]
 
+
                 assert_func(tfidf_matrix=tfidf_obj.tfidf_matrix, feature_names=tfidf_obj.feature_names)
 
                 results_checked = True
@@ -310,6 +311,7 @@ class TestPyGrams(unittest.TestCase):
             ]
         }
         max_df = 1.0
+
         self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
         args = ['-ds', self.data_source_name, '--date_header',
                 'publication_date', '--max_document_frequency', str(max_df), '--max_ngrams', '1']

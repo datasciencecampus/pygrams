@@ -42,6 +42,7 @@ class TestTfidfReduce(unittest.TestCase):
     def test_terms(self):
         term_score_tuples = self.__term_score_tuples
         actual_terms = [x for _, x in term_score_tuples]
+        
         expected_terms = ['mounting surface',
                           'transmit path',
                           'electronic element',
@@ -89,6 +90,7 @@ class TestTfidfReduce(unittest.TestCase):
                            0.5597177778726654,
                            0.5570860145311556,
                            0.5568900989230109]
+
 
         support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)
 
