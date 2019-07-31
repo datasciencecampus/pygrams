@@ -132,7 +132,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
                         help="analyse using curve or not")
 
-    parser.add_argument("-exp", "--exponential-fitting", default=False, action="store_true",
+    parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
                         help="analyse using exponential type fit or not")
 
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
@@ -179,7 +179,7 @@ def main(supplied_args):
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
-                        curves=args.curve_fitting, nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                        curves=args.curve_fitting, exponential=args.exponential_fitting, nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
                         )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,

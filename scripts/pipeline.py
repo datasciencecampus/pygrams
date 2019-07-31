@@ -26,7 +26,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 curves=True, nterms=50, minimum_patents_per_quarter=20,
+                 curves=True, exponential=False, nterms=50, minimum_patents_per_quarter=20,
                  ):
 
         # load data
@@ -178,6 +178,8 @@ class Pipeline(object):
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
+            if exponential:
+                weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
 
             if len(row_values) == 0:
@@ -189,8 +191,14 @@ class Pipeline(object):
             if max(quarterly_values) < minimum_patents_per_quarter:
                 continue
 
-            if em.init_vars(row_indices, row_values, porter=not curves):
-                escore = em.calculate_escore() if not curves else em.escore2()
+            if em.init_vars(row_indices, row_values):
+                if exponential:
+                    escore = em.escore_exponential(weekly_values)
+                elif curves:
+                    escore = em.escore2()
+                else:
+                    escore = em.calculate_escore()
+
                 self.__emergence_list.append((term_ngram, escore))
 
         nterms2 = min(nterms, len(self.__emergence_list))

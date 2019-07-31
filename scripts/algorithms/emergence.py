@@ -158,7 +158,10 @@ class Emergence(object):
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
     def escore_exponential(self, weekly_values):
-        # eponential like emergence score
+        # todo: Modify not to use weekly_values
+        # todo: Create -exp parameter, e.g. power of weight function (currently linear = 1)
+
+        # exponential like emergence score
         my_weekly_values = weekly_values.copy()
         # convert into whole multiples of 52 (weeks)
         weeks_in_year = 52
