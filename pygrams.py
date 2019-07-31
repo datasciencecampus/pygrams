@@ -132,6 +132,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
                         help="analyse using curve or not")
 
+    parser.add_argument("-exp", "--exponential-fitting", default=False, action="store_true",
+                        help="analyse using exponential type fit or not")
+
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
 

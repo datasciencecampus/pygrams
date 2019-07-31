@@ -198,7 +198,7 @@ class Pipeline(object):
 
         self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
         self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
-        self.__stationary = utils.stationary_terms(self.__emergence_list, nterms2)
+        self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
