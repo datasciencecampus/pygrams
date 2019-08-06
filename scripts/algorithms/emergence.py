@@ -166,7 +166,7 @@ class Emergence(object):
         # convert into whole multiples of 52 (weeks)
         weeks_in_year = 52
         num_complete_years = len(my_weekly_values) // weeks_in_year
-        my_weekly_values = my_weekly_values[-num_years * weeks_in_year:]
+        my_weekly_values = my_weekly_values[-num_complete_years * weeks_in_year:]
         # convert to table with yearly values as rows, then sum rows to obtain yearly values
         weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
         yearly_values = [sum(i) for i in yearly_values]
