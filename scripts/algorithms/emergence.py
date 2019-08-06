@@ -169,7 +169,7 @@ class Emergence(object):
         my_weekly_values = my_weekly_values[-num_complete_years * weeks_in_year:]
         # convert to table with yearly values as rows, then sum rows to obtain yearly values
         weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
-        yearly_values = [sum(i) for i in yearly_values]
+        yearly_values = [sum(i) for i in weekly_by_year_values]
         # calculate score
         sum_weighted_yearly_values = sum(np.multiply(yearly_values[0:num_years], range(0, num_years)))
         sum_yearly_values = sum(yearly_values[0:num_years]) * ((num_years + 1) / 2)
