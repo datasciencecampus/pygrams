@@ -157,22 +157,23 @@ class Emergence(object):
             score = fit_score(normalized_term, y_fit)
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
-    def escore_exponential(self, weekly_values):
+    def escore_exponential(self, weekly_values, power=1):
+        '''exponential like emergence score'''
         # todo: Modify not to use weekly_values
         # todo: Create -exp parameter, e.g. power of weight function (currently linear = 1)
 
-        # exponential like emergence score
         my_weekly_values = weekly_values.copy()
-        # convert into whole multiples of 52 (weeks)
+        # convert into whole years
         weeks_in_year = 52
-        num_complete_years = len(my_weekly_values) // weeks_in_year
-        my_weekly_values = my_weekly_values[-num_complete_years * weeks_in_year:]
+        num_whole_years = len(my_weekly_values) // weeks_in_year
+        my_weekly_values = my_weekly_values[-num_whole_years * weeks_in_year:]
         # convert to table with yearly values as rows, then sum rows to obtain yearly values
         weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
         yearly_values = [sum(i) for i in weekly_by_year_values]
-        # calculate score
-        sum_weighted_yearly_values = sum(np.multiply(yearly_values[0:num_years], range(0, num_years)))
-        sum_yearly_values = sum(yearly_values[0:num_years]) * ((num_years + 1) / 2)
+        # escore = weighted yearly values / yearly values
+        yearly_weights = [x ** power for x in range(0, num_whole_years)]
+        sum_weighted_yearly_values = sum(np.multiply(yearly_values, yearly_weights))
+        sum_yearly_values = sum(yearly_values) * sum(yearly_weights)
         try:
             escore = sum_weighted_yearly_values / sum_yearly_values - 1
         except:

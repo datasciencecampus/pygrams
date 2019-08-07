@@ -178,8 +178,6 @@ class Pipeline(object):
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
-            if exponential:
-                weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
 
             if len(row_values) == 0:
@@ -193,6 +191,7 @@ class Pipeline(object):
 
             if em.init_vars(row_indices, row_values):
                 if exponential:
+                    weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
                     escore = em.escore_exponential(weekly_values)
                 elif curves:
                     escore = em.escore2()
