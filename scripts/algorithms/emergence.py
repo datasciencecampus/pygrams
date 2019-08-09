@@ -160,7 +160,9 @@ class Emergence(object):
     def escore_exponential(self, weekly_values, power=1):
         '''exponential like emergence score
         escore = 1 all yearly_values in the last year
+        escore = 2/3 yearly_values linearly increase from zero over 3 years (0.47 over 6 years, 0.5 infinite years)
         escore = 0 yearly_values equally spread over all years (horizontal line)
+        escore = -2/3 yearly_values linearly decrease to zero over 3 years (-0.47 over 6 years, -0.5 infinite years)
         escore = -1 all yearly_values in the first year
         '''
         # todo: Modify not to use weekly_values
