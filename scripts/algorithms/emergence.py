@@ -158,7 +158,11 @@ class Emergence(object):
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
     def escore_exponential(self, weekly_values, power=1):
-        '''exponential like emergence score'''
+        '''exponential like emergence score
+        escore = 1 all yearly_values in the last year
+        escore = 0 yearly_values equally spread over all years (horizontal line)
+        escore = -1 all yearly_values in the first year
+        '''
         # todo: Modify not to use weekly_values
         # todo: Create -exp parameter, e.g. power of weight function (currently linear = 1)
 
@@ -170,14 +174,16 @@ class Emergence(object):
         # convert to table with yearly values as rows, then sum rows to obtain yearly values
         weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
         yearly_values = [sum(i) for i in weekly_by_year_values]
-        # escore = weighted yearly values / yearly values
+
+        # escore = weighted yearly values / mean weighted yearly values
         yearly_weights = [x ** power for x in range(0, num_whole_years)]
         sum_weighted_yearly_values = sum(np.multiply(yearly_values, yearly_weights))
-        sum_yearly_values = sum(yearly_values) * sum(yearly_weights)
+        sum_mean_weighted_yearly_values = sum(yearly_values) * np.mean(yearly_weights)
         try:
-            escore = sum_weighted_yearly_values / sum_yearly_values - 1
+            # adjust score so that 0 instead of 1 gives a horizontal line (stationary)
+            escore = sum_weighted_yearly_values / sum_mean_weighted_yearly_values - 1
         except:
-            escore = 0  # 0 = horizontal line (stationary)
+            escore = 0
         return escore
 
     def escore_sigm(self, show=False, term=None):
