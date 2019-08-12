@@ -159,17 +159,23 @@ class Emergence(object):
 
     def escore_exponential(self, weekly_values, power=1):
         '''exponential like emergence score
-        escore = 1 all yearly_values in the last year
-        escore = 2/3 yearly_values linearly increase from zero over 3 years (0.47 over 6 years, 0.5 infinite years)
-        escore = 0 yearly_values equally spread over all years (horizontal line)
-        escore = -2/3 yearly_values linearly decrease to zero over 3 years (-0.47 over 6 years, -0.5 infinite years)
-        escore = -1 all yearly_values in the first year
+        Arguments:
+            weekly_values = count of patents occurring in each weekly period
+            power = power of yearly weighting function (linear = 1)
+        Returns:
+            escore = emergence score
+        Examples:
+            escore = 1 all yearly_values in the last year
+            escore = 2/3 yearly_values linearly increase from zero over 3 years (7/15 over 6 years, 0.5 infinite years)
+            escore = 0 yearly_values equally spread over all years (horizontal line)
+            escore = -2/3 yearly_values linearly decrease to zero over 3 years (-7/15 over 6 years, -0.5 infinite years)
+            escore = -1 all yearly_values in the first year
         '''
         # todo: Modify not to use weekly_values
-        # todo: Create -exp parameter, e.g. power of weight function (currently linear = 1)
+        # todo: Create -exp parameter, e.g. power of weight function
 
         my_weekly_values = weekly_values.copy()
-        # convert into whole years
+        # convert into whole years (of 52 weeks, i.e. not exactly 1 calendar year), ending with last weekly value
         weeks_in_year = 52
         num_whole_years = len(my_weekly_values) // weeks_in_year
         my_weekly_values = my_weekly_values[-num_whole_years * weeks_in_year:]
