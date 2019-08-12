@@ -157,7 +157,8 @@ class Emergence(object):
             score = fit_score(normalized_term, y_fit)
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
-    def escore_exponential(self, weekly_values, power=1):
+    @staticmethod
+    def escore_exponential(weekly_values, power=1):
         '''exponential like emergence score
         Arguments:
             weekly_values = count of patents occurring in each weekly period
