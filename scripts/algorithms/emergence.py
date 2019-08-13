@@ -177,12 +177,22 @@ class Emergence(object):
 
         my_weekly_values = weekly_values.copy()
         # convert into whole years (of 52 weeks, i.e. not exactly 1 calendar year), ending with last weekly value
-        weeks_in_year = 52
-        num_whole_years = len(my_weekly_values) // weeks_in_year
-        my_weekly_values = my_weekly_values[-num_whole_years * weeks_in_year:]
+        weeks_in_year = 52.1775
+        num_whole_years = int(len(my_weekly_values) // weeks_in_year)
+        my_weekly_values = my_weekly_values[-int(num_whole_years * weeks_in_year):]
+
         # convert to table with yearly values as rows, then sum rows to obtain yearly values
-        weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
-        yearly_values = [sum(i) for i in weekly_by_year_values]
+        # weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
+        # yearly_values = [sum(i) for i in weekly_by_year_values]
+
+        # create yearly_values
+        yearly_values = []
+        first_week_idx = 0
+        for year in range(num_whole_years):
+            last_week_idx = int((year + 1) * weeks_in_year)
+            weekly_values_in_this_year = my_weekly_values[last_week_idx-int(weeks_in_year):last_week_idx]
+            yearly_values.append(sum(weekly_values_in_this_year))
+            first_week_idx = last_week_idx
 
         # escore = weighted yearly values / mean weighted yearly values
         yearly_weights = [x ** power for x in range(0, num_whole_years)]
