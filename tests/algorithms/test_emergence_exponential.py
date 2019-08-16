@@ -14,19 +14,12 @@ class ExponentialEmergenceTests(unittest.TestCase):
     '''
 
     def setUp(self):
+        self.weeks = 52
         self.places = 5
-        self.weeks_in_year = 52  # 52.1775
-        num_whole_years = 6
-        self.weeks = []
-        for year in range(num_whole_years):
-            self.weeks.append(int((year + 1) * self.weeks_in_year) - int((year) * self.weeks_in_year))
-        pass
 
     def test_emergent_1(self):
         # Arrange
-        weekly_values = [10] * 10 + [0] * self.weeks_in_year + [0] * self.weeks_in_year + [3] * self.weeks_in_year
-        # yearly_weights = [0, 1, 2]
-        # weekly_values = [10] * 10 + sum(np.multiply(yearly_weights * self.weeks[:len(yearly_weights)]))
+        weekly_values = [10] * 10 + [0] * self.weeks + [0] * self.weeks + [3] * self.weeks
         escore_expected = 1
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)
@@ -35,7 +28,7 @@ class ExponentialEmergenceTests(unittest.TestCase):
 
     def test_emergent_2_3(self):
         # Arrange
-        weekly_values = [10] * 10 + [0] * self.weeks_in_year + [1] * self.weeks_in_year + [2] * self.weeks_in_year
+        weekly_values = [10] * 10 + [0] * self.weeks + [1] * self.weeks + [2] * self.weeks
         escore_expected = 2 / 3
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)
@@ -44,7 +37,7 @@ class ExponentialEmergenceTests(unittest.TestCase):
 
     def test_emergent_0(self):
         # Arrange
-        weekly_values = [10] * 10 + [1] * self.weeks_in_year + [1] * self.weeks_in_year + [1] * self.weeks_in_year
+        weekly_values = [10] * 10 + [1] * self.weeks + [1] * self.weeks + [1] * self.weeks
         escore_expected = 0
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)
@@ -53,7 +46,7 @@ class ExponentialEmergenceTests(unittest.TestCase):
 
     def test_emergent_neg_2_3(self):
         # Arrange
-        weekly_values = [10] * 10 + [2] * self.weeks_in_year + [1] * self.weeks_in_year + [0] * self.weeks_in_year
+        weekly_values = [10] * 10 + [2] * self.weeks + [1] * self.weeks + [0] * self.weeks
         escore_expected = -2 / 3
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)
@@ -62,7 +55,7 @@ class ExponentialEmergenceTests(unittest.TestCase):
 
     def test_emergent_neg_1(self):
         # Arrange
-        weekly_values = [10] * 10 + [3] * self.weeks_in_year + [0] * self.weeks_in_year + [0] * self.weeks_in_year
+        weekly_values = [10] * 10 + [3] * self.weeks + [0] * self.weeks + [0] * self.weeks
         escore_expected = -1
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)
@@ -70,8 +63,9 @@ class ExponentialEmergenceTests(unittest.TestCase):
         self.assertAlmostEqual(escore_expected, escore_actual, places=self.places)
 
     def test_emergent_7_15(self):
-        # Arrange
-        weekly_values = [10] * 10 + [0] * self.weeks_in_year + [1] * self.weeks_in_year + [2] * self.weeks_in_year + [3] * self.weeks_in_year + [4] * self.weeks_in_year + [5] * self.weeks_in_year + [5]
+        # Arrange (add an extra leading 0 for the first 53 week year)
+        weekly_values = [10] * 10 + [0] + [0] * self.weeks + [1] * self.weeks + [2] * self.weeks + [3] * self.weeks\
+                        + [4] * self.weeks + [5] * self.weeks
         escore_expected = 7 / 15
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)
@@ -79,8 +73,9 @@ class ExponentialEmergenceTests(unittest.TestCase):
         self.assertAlmostEqual(escore_expected, escore_actual, places=self.places)
 
     def test_emergent_neg_7_15(self):
-        # Arrange
-        weekly_values = [10] * 10 + [5] * self.weeks_in_year + [4] * self.weeks_in_year + [3] * self.weeks_in_year + [2] * self.weeks_in_year + [1] * self.weeks_in_year + [0] * self.weeks_in_year + [0]
+        # Arrange (add an extra leading 0 for the first 53 week year)
+        weekly_values = [10] * 10 + [0] + [5] * self.weeks + [4] * self.weeks + [3] * self.weeks + [2] * self.weeks \
+                        + [1] * self.weeks + [0] * self.weeks
         escore_expected = -7 / 15
         # Act
         escore_actual = Emergence.escore_exponential(weekly_values)

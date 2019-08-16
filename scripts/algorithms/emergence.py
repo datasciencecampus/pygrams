@@ -161,7 +161,7 @@ class Emergence(object):
     def escore_exponential(weekly_values, power=1):
         '''exponential like emergence score
         Arguments:
-            weekly_values = count of patents occurring in each weekly period
+            weekly_values = list containing counts of patents occurring in each weekly period
             power = power of yearly weighting function (linear = 1)
         Returns:
             escore = emergence score
@@ -172,25 +172,25 @@ class Emergence(object):
             escore = -2/3 yearly_values linearly decrease to zero over 3 years (-7/15 over 6 years, -0.5 infinite years)
             escore = -1 all yearly_values in the first year
         '''
-        # todo: Modify not to use weekly_values
+        # todo: Modify not to use weekly values from self?
         # todo: Create -exp parameter, e.g. power of weight function
+        # todo: Consider fractions or multiples of yearly values (effectively weeks per year different to 52)
 
+        # convert into whole years, ending with last weekly value
         my_weekly_values = weekly_values.copy()
-        # convert into whole years (of 52 weeks, i.e. not exactly 1 calendar year), ending with last weekly value
-        weeks_in_year = 52.1775
+        weeks_in_year = 52  # use 52.1775 for mean weeks per calendar year
         num_whole_years = int(len(my_weekly_values) // weeks_in_year)
         my_weekly_values = my_weekly_values[-int(num_whole_years * weeks_in_year):]
 
-        # convert to table with yearly values as rows, then sum rows to obtain yearly values
-        # weekly_by_year_values = np.array(my_weekly_values).reshape(-1, weeks_in_year)
-        # yearly_values = [sum(i) for i in weekly_by_year_values]
-
-        # create yearly_values
+        # calculate yearly values from weekly values
         yearly_values = []
         first_week_idx = 0
         for year in range(num_whole_years):
-            last_week_idx = int((year + 1) * weeks_in_year)
-            weekly_values_in_this_year = my_weekly_values[last_week_idx-int(weeks_in_year):last_week_idx]
+            # last_week_idx more complex if weeks_in_year is a float not integer
+            last_week_idx = first_week_idx \
+                            + int((num_whole_years - year) * weeks_in_year) \
+                            - int((num_whole_years - year -1) * weeks_in_year)
+            weekly_values_in_this_year = my_weekly_values[first_week_idx:last_week_idx]
             yearly_values.append(sum(weekly_values_in_this_year))
             first_week_idx = last_week_idx
 

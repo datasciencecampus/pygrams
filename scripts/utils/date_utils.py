@@ -1,6 +1,5 @@
 import calendar
 import datetime
-import os
 
 import numpy as np
 from pandas import Timestamp
@@ -34,14 +33,7 @@ def year2pandas_earliest_date(year_in, month_in):
     return Timestamp(year_string)
 
 
-def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates, read_from_file=True):
-    filename = os.path.join('outputs', 'weekly_data', 'weekly_data.pickle')
-    # read from file
-    if read_from_file:
-        with open(filename, 'rb') as f:
-            week_counts_csr, week_totals, week_dates = pickle.load(f)
-        return week_counts_csr, week_totals, week_dates
-
+def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
     number_of_rows, number_of_terms = term_value_array.shape
     week_counts_csr = None
 
