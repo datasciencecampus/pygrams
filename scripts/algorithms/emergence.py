@@ -160,6 +160,9 @@ class Emergence(object):
     @staticmethod
     def escore_exponential(weekly_values, power=1):
         '''exponential like emergence score
+        Description
+            An emergence score designed to favour exponential like emergence,
+            based on a yearly weighting function that linearly (power=1) increases from zero
         Arguments:
             weekly_values = list containing counts of patents occurring in each weekly period
             power = power of yearly weighting function (linear = 1)
