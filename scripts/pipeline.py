@@ -26,7 +26,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 curves=True, nterms=50, minimum_patents_per_quarter=20,
+                 curves=True, exponential=False, nterms=50, minimum_patents_per_quarter=20,
                  ):
 
         # load data
@@ -189,8 +189,15 @@ class Pipeline(object):
             if max(quarterly_values) < minimum_patents_per_quarter:
                 continue
 
-            if em.init_vars(row_indices, row_values, porter=not curves):
-                escore = em.calculate_escore() if not curves else em.escore2()
+            if em.init_vars(row_indices, row_values):
+                if exponential:
+                    weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
+                    escore = em.escore_exponential(weekly_values)
+                elif curves:
+                    escore = em.escore2()
+                else:
+                    escore = em.calculate_escore()
+
                 self.__emergence_list.append((term_ngram, escore))
 
         nterms2 = min(nterms, len(self.__emergence_list))
@@ -198,7 +205,7 @@ class Pipeline(object):
 
         self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
         self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
-        self.__stationary = utils.stationary_terms(self.__emergence_list, nterms2)
+        self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:

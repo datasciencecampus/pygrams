@@ -157,6 +157,57 @@ class Emergence(object):
             score = fit_score(normalized_term, y_fit)
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
 
+    @staticmethod
+    def escore_exponential(weekly_values, power=1):
+        '''exponential like emergence score
+        Description
+            An emergence score designed to favour exponential like emergence,
+            based on a yearly weighting function that linearly (power=1) increases from zero
+        Arguments:
+            weekly_values = list containing counts of patents occurring in each weekly period
+            power = power of yearly weighting function (linear = 1)
+        Returns:
+            escore = emergence score
+        Examples:
+            escore = 1 all yearly_values in the last year
+            escore = 2/3 yearly_values linearly increase from zero over 3 years (7/15 over 6 years, 0.5 infinite years)
+            escore = 0 yearly_values equally spread over all years (horizontal line)
+            escore = -2/3 yearly_values linearly decrease to zero over 3 years (-7/15 over 6 years, -0.5 infinite years)
+            escore = -1 all yearly_values in the first year
+        '''
+        # todo: Modify not to use weekly values from self?
+        # todo: Create -exp parameter, e.g. power of weight function
+        # todo: Consider fractions or multiples of yearly values (effectively weeks per year different to 52)
+
+        # convert into whole years, ending with last weekly value
+        my_weekly_values = weekly_values.copy()
+        weeks_in_year = 52  # use 52.1775 for mean weeks per calendar year
+        num_whole_years = int(len(my_weekly_values) // weeks_in_year)
+        my_weekly_values = my_weekly_values[-int(num_whole_years * weeks_in_year):]
+
+        # calculate yearly values from weekly values
+        yearly_values = []
+        first_week_idx = 0
+        for year in range(num_whole_years):
+            # last_week_idx more complex if weeks_in_year is a float not integer
+            last_week_idx = first_week_idx \
+                            + int((num_whole_years - year) * weeks_in_year) \
+                            - int((num_whole_years - year -1) * weeks_in_year)
+            weekly_values_in_this_year = my_weekly_values[first_week_idx:last_week_idx]
+            yearly_values.append(sum(weekly_values_in_this_year))
+            first_week_idx = last_week_idx
+
+        # escore = weighted yearly values / mean weighted yearly values
+        yearly_weights = [x ** power for x in range(0, num_whole_years)]
+        sum_weighted_yearly_values = sum(np.multiply(yearly_values, yearly_weights))
+        sum_mean_weighted_yearly_values = sum(yearly_values) * np.mean(yearly_weights)
+        try:
+            # adjust score so that 0 instead of 1 gives a horizontal line (stationary)
+            escore = sum_weighted_yearly_values / sum_mean_weighted_yearly_values - 1
+        except:
+            escore = 0
+        return escore
+
     def escore_sigm(self, show=False, term=None):
         xdata = np.linspace(1, self.NUM_PERIODS_ACTIVE + self.NUM_PERIODS_BASE,
                             self.NUM_PERIODS_ACTIVE + self.NUM_PERIODS_BASE)

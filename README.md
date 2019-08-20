@@ -20,7 +20,7 @@ The app pipeline (more details in the user option section):
    2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **[Emergence](#emergence-calculations)**
-   1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations or curve fitting. 
+   1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations, curve fitting, or calculations designed to favour exponential like emergence. 
    2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
 8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
@@ -238,6 +238,14 @@ An option to choose between curve fitting or [Porter 2018](https://www.researchg
 
 ```
 python pygrams.py -ts -cf
+```
+
+#### Exponential (-exp)
+
+An option designed to favour exponential like emergence, based on a yearly weighting function that linearly increases from zero, for example:
+
+```
+python pygrams.py -ts -exp
 ```
 
 ### Timeseries Forecasts
