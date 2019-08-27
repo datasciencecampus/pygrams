@@ -17,7 +17,6 @@ sigma2 = as.numeric(dkf.out$sigma2)
 alphahat = matrix(0,ncolZ,ll)
 mse.alphahat = matrix(0,lTT,lTT*ll)
 for (i in 1:ll){
-#Z = matrix(dkf.out$Z[ll-i+1,],1,ncolZ)
 tZ = t(Z)
 D = dkf.out$D[(ll-i+1)]
 E = dkf.out$E[,((ll*ncA0-ncA0*i+1):(ncA0*ll-ncA0*(i-1)))]
@@ -38,7 +37,5 @@ Naux2 = matrix(Naux[,(1:(ncA0-1))],lTT,(ncA0-1))
 mse = (sigma2 * (P - P %*% R %*% P))+(Naux2 %*% mse.gamma %*% t(Naux2))
 mse.alphahat[, (lTT*(ll-i)+1) : (lTT*(ll-i+1)) ] = mse
 }
-#eband.low<-alphahat-2*sqrt(mse.alphahat)
-#eband.high<-alphahat+2*sqrt(mse.alphahat)
 list(alpha=alphahat, mse.alpha = mse.alphahat)
 }
