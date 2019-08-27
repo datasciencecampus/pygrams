@@ -12,7 +12,7 @@ from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score, normal
 
 class Emergence(object):
 
-    def __init__(self, number_of_patents_per_week):
+    def __init__(self, number_of_patents_per_week, num_weeks_period=52):
         self.TERM_BASE_RECS_THRESHOLD = 5000
         self.BASE_TERM2ALL_RATIO_THRESHOLD = 0.15
         self.MIN_DOCS_FOR_EMERGENCE = 7
@@ -21,7 +21,7 @@ class Emergence(object):
         self.NUM_PERIODS_ACTIVE = 7
         self.NUM_PERIODS = self.NUM_PERIODS_BASE + self.NUM_PERIODS_ACTIVE
 
-        self.NUM_WEEKS_PER_PERIOD = 52
+        self.NUM_WEEKS_PER_PERIOD = num_weeks_period
 
         self.__number_of_patents_per_week = arr.array('i', number_of_patents_per_week)
 
@@ -30,13 +30,13 @@ class Emergence(object):
         self.__per_period_counts_all = arr.array('i', [0] * self.NUM_PERIODS)
         self.__per_period_counts_term = arr.array('i', [0] * self.NUM_PERIODS)
 
-    def __check_records(self, num_term_records, term_start_week, term_end_week):
+    def __check_records(self, num_term_records, term_start_week, term_end_week, porter=False):
         if num_term_records < self.MIN_DOCS_FOR_EMERGENCE:
             return False
 
         diff_periods = (term_end_week - term_start_week + 1) / self.NUM_WEEKS_PER_PERIOD
 
-        if ceil(diff_periods) < self.NUM_PERIODS:
+        if ceil(diff_periods) < self.NUM_PERIODS and porter:
             return False
 
         return True
@@ -61,7 +61,7 @@ class Emergence(object):
 
         return counts_term
 
-    def init_vars(self, term_weeks, term_counts):
+    def init_vars(self, term_weeks, term_counts, porter=False):
         # TODO: if len(term_counts) > self.NUM_WEEKS_PER_PERIOD has the same accuracy and 40% performance increase?
 
         num_term_records = len(term_weeks)
@@ -71,7 +71,7 @@ class Emergence(object):
         term_start_week = term_weeks[0]
         term_end_week = term_weeks[-1]
 
-        if self.__check_records(num_term_records, term_start_week, term_end_week):
+        if self.__check_records(num_term_records, term_start_week, term_end_week, porter=porter):
             start_dates = arr.array('i', [term_start_week + period * self.NUM_WEEKS_PER_PERIOD
                                           for period in range(self.NUM_PERIODS + 1)])
             self.__per_period_counts_term = self.__calculate_counts_term(term_weeks, term_counts, start_dates)
@@ -133,7 +133,6 @@ class Emergence(object):
 
         normalized_all = normalize(self.__per_period_counts_all)
         normalized_term = self.__per_period_counts_term
-        normalized_y = normalized_term - normalized_all
 
         trend = np.polyfit(xdata, normalized_term, 2)
         y_fit = trend[2] + (trend[1] * xdata) + (trend[0] * xdata * xdata)
@@ -157,6 +156,57 @@ class Emergence(object):
             print("quadratic: " + str(fit_score(normalized_term, y_fit)))
             score = fit_score(normalized_term, y_fit)
         return  trend[0] if abs(trend[0]) >= 0.001 else trend[1]
+
+    @staticmethod
+    def escore_exponential(weekly_values, power=1):
+        '''exponential like emergence score
+        Description
+            An emergence score designed to favour exponential like emergence,
+            based on a yearly weighting function that linearly (power=1) increases from zero
+        Arguments:
+            weekly_values = list containing counts of patents occurring in each weekly period
+            power = power of yearly weighting function (linear = 1)
+        Returns:
+            escore = emergence score
+        Examples:
+            escore = 1 all yearly_values in the last year
+            escore = 2/3 yearly_values linearly increase from zero over 3 years (7/15 over 6 years, 0.5 infinite years)
+            escore = 0 yearly_values equally spread over all years (horizontal line)
+            escore = -2/3 yearly_values linearly decrease to zero over 3 years (-7/15 over 6 years, -0.5 infinite years)
+            escore = -1 all yearly_values in the first year
+        '''
+        # todo: Modify not to use weekly values from self?
+        # todo: Create -exp parameter, e.g. power of weight function
+        # todo: Consider fractions or multiples of yearly values (effectively weeks per year different to 52)
+
+        # convert into whole years, ending with last weekly value
+        my_weekly_values = weekly_values.copy()
+        weeks_in_year = 52  # use 52.1775 for mean weeks per calendar year
+        num_whole_years = int(len(my_weekly_values) // weeks_in_year)
+        my_weekly_values = my_weekly_values[-int(num_whole_years * weeks_in_year):]
+
+        # calculate yearly values from weekly values
+        yearly_values = []
+        first_week_idx = 0
+        for year in range(num_whole_years):
+            # last_week_idx more complex if weeks_in_year is a float not integer
+            last_week_idx = first_week_idx \
+                            + int((num_whole_years - year) * weeks_in_year) \
+                            - int((num_whole_years - year -1) * weeks_in_year)
+            weekly_values_in_this_year = my_weekly_values[first_week_idx:last_week_idx]
+            yearly_values.append(sum(weekly_values_in_this_year))
+            first_week_idx = last_week_idx
+
+        # escore = weighted yearly values / mean weighted yearly values
+        yearly_weights = [x ** power for x in range(0, num_whole_years)]
+        sum_weighted_yearly_values = sum(np.multiply(yearly_values, yearly_weights))
+        sum_mean_weighted_yearly_values = sum(yearly_values) * np.mean(yearly_weights)
+        try:
+            # adjust score so that 0 instead of 1 gives a horizontal line (stationary)
+            escore = sum_weighted_yearly_values / sum_mean_weighted_yearly_values - 1
+        except:
+            escore = 0
+        return escore
 
     def escore_sigm(self, show=False, term=None):
         xdata = np.linspace(1, self.NUM_PERIODS_ACTIVE + self.NUM_PERIODS_BASE,

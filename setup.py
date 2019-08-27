@@ -1,11 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import atexit
 import io
 import json
+import sys
 from os import path, walk, makedirs
 from shutil import copy
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+
+
+def _post_install():
+    from subprocess import call
+    call([sys.executable, '-m', 'nltk.downloader', 'punkt', 'averaged_perceptron_tagger', 'wordnet'])
+
+
+class CustomInstaller(install):
+    def __init__(self, *args, **kwargs):
+        super(CustomInstaller, self).__init__(*args, **kwargs)
+        atexit.register(_post_install)
 
 
 def load_meta(fp):
@@ -55,10 +69,13 @@ def setup_package():
         ],
 
         install_requires=['matplotlib', 'numpy', 'scipy==1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn',
-                          'xlrd','python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow', 'keras_tqdm',
-                          'patsy', 'humanfriendly', 'psutil', 'jinja2'],
+                          'xlrd', 'python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow',
+                          'keras_tqdm', 'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
         python_requires='>=3.6',
+        cmdclass={
+            'install': CustomInstaller,
+        },
     )
 
 

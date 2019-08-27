@@ -1,6 +1,8 @@
 import argparse
+import csv
 import os
 import sys
+import time
 
 from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
@@ -19,16 +21,19 @@ def get_args(command_line_arguments):
                                      conflict_handler='resolve')  # allows overridng of arguments
 
     # suppressed:________________________________________
-    parser.add_argument("-tc", "--term-counts", default=False,  action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-tc", "--term-counts", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-ih", "--id_header", default=None, help=argparse.SUPPRESS)
     parser.add_argument("-c", "--cite", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-pt", "--path", default='data', help=argparse.SUPPRESS)
+    parser.add_argument("-nmf", "--n_nmf_topics", type=int, default=0, help=argparse.SUPPRESS)
+    # help="NMF topic modelling - number of topics (e.g. 20 or 40)")
 
     # Focus source and function
     parser.add_argument("-f", "--focus", default=None, choices=['set', 'chi2', 'mutual'],
                         help=argparse.SUPPRESS)
     parser.add_argument("-fs", "--focus_source", default='USPTO-random-1000.pkl.bz2', help=argparse.SUPPRESS)
-    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'), help=argparse.SUPPRESS)
+    parser.add_argument("-tn", "--table_name", default=os.path.join('outputs', 'table', 'table.xlsx'),
+                        help=argparse.SUPPRESS)
 
     parser.add_argument("-j", "--json", default=True, action="store_true",
                         help=argparse.SUPPRESS)
@@ -36,6 +41,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-p", "--pick", default='sum', choices=['median', 'max', 'sum', 'avg'],
                         help=argparse.SUPPRESS)
     parser.add_argument("-tst", "--test", default=False, action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-fb", "--filter_by", default='intersection', choices=['union', 'intersection'],
+                        help=argparse.SUPPRESS)
     # end __________________________________________________
 
     # Input files
@@ -51,13 +58,11 @@ def get_args(command_line_arguments):
     # Word filters
     parser.add_argument("-fc", "--filter_columns", default=None,
                         help="list of columns with binary entries by which to filter the rows")
-    parser.add_argument("-fb", "--filter_by", default='union', choices=['union', 'intersection'],
-                        help="Returns filter: intersection where all are 'Yes' or '1'"
-                             "or union where any are 'Yes' or '1' in the defined --filter_columns")
+
     parser.add_argument("-st", "--search_terms", type=str, nargs='+', default=[],
                         help="Search terms filter: search terms to restrict the tfidf dictionary. "
                              "Outputs will be related to search terms")
-    parser.add_argument("-stthresh", "--search_terms_threshold", type=float, nargs='+', default=0.75,
+    parser.add_argument("-stthresh", "--search_terms_threshold", type=float,  default=0.75,
                         help="Provides the threshold of how related you want search terms to be "
                              "Values between 0 and 1: 0.8 is considered high")
     # Time filters
@@ -79,8 +84,10 @@ def get_args(command_line_arguments):
     parser.add_argument("-ndl", "--normalize_doc_length", default=False, action="store_true",
                         help="normalize tf-idf scores by document length")
 
-    # Time weighting
-    parser.add_argument("-t", "--time", default=False, action="store_true", help="weight terms by time")
+    # Remove noise terms before further processing
+    parser.add_argument("-pt", "--prefilter_terms", type=int, default=100000,
+                        help="Initially remove all but the top N terms by TFIDF score before pickling initial TFIDF"
+                             " (removes 'noise' terms before main processing pipeline starts)")
 
     # OUTPUT PARAMETERS
     # select outputs
@@ -108,8 +115,8 @@ def get_args(command_line_arguments):
                         help="the desired cpc classification (for patents only)")
 
     # emtech options
-    parser.add_argument("-emt", "--emerging_technology", default=False, action="store_true",
-                        help="denote whether emerging technology should be forecast")
+    parser.add_argument("-ts", "--timeseries", default=False, action="store_true",
+                        help="denote whether timeseries analysis should take place")
 
     parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
                         help=(", ".join([f"{index}. {value}" for index, value in enumerate(predictor_names)]))
@@ -124,6 +131,9 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
                         help="analyse using curve or not")
+
+    parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
+                        help="analyse using exponential type fit or not")
 
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
@@ -148,6 +158,10 @@ def main(supplied_args):
     outputs.append('report')
     if args.term_counts:
         outputs.append('termcounts')
+    if args.n_nmf_topics > 0:
+        outputs.append('nmf')
+    if args.timeseries:
+        outputs.append('emergence_report')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
@@ -155,23 +169,24 @@ def main(supplied_args):
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
     if args.input_tfidf is None:
-        pickled_tf_idf_path = None
+        pickled_tfidf_folder_name = None
     else:
-        pickled_tf_idf_path = os.path.join('outputs', 'tfidf', args.input_tfidf)
+        pickled_tfidf_folder_name = os.path.join('outputs', 'tfidf', args.input_tfidf)
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
-                        ngram_range=(args.min_ngrams, args.max_ngrams), normalize_rows=args.normalize_doc_length,
-                        text_header=args.text_header, max_df=args.max_document_frequency,
-                        term_counts=args.term_counts, user_ngrams=args.search_terms, terms_threshold=args.search_terms_threshold,
-                        pickled_tf_idf_file_name=pickled_tf_idf_path,
-                        output_name=args.outputs_name, emerging_technology=args.emerging_technology)
+                        ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
+                        pickled_tfidf_folder_name=pickled_tfidf_folder_name,
+                        max_df=args.max_document_frequency, user_ngrams=args.search_terms,
+                        prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
+                        output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
+                        curves=args.curve_fitting, exponential=args.exponential_fitting, nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                        )
 
-    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name, nterms=args.num_ngrams_report)
+    pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
+                    nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
 
     # emtech integration
-    if args.emerging_technology:
-        from scripts.pipeline import PipelineEmtech
-
+    if args.timeseries:
         if 0 in args.predictor_names:
             algs_codes = list(range(1, len(predictor_names)))
         else:
@@ -181,12 +196,6 @@ def main(supplied_args):
             predictors_to_run = [predictor_names[algs_codes]]
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
-
-        term_counts_data = pipeline.term_counts_data
-
-        pipeline_emtech = PipelineEmtech(term_counts_data, m_steps_ahead=args.steps_ahead, curves=args.curve_fitting,
-                                         nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
-                                         outname=args.outputs_name)
 
         for emergence in ['emergent', 'stationary', 'declining']:
             print(f'Running pipeline for "{emergence}"')
@@ -198,8 +207,22 @@ def main(supplied_args):
 
             title += f' ({emergence})'
 
-            html_results = pipeline_emtech.run(predictors_to_run, normalized=args.normalised, train_test=args.test,
-                                        emergence=emergence)
+            html_results, training_values = pipeline.run(predictors_to_run, normalized=args.normalised,
+                                                                train_test=args.test, emergence=emergence)
+            if training_values is None:
+                continue
+            # save training_values to csv file
+            #
+            # training_values:                                  csv file:
+            # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
+            #                                                   'term2', 2, 4, 1, 3
+            #
+            filename = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
+            with open(filename, 'w') as f:
+                w = csv.writer(f)
+                for key, values in training_values:
+                    my_list = ["'" + str(key) + "'"] + values
+                    w.writerow(my_list)
 
             html_doc = f'''<!DOCTYPE html>
                 <html lang="en">
@@ -232,6 +255,15 @@ def main(supplied_args):
 
 if __name__ == '__main__':
     try:
+        start = time.time()
         main(sys.argv[1:])
+        end = time.time()
+        diff = int(end - start)
+        hours = diff // 3600
+        minutes = diff // 60
+        seconds = diff % 60
+
+        print('')
+        print(f"pyGrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
     except PygramsException as err:
         print(f"pyGrams error: {err.message}")
