@@ -193,7 +193,7 @@ class Pipeline(object):
         all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
-        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
+        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]//100), unit='term',
                                desc='Calculating and smoothing quarterly timeseries',
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
@@ -206,17 +206,17 @@ class Pipeline(object):
 
             self.__timeseries_quarterly.append(quarterly_values)
             # smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
-            _, smooth_series, _1, _2 = SteadyStateModel(quarterly_values).run_smoothing()
-            self.__timeseries_quarterly_smoothed.append(smooth_series)
+            _, _1, smooth_series, _2 = SteadyStateModel(quarterly_values).run_smoothing()
+            self.__timeseries_quarterly_smoothed.append(smooth_series[0].tolist()[0])
 
         em = Emergence(all_quarterly_values)
-        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
+        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]//100), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
 
             quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])
 
-            if max(quarterly_values) < minimum_patents_per_quarter or len(quarterly_values) == 0:
+            if max(quarterly_values) < float(minimum_patents_per_quarter) or len(quarterly_values) == 0:
                 continue
             porter = not (curves or exponential)
             if porter and not em.is_emergence_candidate(quarterly_values):

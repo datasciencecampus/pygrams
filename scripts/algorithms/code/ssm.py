@@ -18,6 +18,7 @@ class SteadyStateModel:
     def jacobian(x):
         return np.array((-2 * .5 * (1 - x[0]) - 4 * x[0] * (x[1] - x[0] ** 2), 2 * (x[1] - x[0] ** 2)))
 
+# Calculating and smoothing quarterly timeseries:   1%|          | 1.08k/100k [23:31<36:43:32, 1.34s/term]
     def param_estimator(self, sigma_gnu, sigma_eta, delta):
         param_dictionary = {'sigma_gnu': sigma_gnu, 'sigma_eta': sigma_eta, 'delta': delta}
         param_grid = self.expand_grid(param_dictionary)
@@ -28,7 +29,7 @@ class SteadyStateModel:
             res.append(self.lik_llm_vard(params))
 
         idx = res.index(min(res))
-        optimal_param = minimize(self.lik_llm_vard, param_grid.loc[idx, :].tolist(), method='Newton-CG',  jac=self.jacobian)['x']
+        optimal_param = minimize(self.lik_llm_vard, param_grid.loc[idx, :].tolist(), method='L-BFGS-B')['x']
 
         return optimal_param
 
@@ -49,17 +50,19 @@ class SteadyStateModel:
         P0 = np.matrix(np.zeros(lTT * lTT)).reshape(lTT, lTT)
         P = P0
         Z = np.matrix([1, 0]).reshape(1, lTT)
+        Z_trans = np.transpose(Z)
         DD = np.zeros(timeseries_length)
         elem = [(sigma_gnu ** 2), 0, 0, (sigma_eta ** 2)]
         HHt = np.matrix(elem).reshape(lTT, lTT)
+        np_matrix_zeros_ncA0 = np.matrix(np.zeros(ncA0 - 1))
 
         for i in range(0, timeseries_length):
-            aux2 = np.c_[np.matrix(np.zeros(ncA0 - 1)), self.timeseries[i]].reshape(1, ncA0)
+            aux2 = np.c_[np_matrix_zeros_ncA0, self.timeseries[i]].reshape(1, ncA0)
             E = aux2 - np.matmul(Z, A)
-            D = np.matmul(Z, np.matmul(P, np.transpose(Z))) + GGt
+            D = np.matmul(Z, np.matmul(P, Z_trans)) + GGt
             DD[i] = D
             Dinv = 1 / D
-            K = np.matmul(TT, np.matmul(P, np.matmul(np.transpose(Z), Dinv)))
+            K = np.matmul(TT, np.matmul(P, np.matmul(Z_trans, Dinv)))
             A = np.matmul(TT, A) + np.matmul(K, E)
             L = TT - np.matmul(K, Z)
             P = np.matmul(L, np.matmul(P, np.transpose(TT))) + HHt
@@ -219,7 +222,7 @@ class SteadyStateModel:
 
         return alphahat, mse_alphahat
 
-    def run_smoothing(self, sigma_gnu=[0.5], sigma_eta=[0.5], delta=[0.7]):
+    def run_smoothing(self, sigma_gnu=[0.1, 0.5], sigma_eta=[0.1, 0.5], delta=[0.6,0.7]):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
         alphahat, mse_alphahat = self.smfilt(dfk_out)
