@@ -1,4 +1,7 @@
 import array as arr
+import bz2
+import pickle
+from os import path, makedirs
 
 import numpy as np
 from gensim.models import KeyedVectors
@@ -7,6 +10,25 @@ from gensim.test.utils import datapath, get_tmpfile
 from pandas import to_datetime
 from pandas.api.types import is_string_dtype
 
+
+def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):
+    for idx, period in enumerate(all_quarters):
+        if idx >= len(non_zero_dates):
+            non_zero_dates.append( period)
+            quarterly_values.append( 0)
+        elif period == non_zero_dates[idx]:
+            continue
+        else:
+            non_zero_dates.insert(idx, period)
+            quarterly_values.insert(idx, 0)
+    return non_zero_dates, quarterly_values
+
+def pickle_object(short_name, obj, pickle_path):
+    folder_name = pickle_path
+    makedirs(folder_name, exist_ok=True)
+    file_name = path.join(folder_name,   f'{short_name}.pkl.bz2')
+    with bz2.BZ2File(file_name, 'wb') as pickle_file:
+        pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
 
 def stationary_terms(emergence_list, nterms):
     if len(emergence_list)==0:

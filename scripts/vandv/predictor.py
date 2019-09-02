@@ -6,12 +6,12 @@ from scripts.utils.date_utils import timeseries_weekly_to_quarterly
 
 def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, weekly_iso_dates, test_terms,
                         test_forecasts=False, normalised=False, number_of_patents_per_week=None,
-                        num_prediction_periods=5):
+                        num_prediction_periods=5, smoothed_series = None):
     # TODO: maybe do that before pickling if this is the only place it is used!
     term_counts_per_week_csc = term_counts_per_week.tocsc()
 
     results = {}
-
+    smoothed_training_values = {}
     training_values = {}
     test_values = {}
     test_offset = num_prediction_periods if test_forecasts else 0
@@ -33,6 +33,8 @@ def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, week
 
         term = term_ngrams[term_index]
         training_values[term] = quarterly_float_values[:-test_offset - 1]
+        if smoothed_series is not None:
+            smoothed_training_values[term]=smoothed_series[term_index][:-test_offset - 1]
         if test_forecasts:
             test_values[term] = quarterly_float_values[-test_offset - 1:-1]
 
@@ -55,4 +57,4 @@ def evaluate_prediction(term_counts_per_week, term_ngrams, predictor_names, week
             results[predictor_name][test_term] = (
                 None, model.configuration, predicted_values, len(training_values))
 
-    return results, training_values, test_values
+    return results, training_values, test_values, smoothed_training_values
