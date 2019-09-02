@@ -9,8 +9,7 @@ from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score
 
 class Emergence(object):
 
-    def __init__(self, number_of_patents_per_period):
-        self.TERM_BASE_RECS_THRESHOLD = 5000
+    def __init__(self, timeseries_global):
         self.BASE_TERM2ALL_RATIO_THRESHOLD = 0.15
         self.ACTIVE2BASE_RATIO_THRESHOLD = 2
         self.MIN_DOCS_FOR_EMERGENCE = 7
@@ -19,19 +18,19 @@ class Emergence(object):
         self.NUM_PERIODS_ACTIVE = 7
         self.NUM_PERIODS = self.NUM_PERIODS_BASE + self.NUM_PERIODS_ACTIVE
 
-        self.__number_of_patents_per_period = number_of_patents_per_period
+        self.__timeseries_global = timeseries_global
 
-        total_counts = self.__number_of_patents_per_period[-self.NUM_PERIODS_ACTIVE:]
+        total_counts = self.__timeseries_global[-self.NUM_PERIODS_ACTIVE:]
 
         self.__sum_sqrt_total_counts_123 = sqrt(total_counts[0]) + sqrt(total_counts[1]) + sqrt(total_counts[2])
         self.__sum_sqrt_total_counts_567 = sqrt(total_counts[4]) + sqrt(total_counts[5]) + sqrt(total_counts[6])
 
-    def is_emergence_candidate(self, term_period_counts):
-        num_term_records = len(term_period_counts)
+    def is_emergence_candidate(self, timeseries_term):
+        num_term_records = len(timeseries_term)
 
-        num_records_base_all = sum(self.__number_of_patents_per_period[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
-        num_records_base_term = sum(term_period_counts[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
-        num_records_active_term = sum(term_period_counts[-self.NUM_PERIODS_ACTIVE:])
+        num_records_base_all = sum(self.__timeseries_global[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
+        num_records_base_term = sum(timeseries_term[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
+        num_records_active_term = sum(timeseries_term[-self.NUM_PERIODS_ACTIVE:])
         if num_records_base_term == 0:
             return False
 
@@ -46,30 +45,30 @@ class Emergence(object):
     def has_multiple_author_sets():
         return True
 
-    def calculate_escore(self, term_period_counts):
-        term_counts = term_period_counts[-self.NUM_PERIODS_ACTIVE:]
-        total_counts = self.__number_of_patents_per_period[-self.NUM_PERIODS_ACTIVE:]
+    def calculate_escore(self, timeseries_term):
+        timeseries_term_active = timeseries_term[-self.NUM_PERIODS_ACTIVE:]
+        timeseries_global_active = self.__timeseries_global[-self.NUM_PERIODS_ACTIVE:]
 
-        sum_term_counts_123 = term_counts[0] + term_counts[1] + term_counts[2]
-        sum_term_counts_567 = term_counts[4] + term_counts[5] + term_counts[6]
+        sum_term_counts_123 = timeseries_term_active[0] + timeseries_term_active[1] + timeseries_term_active[2]
+        sum_term_counts_567 = timeseries_term_active[4] + timeseries_term_active[5] + timeseries_term_active[6]
 
         active_period_trend = (sum_term_counts_567 / self.__sum_sqrt_total_counts_567) - (
                 sum_term_counts_123 / self.__sum_sqrt_total_counts_123)
 
         recent_trend = 10 * (
-                (term_counts[5] + term_counts[6]) / (sqrt(total_counts[5]) + sqrt(total_counts[6]))
-                - (term_counts[3] + term_counts[4]) / (sqrt(total_counts[3]) + sqrt(total_counts[4])))
+                (timeseries_term_active[5] + timeseries_term_active[6]) / (sqrt(timeseries_global_active[5]) + sqrt(timeseries_global_active[6]))
+                - (timeseries_term_active[3] + timeseries_term_active[4]) / (sqrt(timeseries_global_active[3]) + sqrt(timeseries_global_active[4])))
 
         mid_year_to_last_year_slope = 10 * (
-                (term_counts[6] / sqrt(total_counts[6])) - (term_counts[3] / sqrt(total_counts[3]))) / 3
+                (timeseries_term_active[6] / sqrt(timeseries_global_active[6])) - (timeseries_term_active[3] / sqrt(timeseries_global_active[3]))) / 3
 
         return 2 * active_period_trend + mid_year_to_last_year_slope + recent_trend
 
     @staticmethod
-    def escore2(term_period_counts, show=False, term=None):
+    def escore2(timeseries_term, show=False, term=None):
 
-        xdata = np.linspace(0, len(term_period_counts) - 1, len(term_period_counts))
-        normalized_term = term_period_counts
+        xdata = np.linspace(0, len(timeseries_term) - 1, len(timeseries_term))
+        normalized_term = timeseries_term
 
         trend = np.polyfit(xdata, normalized_term, 2)
         y_fit = trend[2] + (trend[1] * xdata) + (trend[0] * xdata * xdata)

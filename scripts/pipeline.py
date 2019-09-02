@@ -3,8 +3,7 @@ import pickle
 from scipy.signal import savgol_filter
 from os import makedirs, path
 
-from pandas import read_pickle, to_datetime
-from pandas.api.types import is_string_dtype
+from pandas import read_pickle
 from tqdm import tqdm
 
 import scripts.data_factory as data_factory
@@ -193,7 +192,7 @@ class Pipeline(object):
         all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
-        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]//100), unit='term',
+        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
                                desc='Calculating and smoothing quarterly timeseries',
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
@@ -205,12 +204,13 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
 
             self.__timeseries_quarterly.append(quarterly_values)
-            # smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
-            _, _1, smooth_series, _2 = SteadyStateModel(quarterly_values).run_smoothing()
-            self.__timeseries_quarterly_smoothed.append(smooth_series[0].tolist()[0])
+            smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+            # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
+            # smooth_series = smooth_series_s[0].tolist()[0]
+            self.__timeseries_quarterly_smoothed.append(smooth_series)
 
         em = Emergence(all_quarterly_values)
-        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]//100), unit='term', desc='Calculating eScore',
+        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
 
@@ -273,11 +273,8 @@ class Pipeline(object):
         html_results = ''
 
         results, training_values, test_values, smoothed_training_values = evaluate_prediction(
-            self.__term_counts_per_week, self.__term_ngrams,
-            predictors_to_run, self.__weekly_iso_dates,
-            test_terms=terms, test_forecasts=train_test,
-            normalised=normalized,
-            number_of_patents_per_week=self.__number_of_patents_per_week,
+            self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
+            test_forecasts=train_test, timeseries_global=self.__number_of_patents_per_week if normalized else None,
             num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
 
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
