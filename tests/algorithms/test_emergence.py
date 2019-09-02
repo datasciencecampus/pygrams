@@ -6,12 +6,12 @@ import pandas as pd
 from scipy.sparse import csc_matrix
 
 from scripts.algorithms.emergence import Emergence
-from scripts.utils.utils import get_row_indices_and_values
+from scripts.utils.date_utils import timeseries_weekly_to_yearly
+from scripts.utils.utils import get_row_indices_and_values, fill_missing_zeros
 
 
 class EmergenceTests(unittest.TestCase):
 
-    # temp method to find term ids to use in tests
     def find_term_index(self, term):
         for term_index in range(0, len(self.term_ngrams)):
             if self.term_ngrams[term_index] == term:
@@ -22,20 +22,17 @@ class EmergenceTests(unittest.TestCase):
     def setUpClass(cls):
         [cls.term_counts_per_week, cls.term_ngrams, cls.num_patents_per_week, cls.week_iso_dates] = pd.read_pickle(
             os.path.join('data', 'USPTO-random-500000-term_counts.pkl.bz2'))
-        cls.term_counts_per_week_csc = cls.term_counts_per_week.tocsc()
-        cls.em = Emergence(cls.num_patents_per_week)
+        cls.all_yearly_dates, cls.all_yearly_values = timeseries_weekly_to_yearly(
+            cls.week_iso_dates, cls.num_patents_per_week)
+        cls.em = Emergence(cls.all_yearly_values)
+        cls.term_counts_per_week_csc_common = cls.term_counts_per_week.tocsc()
 
-    def escore_wrapper(self, term_counts_per_week_csc, term_index):
-        term_weeks, term_counts = get_row_indices_and_values(term_counts_per_week_csc, term_index)
-        if self.em.init_vars(term_weeks, term_counts, porter=True):
-            return self.em.calculate_escore()
-        return 0
-
-    def emergence_wrapper(self, term_counts_per_week_csc, term_index):
-        term_weeks, term_counts = get_row_indices_and_values(term_counts_per_week_csc, term_index)
-        if self.em.init_vars(term_weeks, term_counts, porter=True):
-            return self.em.is_emergence_candidate(term_weeks)
-        return False
+    def extract_yearly_values(self, term_index, all_yearly_dates):
+        row_indices, row_values = get_row_indices_and_values(self.term_counts_per_week_csc, term_index)
+        weekly_iso_dates = [self.week_iso_dates[x] for x in row_indices]
+        non_zero_dates, yearly_values = timeseries_weekly_to_yearly(weekly_iso_dates, row_values)
+        non_zero_dates, yearly_values = fill_missing_zeros(yearly_values, non_zero_dates, all_yearly_dates)
+        return yearly_values
 
     def set_up_emergent_term(self):
         # Aim:
@@ -113,120 +110,106 @@ class EmergenceTests(unittest.TestCase):
         self.num_patents_per_week = self.term_counts_matrix.sum(axis=1) > 0
         self.num_patents_per_week = self.num_patents_per_week.astype(dtype=np.int32)
 
-        self.em = Emergence(self.num_patents_per_week)
+        yearly_dates, yearly_values = timeseries_weekly_to_yearly(
+            self.week_iso_dates, self.num_patents_per_week)
 
-    def test_emergent(self):
-        escore_expected = 6.35
-        self.set_up_emergent_term()
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 0)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 0)
-        self.assertTrue(potentially_emergent_actual)
-        self.assertAlmostEqual(escore_expected, escore_actual, places=2)
+        self.em = Emergence(yearly_values)
+
+        return yearly_dates
+
+    def assert_term_escore(self, em_expected, escore_expected, term):
+        term_index = self.find_term_index(term)
+        self.term_counts_per_week_csc = self.term_counts_per_week_csc_common
+
+        yearly_values = self.extract_yearly_values(term_index, self.all_yearly_dates)
+
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
+        escore_actual = self.em.calculate_escore(yearly_values)
+
+        self.assertEqual(em_expected, potentially_emergent_actual, term + ": em failed")
+        self.assertEqual(escore_expected, escore_actual, term + ": escore failed")
 
     def test_term_with_less_than_10_years_data(self):
-        escore_expected = 0
-        self.set_up_emergent_term()
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 4)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 4)
+        all_yearly_dates = self.set_up_emergent_term()
+        yearly_values = self.extract_yearly_values(4, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
         self.assertFalse(potentially_emergent_actual)
-        self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_term_with_less_than_7_occurrences(self):
-        escore_expected = 0
-        self.set_up_emergent_term()
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 7)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 7)
+        all_yearly_dates = self.set_up_emergent_term()
+        yearly_values = self.extract_yearly_values(7, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
         self.assertFalse(potentially_emergent_actual)
-        self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_term_counts_base2all_over_threshold_and_emergent(self):
         escore_expected = 6.35
-        self.set_up_emergent_term()
+        all_yearly_dates = self.set_up_emergent_term()
         self.em.TERM_BASE_RECS_THRESHOLD = 1
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 0)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 0)
+        yearly_values = self.extract_yearly_values(0, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
+        escore_actual = self.em.calculate_escore(yearly_values)
         self.assertTrue(potentially_emergent_actual)
         self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_term_counts_base2all_over_threshold_but_not_emergent(self):
-        escore_expected = 9.24
-        self.set_up_emergent_term()
+        all_yearly_dates = self.set_up_emergent_term()
         self.em.TERM_BASE_RECS_THRESHOLD = 1
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 1)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 1)
+        yearly_values = self.extract_yearly_values(1, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
         self.assertFalse(potentially_emergent_actual)
-        self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_term_with_base_but_no_emergent_instances(self):
-        escore_expected = 0
-        self.set_up_emergent_term()
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 8)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 8)
+        all_yearly_dates = self.set_up_emergent_term()
+        yearly_values = self.extract_yearly_values(8, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
         self.assertFalse(potentially_emergent_actual)
-        self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_non_emergent_with_constant_usage_term(self):
         escore_expected = 0
-        self.set_up_emergent_term()
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 2)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 2)
-        self.assertIsInstance(potentially_emergent_actual, bool)
+        all_yearly_dates = self.set_up_emergent_term()
+        yearly_values = self.extract_yearly_values(2, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
+        escore_actual = self.em.calculate_escore(yearly_values)
+        self.assertEqual(potentially_emergent_actual.dtype, np.dtype('bool'))
         self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_non_emergent_with_decreasing_usage_term(self):
         escore_expected = -4.04
-        self.set_up_emergent_term()
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, 3)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, 3)
-        self.assertFalse(potentially_emergent_actual)
+        all_yearly_dates = self.set_up_emergent_term()
+        self.em.BASE_TERM2ALL_RATIO_THRESHOLD = 1
+        self.em.ACTIVE2BASE_RATIO_THRESHOLD = 0
+        yearly_values = self.extract_yearly_values(3, all_yearly_dates)
+        potentially_emergent_actual = self.em.is_emergence_candidate(yearly_values)
+        escore_actual = self.em.calculate_escore(yearly_values)
+        self.assertTrue(potentially_emergent_actual)
         self.assertAlmostEqual(escore_expected, escore_actual, places=2)
 
     def test_3d_image(self):
         term = '3d image'
-        term_index = self.find_term_index(term)
         escore_expected = 1.356549020713896
         em_expected = True
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, term_index)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, term_index)
-        self.assertEqual(em_expected, potentially_emergent_actual, term + ": em failed")
-        self.assertEqual(escore_expected, escore_actual, term + ": escore failed")
+        self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_3d_display(self):
         term = '3d display'
-        term_index = self.find_term_index(term)
         escore_expected = 0.6398282485477932
         em_expected = True
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, term_index)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, term_index)
-        self.assertEqual(em_expected, potentially_emergent_actual, term + ": em failed")
-        self.assertEqual(escore_expected, escore_actual, term + ": escore failed")
+        self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_ac_power_supply(self):
         term = 'ac power supply'
-        term_index = self.find_term_index(term)
         escore_expected = 0.22047218851712613
         em_expected = True
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, term_index)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, term_index)
-        self.assertEqual(em_expected, potentially_emergent_actual, term + ": em failed")
-        self.assertEqual(escore_expected, escore_actual, term + ": escore failed")
+        self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_acid_molecule(self):
         term = 'acid molecule'
-        term_index = self.find_term_index(term)
         escore_expected = -1.5641832751818254
         em_expected = False
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, term_index)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, term_index)
-        self.assertEqual(em_expected, potentially_emergent_actual, term + ": em failed")
-        self.assertEqual(escore_expected, escore_actual, term + ": escore failed")
+        self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_acid_molecule_encoding(self):
         term = 'acid molecule encoding'
-        term_index = self.find_term_index(term)
         escore_expected = -0.18173715415163488
         em_expected = False
-        potentially_emergent_actual = self.emergence_wrapper(self.term_counts_per_week_csc, term_index)
-        escore_actual = self.escore_wrapper(self.term_counts_per_week_csc, term_index)
-        self.assertEqual(em_expected, potentially_emergent_actual, term + ": em failed")
-        self.assertEqual(escore_expected, escore_actual, term + ": escore failed")
+        self.assert_term_escore(em_expected, escore_expected, term)
