@@ -198,18 +198,18 @@ class EmergenceTests(unittest.TestCase):
 
     def test_ac_power_supply(self):
         term = 'ac power supply'
-        escore_expected = 0.22047218851712613
+        escore_expected = -0.19543452810736667
         em_expected = True
         self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_acid_molecule(self):
         term = 'acid molecule'
-        escore_expected = -1.5641832751818254
+        escore_expected = -0.633235199024181
         em_expected = False
         self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_acid_molecule_encoding(self):
         term = 'acid molecule encoding'
-        escore_expected = -0.18173715415163488
+        escore_expected = -0.3469298902297481
         em_expected = False
         self.assert_term_escore(em_expected, escore_expected, term)
