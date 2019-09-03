@@ -27,7 +27,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 emergence_index='porter', exponential=False, nterms=50, minimum_patents_per_quarter=20,
+                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20,
                  ):
 
         # load data
@@ -221,9 +221,9 @@ class Pipeline(object):
 
             quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])
 
-            if max(quarterly_values) < float(minimum_patents_per_quarter) or len(quarterly_values) == 0:
+            if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
                 continue
-            porter = not (emergence_index or exponential)
+            porter = emergence_index == 'porter'
             if porter and not em.is_emergence_candidate(quarterly_values):
                 continue
 

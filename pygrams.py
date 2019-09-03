@@ -179,7 +179,7 @@ def main(supplied_args):
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
                         emergence_index=args.emergence_index, exponential=args.exponential_fitting, nterms=args.nterms,
-                        minimum_patents_per_quarter=args.minimum_per_quarter,
+                        patents_per_quarter_threshold=args.minimum_per_quarter,
                         )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
