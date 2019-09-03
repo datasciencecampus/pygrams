@@ -9,6 +9,7 @@ from tqdm import tqdm
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
+from scripts.algorithms.code.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
 from scripts.documents_filter import DocumentsFilter
 from scripts.filter_terms import FilterTerms
@@ -166,7 +167,7 @@ class Pipeline(object):
 
         # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
         print(f'Creating timeseries matrix...')
-        read_timeseries_from_cache = False
+        read_timeseries_from_cache = True
         cache = False
         pickled_base_file_name2 = path.join('outputs', 'cached')
         if not read_timeseries_from_cache:
@@ -190,6 +191,8 @@ class Pipeline(object):
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
+        self.__timeseries_intercept = []
+        self.__timeseries_derivatives = []
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
         all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
@@ -207,11 +210,21 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
 
             self.__timeseries_quarterly.append(quarterly_values)
-            smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
 
-            # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
-            # smooth_series = smooth_series_s[0].tolist()[0]
+            if emergence_index == 'gradients':
+                _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
+                smooth_series = smooth_series_s[0].tolist()[0]
+                derivatives = smooth_series_s[1].tolist()[0]
+                self.__timeseries_derivatives.append(derivatives)
+                self.__timeseries_intercept.append(intercept)
+            else:
+                smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+
             self.__timeseries_quarterly_smoothed.append(smooth_series)
+        utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
+        utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
+        utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
+        # self.__timeseries_quarterly_smoothed = read_pickle(path.join(pickled_base_file_name2, 'smooth_series_s.pkl.bz2'))
 
         em = Emergence(all_quarterly_values)
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
@@ -223,15 +236,18 @@ class Pipeline(object):
             if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
                 continue
 
-            if exponential:
-                weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
-                escore = em.escore_exponential(weekly_values)
-            elif emergence_index == 'quadratic':
+            if emergence_index == 'quadratic':
                 escore = em.escore2(quarterly_values)
             elif emergence_index == 'porter':
                 if not em.is_emergence_candidate(quarterly_values):
                     continue
                 escore = em.calculate_escore(quarterly_values)
+            elif emergence_index == 'gradients':
+                derivatives = self.__timeseries_derivatives[term_index]
+                escore = em.net_growth(quarterly_values, derivatives)
+            else:
+                weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
+                escore = em.escore_exponential(weekly_values)
 
             self.__emergence_list.append((term_ngram, escore))
 

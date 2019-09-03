@@ -48,6 +48,9 @@ class Emergence(object):
     def has_multiple_author_sets():
         return True
 
+    def net_growth(self, signal, derivatives):
+        return sum([x/y for x, y in zip(derivatives, signal)])
+
     def calculate_escore(self, timeseries_term):
         timeseries_term_active = timeseries_term[-self.NUM_PERIODS_ACTIVE:]
         timeseries_all_active = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
