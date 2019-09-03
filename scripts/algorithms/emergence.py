@@ -9,7 +9,7 @@ from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score
 
 class Emergence(object):
 
-    def __init__(self, timeseries_global):
+    def __init__(self, timeseries_all):
         self.BASE_TERM2ALL_RATIO_THRESHOLD = 0.15
         self.ACTIVE2BASE_RATIO_THRESHOLD = 2
         self.MIN_DOCS_FOR_EMERGENCE = 7
@@ -18,9 +18,9 @@ class Emergence(object):
         self.NUM_PERIODS_ACTIVE = 7
         self.NUM_PERIODS = self.NUM_PERIODS_BASE + self.NUM_PERIODS_ACTIVE
 
-        self.__timeseries_global = timeseries_global
+        self.__timeseries_all = timeseries_all
 
-        total_counts = self.__timeseries_global[-self.NUM_PERIODS_ACTIVE:]
+        total_counts = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
 
         self.__sum_sqrt_total_counts_123 = sqrt(total_counts[0]) + sqrt(total_counts[1]) + sqrt(total_counts[2])
         self.__sum_sqrt_total_counts_567 = sqrt(total_counts[4]) + sqrt(total_counts[5]) + sqrt(total_counts[6])
@@ -28,7 +28,7 @@ class Emergence(object):
     def is_emergence_candidate(self, timeseries_term):
         num_term_records = len(timeseries_term)
 
-        num_records_base_all = sum(self.__timeseries_global[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
+        num_records_base_all = sum(self.__timeseries_all[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
         num_records_base_term = sum(timeseries_term[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
         num_records_active_term = sum(timeseries_term[-self.NUM_PERIODS_ACTIVE:])
         if num_records_base_term == 0:
@@ -47,7 +47,7 @@ class Emergence(object):
 
     def calculate_escore(self, timeseries_term):
         timeseries_term_active = timeseries_term[-self.NUM_PERIODS_ACTIVE:]
-        timeseries_global_active = self.__timeseries_global[-self.NUM_PERIODS_ACTIVE:]
+        timeseries_global_active = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
 
         sum_term_counts_123 = timeseries_term_active[0] + timeseries_term_active[1] + timeseries_term_active[2]
         sum_term_counts_567 = timeseries_term_active[4] + timeseries_term_active[5] + timeseries_term_active[6]

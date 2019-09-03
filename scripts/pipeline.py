@@ -165,6 +165,7 @@ class Pipeline(object):
         if not calculate_timeseries:
             return
 
+        # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
         print(f'Creating timeseries matrix...')
         read_timeseries_from_cache = True
         cache = False
@@ -184,6 +185,8 @@ class Pipeline(object):
             self.__term_ngrams = self.__tfidf_obj.feature_names
 
         self.__M = m_steps_ahead
+
+        # TODO: define period from command line, then cascade through the code
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
@@ -205,6 +208,7 @@ class Pipeline(object):
 
             self.__timeseries_quarterly.append(quarterly_values)
             smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+
             # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
             # smooth_series = smooth_series_s[0].tolist()[0]
             self.__timeseries_quarterly_smoothed.append(smooth_series)
@@ -274,7 +278,7 @@ class Pipeline(object):
 
         results, training_values, test_values, smoothed_training_values = evaluate_prediction(
             self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
-            test_forecasts=train_test, timeseries_global=self.__number_of_patents_per_week if normalized else None,
+            test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
             num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
 
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,

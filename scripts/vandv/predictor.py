@@ -6,7 +6,7 @@ from scripts.utils.date_utils import timeseries_weekly_to_quarterly
 
 # TODO quarterly values, should become timeseries
 def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_terms, test_forecasts=False,
-                        timeseries_global=None, num_prediction_periods=5, smoothed_series=None):
+                        timeseries_all=None, num_prediction_periods=5, smoothed_series=None):
     # TODO: maybe do that before pickling if this is the only place it is used!
 
     results = {}
@@ -18,24 +18,24 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
     for test_term in test_terms:
         term_index = term_ngrams.index(test_term)
         timeseries_term = timeseries_terms[term_index]
-        if timeseries_global is not None:
-            timeseries_term = [v / c for v, c in zip(timeseries_term, timeseries_global)]
+        if timeseries_all is not None:
+            timeseries_term = [v / c for v, c in zip(timeseries_term, timeseries_all)]
 
-        quarterly_float_values = [float(v) for v in timeseries_term]
+        timeseries_term_float = [float(v) for v in timeseries_term]
 
         term = term_ngrams[term_index]
-        training_values[term] = quarterly_float_values[:-test_offset - 1]
+        training_values[term] = timeseries_term_float[:-test_offset - 1]
         if smoothed_series is not None:
             smoothed_training_values[term]=smoothed_series[term_index][:-test_offset - 1]
         if test_forecasts:
-            test_values[term] = quarterly_float_values[-test_offset - 1:-1]
+            test_values[term] = timeseries_term_float[-test_offset - 1:-1]
 
-    if timeseries_global is not None:
+    if timeseries_all is not None:
         term = '__ number of patents'
         test_terms = [term] + test_terms
-        training_values[term] = [float(x) for x in timeseries_global[:-num_prediction_periods - 1]]
+        training_values[term] = [float(x) for x in timeseries_all[:-num_prediction_periods - 1]]
         if test_forecasts:
-            test_values[term] = [float(x) for x in timeseries_global[-num_prediction_periods - 1:-1]]
+            test_values[term] = [float(x) for x in timeseries_all[-num_prediction_periods - 1:-1]]
 
     for predictor_name in predictor_names:
         results[predictor_name] = {}
