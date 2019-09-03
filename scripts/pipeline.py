@@ -2,6 +2,7 @@ import bz2
 import pickle
 from os import makedirs, path
 
+import numpy as np
 from pandas import read_pickle
 from scipy.signal import savgol_filter
 from tqdm import tqdm
@@ -208,10 +209,11 @@ class Pipeline(object):
 
             self.__timeseries_quarterly.append(quarterly_values)
             smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+            smooth_series_no_negatives = np.clip(smooth_series, a_min=0, a_max=None)
 
             # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
             # smooth_series = smooth_series_s[0].tolist()[0]
-            self.__timeseries_quarterly_smoothed.append(smooth_series)
+            self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives)
 
         em = Emergence(all_quarterly_values)
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
