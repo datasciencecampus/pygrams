@@ -25,9 +25,8 @@ def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):
 
 
 def pickle_object(short_name, obj, pickle_path):
-    folder_name = pickle_path
-    makedirs(folder_name, exist_ok=True)
-    file_name = path.join(folder_name, f'{short_name}.pkl.bz2')
+    makedirs(pickle_path, exist_ok=True)
+    file_name = path.join(pickle_path, f'{short_name}.pkl.bz2')
     with bz2.BZ2File(file_name, 'wb') as pickle_file:
         pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
 

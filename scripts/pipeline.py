@@ -1,15 +1,14 @@
 import bz2
 import pickle
-from scipy.signal import savgol_filter
 from os import makedirs, path
 
 from pandas import read_pickle
+from scipy.signal import savgol_filter
 from tqdm import tqdm
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
-from scripts.algorithms.code.ssm import SteadyStateModel
 from scripts.algorithms.emergence import Emergence
 from scripts.documents_filter import DocumentsFilter
 from scripts.filter_terms import FilterTerms
@@ -223,9 +222,6 @@ class Pipeline(object):
 
             if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
                 continue
-            porter = emergence_index == 'porter'
-            if porter and not em.is_emergence_candidate(quarterly_values):
-                continue
 
             if exponential:
                 weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
@@ -233,6 +229,8 @@ class Pipeline(object):
             elif emergence_index == 'quadratic':
                 escore = em.escore2(quarterly_values)
             elif emergence_index == 'porter':
+                if not em.is_emergence_candidate(quarterly_values):
+                    continue
                 escore = em.calculate_escore(quarterly_values)
 
             self.__emergence_list.append((term_ngram, escore))
