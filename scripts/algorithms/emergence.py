@@ -20,10 +20,13 @@ class Emergence(object):
 
         self.__timeseries_all = timeseries_all
 
-        total_counts = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
-
-        self.__sum_sqrt_total_counts_123 = sqrt(total_counts[0]) + sqrt(total_counts[1]) + sqrt(total_counts[2])
-        self.__sum_sqrt_total_counts_567 = sqrt(total_counts[4]) + sqrt(total_counts[5]) + sqrt(total_counts[6])
+        if len(timeseries_all) >= self.NUM_PERIODS:
+            total_counts = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
+            self.__sum_sqrt_total_counts_123 = sqrt(total_counts[0]) + sqrt(total_counts[1]) + sqrt(total_counts[2])
+            self.__sum_sqrt_total_counts_567 = sqrt(total_counts[4]) + sqrt(total_counts[5]) + sqrt(total_counts[6])
+        else:
+            self.__sum_sqrt_total_counts_123 = None
+            self.__sum_sqrt_total_counts_567 = None
 
     def is_emergence_candidate(self, timeseries_term):
         num_term_records = len(timeseries_term)
@@ -47,7 +50,7 @@ class Emergence(object):
 
     def calculate_escore(self, timeseries_term):
         timeseries_term_active = timeseries_term[-self.NUM_PERIODS_ACTIVE:]
-        timeseries_global_active = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
+        timeseries_all_active = self.__timeseries_all[-self.NUM_PERIODS_ACTIVE:]
 
         sum_term_counts_123 = timeseries_term_active[0] + timeseries_term_active[1] + timeseries_term_active[2]
         sum_term_counts_567 = timeseries_term_active[4] + timeseries_term_active[5] + timeseries_term_active[6]
@@ -56,11 +59,14 @@ class Emergence(object):
                 sum_term_counts_123 / self.__sum_sqrt_total_counts_123)
 
         recent_trend = 10 * (
-                (timeseries_term_active[5] + timeseries_term_active[6]) / (sqrt(timeseries_global_active[5]) + sqrt(timeseries_global_active[6]))
-                - (timeseries_term_active[3] + timeseries_term_active[4]) / (sqrt(timeseries_global_active[3]) + sqrt(timeseries_global_active[4])))
+                (timeseries_term_active[5] + timeseries_term_active[6]) / (
+                    sqrt(timeseries_all_active[5]) + sqrt(timeseries_all_active[6]))
+                - (timeseries_term_active[3] + timeseries_term_active[4]) / (
+                            sqrt(timeseries_all_active[3]) + sqrt(timeseries_all_active[4])))
 
         mid_year_to_last_year_slope = 10 * (
-                (timeseries_term_active[6] / sqrt(timeseries_global_active[6])) - (timeseries_term_active[3] / sqrt(timeseries_global_active[3]))) / 3
+                (timeseries_term_active[6] / sqrt(timeseries_all_active[6])) - (
+                    timeseries_term_active[3] / sqrt(timeseries_all_active[3]))) / 3
 
         return 2 * active_period_trend + mid_year_to_last_year_slope + recent_trend
 
