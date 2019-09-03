@@ -2,8 +2,8 @@ import bz2
 import pickle
 from os import makedirs, path
 
-from pandas import read_pickle, to_datetime
-from pandas.api.types import is_string_dtype
+from pandas import read_pickle
+from scipy.signal import savgol_filter
 from tqdm import tqdm
 
 import scripts.data_factory as data_factory
@@ -26,7 +26,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 curves=True, exponential=False, nterms=50, minimum_patents_per_quarter=20,
+                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20,
                  ):
 
         # load data
@@ -157,7 +157,6 @@ class Pipeline(object):
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
                                                   WordAnalyzer.stemmed_stop_word_set_n)
 
-
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
 
@@ -165,40 +164,76 @@ class Pipeline(object):
         if not calculate_timeseries:
             return
 
+        # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
         print(f'Creating timeseries matrix...')
-        self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
-        [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
-         self.__weekly_iso_dates] = self.__timeseries_data
+        read_timeseries_from_cache = False
+        cache = False
+        pickled_base_file_name2 = path.join('outputs', 'cached')
+        if not read_timeseries_from_cache:
+            self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
+            [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
+             self.__weekly_iso_dates] = self.__timeseries_data
+            if cache:
+                utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, pickled_base_file_name2)
+                utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, pickled_base_file_name2)
+                utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, pickled_base_file_name2)
+        else:
+            self.__term_counts_per_week = read_pickle(path.join(pickled_base_file_name2, 'weekly_series_terms.pkl.bz2'))
+            self.__number_of_patents_per_week = read_pickle(
+                path.join(pickled_base_file_name2, 'weekly_series_global.pkl.bz2'))
+            self.__weekly_iso_dates = read_pickle(path.join(pickled_base_file_name2, 'weekly_isodates.pkl.bz2'))
+            self.__term_ngrams = self.__tfidf_obj.feature_names
 
         self.__M = m_steps_ahead
 
+        # TODO: define period from command line, then cascade through the code
+
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
+        self.__timeseries_quarterly = []
+        self.__timeseries_quarterly_smoothed = []
+        self.__term_nonzero_dates = []
+        all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
+            self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
-        em = Emergence(self.__number_of_patents_per_week)
-        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
+        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
+                               desc='Calculating and smoothing quarterly timeseries',
                                leave=False, unit_scale=True):
-            term_ngram = self.__term_ngrams[term_index]
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
-
-            if len(row_values) == 0:
-                continue
 
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
 
-            _, quarterly_values = scripts.utils.date_utils.timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
-            if max(quarterly_values) < minimum_patents_per_quarter:
+            non_zero_dates, quarterly_values = scripts.utils.date_utils.timeseries_weekly_to_quarterly(weekly_iso_dates,
+                                                                                                       row_values)
+            non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
+
+            self.__timeseries_quarterly.append(quarterly_values)
+            smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+
+            # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
+            # smooth_series = smooth_series_s[0].tolist()[0]
+            self.__timeseries_quarterly_smoothed.append(smooth_series)
+
+        em = Emergence(all_quarterly_values)
+        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
+                               leave=False, unit_scale=True):
+            term_ngram = self.__term_ngrams[term_index]
+
+            quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])
+
+            if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
                 continue
 
-            if em.init_vars(row_indices, row_values):
-                if exponential:
-                    weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
-                    escore = em.escore_exponential(weekly_values)
-                elif curves:
-                    escore = em.escore2()
-                else:
-                    escore = em.calculate_escore()
+            if exponential:
+                weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
+                escore = em.escore_exponential(weekly_values)
+            elif emergence_index == 'quadratic':
+                escore = em.escore2(quarterly_values)
+            elif emergence_index == 'porter':
+                if not em.is_emergence_candidate(quarterly_values):
+                    continue
+                escore = em.calculate_escore(quarterly_values)
 
-                self.__emergence_list.append((term_ngram, escore))
+            self.__emergence_list.append((term_ngram, escore))
 
         nterms2 = min(nterms, len(self.__emergence_list))
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
@@ -209,7 +244,7 @@ class Pipeline(object):
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
-            output_factory.create(output_type, self.__term_score_tuples, wordcloud_title=wordcloud_title,
+            output_factory.create(output_type, self.__term_score_tuples,emergence_list=self.__emergence_list, wordcloud_title=wordcloud_title,
                                   tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
                                   nterms=nterms, timeseries_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
@@ -240,12 +275,10 @@ class Pipeline(object):
 
         html_results = ''
 
-        results, training_values, test_values = evaluate_prediction(self.__term_counts_per_week, self.__term_ngrams,
-                                                                    predictors_to_run, self.__weekly_iso_dates,
-                                                                    test_terms=terms, test_forecasts=train_test,
-                                                                    normalised=normalized,
-                                                                    number_of_patents_per_week=self.__number_of_patents_per_week,
-                                                                    num_prediction_periods=self.__M)
+        results, training_values, test_values, smoothed_training_values = evaluate_prediction(
+            self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
+            test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
+            num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
 
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
                                                                 predictors_to_run, test_terms=terms)
@@ -255,6 +288,7 @@ class Pipeline(object):
         html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
                                                          test_values=test_values,
                                                          test_terms=terms, training_values=training_values,
+                                                         smoothed_training_values=smoothed_training_values,
                                                          normalised=normalized,
                                                          test_forecasts=train_test)
 

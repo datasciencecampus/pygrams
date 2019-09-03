@@ -232,12 +232,12 @@ An option to choose between popular or emergent terminology outputs. Popular ter
 python pygrams.py -ts
 ```
 
-#### Curve Fitting (-cf)
+#### Emergence Index (-ei)
 
-An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
+An option to choose between quadratic fitting, [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) or gradients from state-space model using kalman filter smoothing  emergence indexes. Porter is used by default; quadratic fitting can be used instead, for example:
 
 ```
-python pygrams.py -ts -cf
+python pygrams.py -ts -ei quadratic
 ```
 
 #### Exponential (-exp)

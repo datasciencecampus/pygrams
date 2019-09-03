@@ -125,6 +125,20 @@ def timeseries_weekly_to_quarterly(weekly_dates, weekly_values):
     return list(dict_dates.keys()), list(dict_dates.values())
 
 
+def timeseries_weekly_to_yearly(weekly_dates, weekly_values):
+    dict_dates = {}
+    for date, value in zip(weekly_dates, weekly_values):
+        year = date // 100
+        new_date = year * 100
+
+        if new_date in dict_dates:
+            dict_dates[new_date] += value
+        else:
+            dict_dates[new_date] = value
+
+    return list(dict_dates.keys()), list(dict_dates.values())
+
+
 def date_to_year_week(date):
     iso_date = date.isocalendar()
     integer_date = iso_date[0] * 100 + iso_date[1]

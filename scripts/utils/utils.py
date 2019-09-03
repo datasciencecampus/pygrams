@@ -1,4 +1,7 @@
 import array as arr
+import bz2
+import pickle
+from os import path, makedirs
 
 import numpy as np
 from gensim.models import KeyedVectors
@@ -8,8 +11,28 @@ from pandas import to_datetime
 from pandas.api.types import is_string_dtype
 
 
+def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):
+    for idx, period in enumerate(all_quarters):
+        if idx >= len(non_zero_dates):
+            non_zero_dates.append(period)
+            quarterly_values.append(0)
+        elif period == non_zero_dates[idx]:
+            continue
+        else:
+            non_zero_dates.insert(idx, period)
+            quarterly_values.insert(idx, 0)
+    return non_zero_dates, quarterly_values
+
+
+def pickle_object(short_name, obj, pickle_path):
+    makedirs(pickle_path, exist_ok=True)
+    file_name = path.join(pickle_path, f'{short_name}.pkl.bz2')
+    with bz2.BZ2File(file_name, 'wb') as pickle_file:
+        pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
+
+
 def stationary_terms(emergence_list, nterms):
-    if len(emergence_list)==0:
+    if len(emergence_list) == 0:
         return []
     zero_pivot_emergence = 1
     last_emergence = emergence_list[0][1]
@@ -190,7 +213,7 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
 def checkdf(df, emtec, docs_mask_dict, text_header):
     app_exit = False
 
-    if emtec or docs_mask_dict['date'] is not None :
+    if emtec or docs_mask_dict['date'] is not None:
         if docs_mask_dict['date_header'] not in df.columns:
             print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
             app_exit = True
