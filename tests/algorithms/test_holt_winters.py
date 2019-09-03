@@ -4,7 +4,6 @@ from scripts.algorithms.holtwinters_predictor import HoltWintersPredictor
 
 if sys_pf == 'darwin':
     import matplotlib
-
     matplotlib.use("TkAgg")
 
 import unittest
@@ -36,10 +35,16 @@ class HoltWintersTests(unittest.TestCase):
         time_series = [1, 1, -1, 1, 1]
         num_predicted_periods = 3
 
-        with self.assertRaises(NotImplementedError) as nie:
+        try:
             HoltWintersPredictor(time_series, num_predicted_periods)
+            self.fail('Expected to throw due to negative values')
 
-        self.assertEqual(nie.exception.args[0], 'Unable to correct for negative or zero values')
+        except NotImplementedError as nie:
+            self.assertEqual(nie.args[0], 'Unable to correct for negative or zero values')
+
+        except ValueError as ve:
+            self.assertEqual(ve.args[0],
+                             'endog must be strictly positive when using multiplicative trend or seasonal components.')
 
     def test_zeros_in_sequence(self):
         time_series = [1, 1, 0, 1, 1]

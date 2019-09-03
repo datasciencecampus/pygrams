@@ -136,6 +136,8 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
+    parser.add_argument("-sts", "--smooth-timeseries", default=False, action="store_true",
+                        help="smooth timeseries generated from patent counts")
 
     args = parser.parse_args(command_line_arguments)
 
@@ -180,6 +182,7 @@ def main(supplied_args):
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
                         emergence_index=args.emergence_index, exponential=args.exponential_fitting, nterms=args.nterms,
                         patents_per_quarter_threshold=args.minimum_per_quarter,
+                        smooth_timeseries=args.smooth_timeseries,
                         )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,

@@ -1,7 +1,6 @@
 from tqdm import tqdm
 
 from scripts.algorithms.predictor_factory import PredictorFactory as factory
-from scripts.utils.date_utils import timeseries_weekly_to_quarterly
 
 
 # TODO quarterly values, should become timeseries
@@ -37,12 +36,16 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
         if test_forecasts:
             test_values[term] = [float(x) for x in timeseries_all[-num_prediction_periods - 1:-1]]
 
+    if smoothed_series is not None:
+        training_values_to_use = smoothed_training_values
+    else:
+        training_values_to_use = training_values
+
     for predictor_name in predictor_names:
         results[predictor_name] = {}
 
         for test_term in tqdm(test_terms, unit='term', desc='Validating prediction with ' + predictor_name):
-
-            model = factory.predictor_factory(predictor_name, test_term, training_values[test_term],
+            model = factory.predictor_factory(predictor_name, test_term, training_values_to_use[test_term],
                                               num_prediction_periods)
             predicted_values = model.predict_counts()
 

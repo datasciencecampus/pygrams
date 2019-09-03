@@ -28,7 +28,7 @@ class Pipeline(object):
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
                  emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20,
-                 ):
+                 smooth_timeseries=False):
 
         # load data
         self.__data_filename = data_filename
@@ -191,7 +191,11 @@ class Pipeline(object):
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
-        self.__timeseries_quarterly_smoothed = []
+        if smooth_timeseries:
+            self.__timeseries_quarterly_smoothed = []
+        else:
+            self.__timeseries_quarterly_smoothed = None
+
         self.__term_nonzero_dates = []
         all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
@@ -208,12 +212,14 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
 
             self.__timeseries_quarterly.append(quarterly_values)
-            smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
-            smooth_series_no_negatives = np.clip(smooth_series, a_min=0, a_max=None)
 
-            # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
-            # smooth_series = smooth_series_s[0].tolist()[0]
-            self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives)
+            if smooth_timeseries:
+                smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+                smooth_series_no_negatives = np.clip(smooth_series, a_min=0, a_max=None)
+
+                # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
+                # smooth_series = smooth_series_s[0].tolist()[0]
+                self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives)
 
         em = Emergence(all_quarterly_values)
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
