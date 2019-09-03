@@ -167,16 +167,17 @@ class Pipeline(object):
 
         # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
         print(f'Creating timeseries matrix...')
-        read_timeseries_from_cache = True
+        read_timeseries_from_cache = False
         cache = False
         pickled_base_file_name2 = path.join('outputs', 'cached')
-        if cache and not read_timeseries_from_cache:
+        if not read_timeseries_from_cache:
             self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
             [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
              self.__weekly_iso_dates] = self.__timeseries_data
-            utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, pickled_base_file_name2)
-            utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, pickled_base_file_name2)
-            utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, pickled_base_file_name2)
+            if cache:
+                utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, pickled_base_file_name2)
+                utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, pickled_base_file_name2)
+                utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, pickled_base_file_name2)
         else:
             self.__term_counts_per_week = read_pickle(path.join(pickled_base_file_name2, 'weekly_series_terms.pkl.bz2'))
             self.__number_of_patents_per_week = read_pickle(

@@ -186,13 +186,13 @@ class EmergenceTests(unittest.TestCase):
 
     def test_3d_image(self):
         term = '3d image'
-        escore_expected = 1.356549020713896
+        escore_expected = -1.3383140739474317
         em_expected = True
         self.assert_term_escore(em_expected, escore_expected, term)
 
     def test_3d_display(self):
         term = '3d display'
-        escore_expected = 0.6398282485477932
+        escore_expected = -0.17674809905755776
         em_expected = True
         self.assert_term_escore(em_expected, escore_expected, term)
 
