@@ -29,7 +29,7 @@ class Pipeline(object):
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
                  emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20,
-                 smooth_timeseries=False):
+                 smooth_timeseries=False
                  ):
 
         # load data
