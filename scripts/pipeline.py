@@ -3,6 +3,7 @@ import pickle
 from os import makedirs, path
 
 import numpy as np
+
 from pandas import read_pickle
 from scipy.signal import savgol_filter
 from tqdm import tqdm
@@ -29,6 +30,7 @@ class Pipeline(object):
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
                  emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20,
                  smooth_timeseries=False):
+                 ):
 
         # load data
         self.__data_filename = data_filename
