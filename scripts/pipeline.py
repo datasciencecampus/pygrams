@@ -227,8 +227,12 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
 
             self.__timeseries_quarterly.append(quarterly_values)
+
+            # temporary code
             read_timeseries_from_cache = False
-            if (emergence_index == 'gradients' and not read_timeseries_from_cache):
+            cache = True
+            ##############
+            if emergence_index == 'gradients' and not read_timeseries_from_cache:
                 _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
                 smooth_series = smooth_series_s[0].tolist()[0]
                 derivatives = smooth_series_s[1].tolist()[0]
