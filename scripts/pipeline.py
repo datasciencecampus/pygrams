@@ -221,12 +221,17 @@ class Pipeline(object):
                 # smooth_series = smooth_series_s[0].tolist()[0]
                 self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives)
 
+        if smooth_timeseries:
+            training_values_to_use = self.__timeseries_quarterly_smoothed
+        else:
+            training_values_to_use = self.__timeseries_quarterly
+
         em = Emergence(all_quarterly_values)
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             term_ngram = self.__term_ngrams[term_index]
 
-            quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])
+            quarterly_values = list(training_values_to_use[term_index])
 
             if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
                 continue
