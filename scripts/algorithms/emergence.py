@@ -49,7 +49,10 @@ class Emergence(object):
         return True
 
     def net_growth(self, signal, derivatives):
-        return sum([x/y for x, y in zip(derivatives, signal)])
+        return sum([x/y if y >3 else 0.0 for x, y in zip(derivatives, signal) ])
+
+    def sum_derivatives(self, derivatives):
+        return sum([x for x in derivatives])
 
     def calculate_escore(self, timeseries_term):
         timeseries_term_active = timeseries_term[-self.NUM_PERIODS_ACTIVE:]

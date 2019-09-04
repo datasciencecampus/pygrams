@@ -132,7 +132,8 @@ def create_html_table(predictor_names, results, test_terms, test_values, trainin
     return f'<h2>{metric_name}{scale_description}</h2>\n{results_table}<p/>\n', summary_df
 
 
-def graphs_of_predicted_term_counts(predictor_names, results, test_terms, training_values,smooth_values=None, test_values=None,
+def graphs_of_predicted_term_counts(predictor_names, results, test_terms, training_values, smooth_training_values=None,
+                                    smooth_test_values=None, test_values=None,
                                     normalised=False):
     html_string = '''
 
@@ -159,8 +160,8 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
         fig = plt.figure(test_term, figsize=(6, 1.5), dpi=100)
         ax = fig.add_subplot(111)
         ax.plot(training_values[test_term], color='b', linestyle='-', marker='x', label='Ground truth')
-        if smooth_values is not None:
-            ax.plot(list(smooth_values[test_term]), color='g', linestyle='-', marker='x', label='Smoothed Ground truth')
+        if smooth_training_values is not None:
+            ax.plot(list(smooth_training_values[test_term]), color='g', linestyle='-', marker='*', label='Smoothed Ground truth')
         ax.set_ylabel('Normalised\nFrequency' if normalised else 'Frequency', fontsize=12)
         ax.set_ylim([0, max_y])
 
@@ -173,6 +174,9 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
             ax = fig.add_subplot(111)
             if test_values is not None and len(test_values) > 0:
                 ax.plot(test_values[test_term], color='b', linestyle='-', marker='x', label='Ground truth')
+            if smooth_test_values is not None:
+                ax.plot(list(smooth_test_values[test_term]), color='g', linestyle='-', marker='*',
+                        label='Smoothed Ground truth')
 
             ax.plot(result[2], color='r', linestyle='-', marker='+', label='Prediction')
             ax.set_ylim([0, max_y])
@@ -185,7 +189,8 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
 
 
 def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
-                                     test_values, test_terms, training_values,smoothed_training_values=None, test_forecasts=False, normalised=False):
+                                     test_values, test_terms, training_values,smoothed_training_values=None,
+                                     smoothed_test_values=None, test_forecasts=False, normalised=False):
     html_string = f'''    <h2>Graphs</h2>
 '''
 
@@ -228,7 +233,9 @@ def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
 
         html_string += rmse_html_string + abs_error_html_string + avg_rmse_html_string
 
-    html_string += graphs_of_predicted_term_counts(predictor_names, results, test_terms, training_values,smooth_values=smoothed_training_values,
+    html_string += graphs_of_predicted_term_counts(predictor_names, results, test_terms, training_values,
+                                                   smooth_training_values=smoothed_training_values,
+                                                   smooth_test_values = smoothed_test_values,
                                                    test_values=test_values, normalised=normalised)
 
     return html_string

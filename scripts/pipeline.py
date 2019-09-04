@@ -195,8 +195,25 @@ class Pipeline(object):
         self.__timeseries_derivatives = []
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
+
         all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
+
+        # find indexes for date-range
+        min_date = min(self.__dates)
+        max_date = max(self.__dates)
+        min_i=0
+        max_i= len(self.__dates)
+
+        for i, quarter in enumerate(all_quarterly_values):
+            if min_date > quarter:
+                break
+            min_i = i
+
+        for i, quarter in enumerate(all_quarterly_values):
+            if max_date < quarter:
+                break
+            max_i = i
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
                                desc='Calculating and smoothing quarterly timeseries',
@@ -210,28 +227,34 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
 
             self.__timeseries_quarterly.append(quarterly_values)
-
-            if emergence_index == 'gradients':
+            read_timeseries_from_cache = False
+            if (emergence_index == 'gradients' and not read_timeseries_from_cache):
                 _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
                 smooth_series = smooth_series_s[0].tolist()[0]
                 derivatives = smooth_series_s[1].tolist()[0]
                 self.__timeseries_derivatives.append(derivatives)
                 self.__timeseries_intercept.append(intercept)
-            else:
+                self.__timeseries_quarterly_smoothed.append(smooth_series)
+            elif emergence_index != 'gradients' :
                 smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
+                self.__timeseries_quarterly_smoothed.append(smooth_series)
+        if cache:
+            utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
+            utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
+            utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
 
-            self.__timeseries_quarterly_smoothed.append(smooth_series)
-        utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
-        utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
-        utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
-        # self.__timeseries_quarterly_smoothed = read_pickle(path.join(pickled_base_file_name2, 'smooth_series_s.pkl.bz2'))
+        if emergence_index == 'gradients' and read_timeseries_from_cache:
+            self.__timeseries_quarterly_smoothed = read_pickle(path.join(pickled_base_file_name2, 'smooth_series_s.pkl.bz2'))
+            self.__timeseries_derivatives = read_pickle(path.join(pickled_base_file_name2, 'derivatives.pkl.bz2'))
 
-        em = Emergence(all_quarterly_values)
+        em = Emergence(all_quarterly_values[min_i:max_i])
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
+            if term_weights == 0.0:
+                continue
             term_ngram = self.__term_ngrams[term_index]
 
-            quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])
+            quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
 
             if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
                 continue
@@ -256,6 +279,7 @@ class Pipeline(object):
 
         self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
         self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
+        self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
@@ -291,7 +315,7 @@ class Pipeline(object):
 
         html_results = ''
 
-        results, training_values, test_values, smoothed_training_values = evaluate_prediction(
+        results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(
             self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
             test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
             num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
@@ -303,6 +327,7 @@ class Pipeline(object):
 
         html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
                                                          test_values=test_values,
+                                                         smoothed_test_values=smoothed_test_values,
                                                          test_terms=terms, training_values=training_values,
                                                          smoothed_training_values=smoothed_training_values,
                                                          normalised=normalized,

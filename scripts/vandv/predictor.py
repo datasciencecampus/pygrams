@@ -11,6 +11,7 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
 
     results = {}
     smoothed_training_values = {}
+    smoothed_test_values = {}
     training_values = {}
     test_values = {}
     test_offset = num_prediction_periods if test_forecasts else 0
@@ -29,6 +30,7 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
             smoothed_training_values[term]=smoothed_series[term_index][:-test_offset - 1]
         if test_forecasts:
             test_values[term] = timeseries_term_float[-test_offset - 1:-1]
+            smoothed_test_values[term] = smoothed_series[term_index][-test_offset - 1:-1]
 
     if timeseries_all is not None:
         term = '__ number of patents'
@@ -49,4 +51,4 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
             results[predictor_name][test_term] = (
                 None, model.configuration, predicted_values, len(training_values))
 
-    return results, training_values, test_values, smoothed_training_values
+    return results, training_values, test_values, smoothed_training_values, smoothed_test_values
