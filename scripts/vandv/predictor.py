@@ -22,12 +22,15 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
 
         timeseries_term_float = [float(v) for v in timeseries_term]
 
-        term = term_ngrams[term_index]
-        training_values[term] = timeseries_term_float[:-test_offset - 1]
+        training_values[test_term] = timeseries_term_float[:-test_offset - 1]
+
         if smoothed_series is not None:
-            smoothed_training_values[term]=smoothed_series[term_index][:-test_offset - 1]
+            smoothed_training_values[test_term] = smoothed_series[term_index][:-test_offset - 1]
+            if timeseries_all is not None:
+                smoothed_training_values[test_term] = [v / c for v, c in zip(smoothed_training_values[test_term], timeseries_all[:-test_offset - 1])]
+
         if test_forecasts:
-            test_values[term] = timeseries_term_float[-test_offset - 1:-1]
+            test_values[test_term] = timeseries_term_float[-test_offset - 1:-1]
 
     if timeseries_all is not None:
         term = '__ number of patents'

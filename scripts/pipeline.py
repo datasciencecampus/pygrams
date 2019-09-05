@@ -221,7 +221,7 @@ class Pipeline(object):
 
                 # _, _1, smooth_series_s, _2 = SteadyStateModel(quarterly_values).run_smoothing()
                 # smooth_series = smooth_series_s[0].tolist()[0]
-                self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives)
+                self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
         if smooth_timeseries:
             training_values_to_use = self.__timeseries_quarterly_smoothed
