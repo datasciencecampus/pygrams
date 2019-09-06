@@ -228,9 +228,9 @@ class StateSpaceModel:
         MSE = sum([((x-y)*(x-y)) for x,y in zip(self.timeseries, alphahat[0].tolist()[0])])/len(self.timeseries)
 
         if MSE < 1.0 and sum(self.timeseries)/len(self.timeseries) > 1.5:
-            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5]
-            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5]
-            delta = [0.3, 0.6, 0.9, 1.2]
+            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
+            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
+            delta = [0.3, 0.6, 0.9, 1.2, 1.5]
             opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
             dfk_out = self.dfk_llm_vard(opt_param)
             alphahat, mse_alphahat = self.smfilt(dfk_out)
