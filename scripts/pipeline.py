@@ -219,20 +219,17 @@ class Pipeline(object):
                                desc='Calculating and smoothing quarterly timeseries',
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
-
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
-
             non_zero_dates, quarterly_values = scripts.utils.date_utils.timeseries_weekly_to_quarterly(weekly_iso_dates,
                                                                                                        row_values)
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
-
             self.__timeseries_quarterly.append(quarterly_values)
 
             # temporary code
-            read_timeseries_from_cache = False
-            cache = True
+            read_timeseries_from_cache = True
+            cache = False
             ##############
-            if emergence_index == 'gradients' and not read_timeseries_from_cache:
+            if (emergence_index == 'gradients' and not read_timeseries_from_cache) or self.__term_ngrams[term_index] == 'flexible display panel':
                 _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
                 smooth_series = smooth_series_s[0].tolist()[0]
                 derivatives = smooth_series_s[1].tolist()[0]
@@ -252,11 +249,19 @@ class Pipeline(object):
             self.__timeseries_derivatives = read_pickle(path.join(pickled_base_file_name2, 'derivatives.pkl.bz2'))
 
         em = Emergence(all_quarterly_values[min_i:max_i])
+        temp_list=['unit configure',
+                   'example apparatus',
+                   'generally describe',
+                   'determination unit',
+                   'determination unit determine',
+                   'perform operation']
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             if term_weights == 0.0:
                 continue
             term_ngram = self.__term_ngrams[term_index]
+            if term_ngram in temp_list:
+                continue
 
             quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
 
@@ -286,6 +291,8 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
+        # self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__emergent, self.__term_ngrams)
+
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples,emergence_list=self.__emergence_list, wordcloud_title=wordcloud_title,
@@ -297,6 +304,61 @@ class Pipeline(object):
     @property
     def term_score_tuples(self):
         return self.__term_score_tuples
+
+    def get_multiplot(self, timeseries_terms, test_terms, term_ngrams):
+        # libraries and data
+        import matplotlib.pyplot as plt
+        import pandas as pd
+
+        series_dict = {}
+        series_dict['x'] = range(len(timeseries_terms[0]))
+
+        for test_term in test_terms:
+            term_index = term_ngrams.index(test_term)
+            series_dict[term_ngrams[term_index]] = timeseries_terms[term_index]
+
+
+        # Make a data frame
+        df = pd.DataFrame(series_dict)
+
+        # Initialize the figure
+        plt.style.use('seaborn-darkgrid')
+
+        # create a color palette
+        palette = plt.get_cmap('Set1')
+
+        # multiple line plot
+        num = 0
+        for column in df.drop('x', axis=1):
+            num += 1
+
+            # Find the right spot on the plot
+            plt.subplot(6, 4, num)
+
+            # Plot the lineplot
+            plt.plot(df['x'], df[column], marker='', color=palette(num), linewidth=1.9, alpha=0.9, label=column)
+
+            # Same limits for everybody!
+            plt.xlim(0, series_dict['x'][-1])
+            plt.ylim(-2, 500)
+
+            # Not ticks everywhere
+            if num in range(7):
+                plt.tick_params(labelbottom='off')
+            if num not in [1, 4, 7]:
+                plt.tick_params(labelleft='off')
+
+            # Add title
+            plt.title(column, loc='left', fontsize=12, fontweight=0, color=palette(num))
+
+        # general title
+        plt.suptitle("How the 9 students improved\nthese past few days?", fontsize=13, fontweight=0, color='black',
+                     style='italic', y=1.02)
+
+        # Axis title
+        plt.text(0.5, 0.02, 'Time', ha='center', va='center')
+        plt.text(0.06, 0.5, 'Note', ha='center', va='center', rotation='vertical')
+        plt.show()
 
     @property
     def timeseries_data(self):
