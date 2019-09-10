@@ -134,7 +134,7 @@ def create_html_table(predictor_names, results, test_terms, test_values, trainin
 
 def graphs_of_predicted_term_counts(predictor_names, results, test_terms, training_values, smooth_training_values=None,
                                     smooth_test_values=None, test_values=None,
-                                    normalised=False):
+                                    normalised=False, lims=[]):
     html_string = '''
 
     <p/>
@@ -159,11 +159,15 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
 
         fig = plt.figure(test_term, figsize=(6, 1.5), dpi=100)
         ax = fig.add_subplot(111)
-        ax.plot(training_values[test_term], color='b', linestyle='-', marker='x', label='Ground truth')
+        # temp chop of border conditions :-2
+        ax.plot(training_values[test_term][:-2], color='b', linestyle='-', marker='x', label='Ground truth')
         if smooth_training_values is not None:
-            ax.plot(list(smooth_training_values[test_term]), color='g', linestyle='-', marker='*', label='Smoothed Ground truth')
+            #temp chop of border conditions :-2
+            ax.plot(list(smooth_training_values[test_term][:-2]), color='g', linestyle='-', marker='*', label='Smoothed Ground truth')
         ax.set_ylabel('Normalised\nFrequency' if normalised else 'Frequency', fontsize=12)
         ax.set_ylim([0, max_y])
+        ax.axvline(x=lims[0], color='k', linestyle='--')
+        ax.axvline(x=lims[1], color='k', linestyle='--')
 
         html_string += '        <td>' + plot_to_html_image(plt) + '</td>\n'
 
@@ -174,7 +178,7 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
             ax = fig.add_subplot(111)
             if test_values is not None and len(test_values) > 0:
                 ax.plot(test_values[test_term], color='b', linestyle='-', marker='x', label='Ground truth')
-            if smooth_test_values is not None:
+            if smooth_test_values is not None and len(smooth_test_values) > 0:
                 ax.plot(list(smooth_test_values[test_term]), color='g', linestyle='-', marker='*',
                         label='Smoothed Ground truth')
 
@@ -190,7 +194,7 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
 
 def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
                                      test_values, test_terms, training_values,smoothed_training_values=None,
-                                     smoothed_test_values=None, test_forecasts=False, normalised=False):
+                                     smoothed_test_values=None, test_forecasts=False, normalised=False, lims=None):
     html_string = f'''    <h2>Graphs</h2>
 '''
 
@@ -236,6 +240,6 @@ def report_prediction_as_graphs_html(results, predictor_names, weekly_iso_dates,
     html_string += graphs_of_predicted_term_counts(predictor_names, results, test_terms, training_values,
                                                    smooth_training_values=smoothed_training_values,
                                                    smooth_test_values = smoothed_test_values,
-                                                   test_values=test_values, normalised=normalised)
+                                                   test_values=test_values, normalised=normalised, lims=lims)
 
     return html_string

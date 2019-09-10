@@ -200,20 +200,22 @@ class Pipeline(object):
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
-        min_date = min(self.__dates)
-        max_date = max(self.__dates)
+        min_date = self.__date_dict['from']
+        max_date = self.__date_dict['to']
         min_i=0
-        max_i= len(self.__dates)
+        max_i= len(all_quarters)
 
-        for i, quarter in enumerate(all_quarterly_values):
-            if min_date > quarter:
+        for i, quarter in enumerate(all_quarters):
+            if min_date < quarter:
                 break
             min_i = i
 
-        for i, quarter in enumerate(all_quarterly_values):
+        for i, quarter in enumerate(all_quarters):
             if max_date < quarter:
                 break
             max_i = i
+        self.__lims=[min_i, max_i]
+        use_smooth = False
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
                                desc='Calculating and smoothing quarterly timeseries',
@@ -229,7 +231,7 @@ class Pipeline(object):
             read_timeseries_from_cache = True
             cache = False
             ##############
-            if (emergence_index == 'gradients' and not read_timeseries_from_cache) or self.__term_ngrams[term_index] == 'flexible display panel':
+            if emergence_index == 'gradients' and not read_timeseries_from_cache:
                 _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
                 smooth_series = smooth_series_s[0].tolist()[0]
                 derivatives = smooth_series_s[1].tolist()[0]
@@ -263,9 +265,12 @@ class Pipeline(object):
             if term_ngram in temp_list:
                 continue
 
-            quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
+            if use_smooth:
+                quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
+            else :
+                quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
 
-            if max(quarterly_values) < float(patents_per_quarter_threshold) or len(quarterly_values) == 0:
+            if len(quarterly_values) == 0 or max(quarterly_values) < float(patents_per_quarter_threshold):
                 continue
 
             if emergence_index == 'quadratic':
@@ -275,7 +280,7 @@ class Pipeline(object):
                     continue
                 escore = em.calculate_escore(quarterly_values)
             elif emergence_index == 'gradients':
-                derivatives = self.__timeseries_derivatives[term_index]
+                derivatives = self.__timeseries_derivatives[term_index][min_i:max_i]
                 escore = em.net_growth(quarterly_values, derivatives)
             else:
                 weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
@@ -291,7 +296,11 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
-        # self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__emergent, self.__term_ngrams)
+        self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
+                           self.__term_ngrams, lims=self.__lims, category='emergent', method=emergence_index)
+
+        self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
+                           self.__term_ngrams, lims=self.__lims, category='declining', method=emergence_index)
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
@@ -305,59 +314,68 @@ class Pipeline(object):
     def term_score_tuples(self):
         return self.__term_score_tuples
 
-    def get_multiplot(self, timeseries_terms, test_terms, term_ngrams):
+    def get_multiplot(self, timeseries_terms_smooth,timeseries, test_terms, term_ngrams, lims,
+                      method = 'Net Growth', category='emergent'):
         # libraries and data
         import matplotlib.pyplot as plt
         import pandas as pd
 
         series_dict = {}
-        series_dict['x'] = range(len(timeseries_terms[0]))
+        series_dict['x'] = range(len(timeseries[0]))
 
         for test_term in test_terms:
             term_index = term_ngrams.index(test_term)
-            series_dict[term_ngrams[term_index]] = timeseries_terms[term_index]
+            series_dict[term_ngrams[term_index]] = timeseries[term_index]
+
+        series_dict_smooth = {}
+        series_dict['x'] = range(len(timeseries_terms_smooth[0]))
+
+        for test_term in test_terms:
+            term_index = term_ngrams.index(test_term)
+            series_dict_smooth[term_ngrams[term_index]] = timeseries_terms_smooth[term_index]
 
 
-        # Make a data frame
+        # make a data frame
         df = pd.DataFrame(series_dict)
+        df_smooth = pd.DataFrame(series_dict_smooth)
 
-        # Initialize the figure
+        # initialize the figure
         plt.style.use('seaborn-darkgrid')
 
         # create a color palette
-        palette = plt.get_cmap('Set1')
 
         # multiple line plot
         num = 0
         for column in df.drop('x', axis=1):
             num += 1
 
-            # Find the right spot on the plot
-            plt.subplot(6, 4, num)
+            # find the right spot on the plot
+            plt.subplot(6, 5, num)
 
-            # Plot the lineplot
-            plt.plot(df['x'], df[column], marker='', color=palette(num), linewidth=1.9, alpha=0.9, label=column)
+            # plot the lineplot
+            plt.plot(df['x'][:-2], df[column][:-2], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
+            plt.plot(df['x'][:-2],df_smooth[column][:-2], color='g', linestyle='-', marker='',label='smoothed ground truth')
 
-            # Same limits for everybody!
+            plt.axvline(x=lims[0], color='k', linestyle='--')
+            plt.axvline(x=lims[1], color='k', linestyle='--')
+
+            # same limits for everybody!
             plt.xlim(0, series_dict['x'][-1])
-            plt.ylim(-2, 500)
 
-            # Not ticks everywhere
-            if num in range(7):
+            # not ticks everywhere
+            if num in range(26):
                 plt.tick_params(labelbottom='off')
-            if num not in [1, 4, 7]:
-                plt.tick_params(labelleft='off')
 
-            # Add title
-            plt.title(column, loc='left', fontsize=12, fontweight=0, color=palette(num))
+            # plt.tick_params(labelleft='off')
+
+            # add title
+            plt.title(column, loc='left', fontsize=12, fontweight=0)
 
         # general title
-        plt.suptitle("How the 9 students improved\nthese past few days?", fontsize=13, fontweight=0, color='black',
-                     style='italic', y=1.02)
+        plt.suptitle(category +" keywords selection using the " + method + " index", fontsize=13, fontweight=0, color='black',
+                     style='italic')
 
-        # Axis title
-        plt.text(0.5, 0.02, 'Time', ha='center', va='center')
-        plt.text(0.06, 0.5, 'Note', ha='center', va='center', rotation='vertical')
+        # axis title
         plt.show()
 
     @property
@@ -397,6 +415,6 @@ class Pipeline(object):
                                                          test_terms=terms, training_values=training_values,
                                                          smoothed_training_values=smoothed_training_values,
                                                          normalised=normalized,
-                                                         test_forecasts=train_test)
+                                                         test_forecasts=train_test, lims=self.__lims)
 
         return html_results, training_values.items()

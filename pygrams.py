@@ -197,7 +197,7 @@ def main(supplied_args):
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
 
-        for emergence in ['emergent', 'stationary', 'declining']:
+        for emergence in ['emergent', 'declining']:
             print(f'Running pipeline for "{emergence}"')
 
             if args.normalised:
