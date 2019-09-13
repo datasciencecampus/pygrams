@@ -202,18 +202,21 @@ class Pipeline(object):
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
-        min_date = self.__timeseries_date_dict['from']
-        max_date = self.__timeseries_date_dict['to']
+        min_date = max_date = None
+        if self.__timeseries_date_dict is not None:
+            min_date = self.__timeseries_date_dict['from']
+            max_date = self.__timeseries_date_dict['to']
+
         min_i=0
         max_i= len(all_quarters)
 
         for i, quarter in enumerate(all_quarters):
-            if min_date < quarter:
+            if min_date is not None and min_date < quarter:
                 break
             min_i = i
 
         for i, quarter in enumerate(all_quarters):
-            if max_date < quarter:
+            if max_date is not None and max_date < quarter:
                 break
             max_i = i
         self.__lims=[min_i, max_i]

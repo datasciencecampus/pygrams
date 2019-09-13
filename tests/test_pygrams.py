@@ -279,7 +279,7 @@ class TestPyGrams(unittest.TestCase):
         mock_pipeline_read_pickle.side_effect = pipeline_read_pickle_fake
         mock_pipeline_read_pickle.return_value = self.dumped_tfidf
         args = ['-ds', self.data_source_name, '-ts', '-tc',
-                '-it', self.tfidfOutputFolder(self.data_source_name, 1.0), '--date_header',
+                '--date_header',
                 'publication_date', '--max_document_frequency', '1.0',
                 '--input_tfidf', self.out_name + '-mdf-1.0']
         pygrams.main(args)
