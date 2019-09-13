@@ -159,11 +159,9 @@ def graphs_of_predicted_term_counts(predictor_names, results, test_terms, traini
 
         fig = plt.figure(test_term, figsize=(6, 1.5), dpi=100)
         ax = fig.add_subplot(111)
-        # temp chop of border conditions :-2
-        ax.plot(training_values[test_term][:-2], color='b', linestyle='-', marker='x', label='Ground truth')
+        ax.plot(training_values[test_term], color='b', linestyle='-', marker='x', label='Ground truth')
         if smooth_training_values is not None:
-            #temp chop of border conditions :-2
-            ax.plot(list(smooth_training_values[test_term][:-2]), color='g', linestyle='-', marker='*', label='Smoothed Ground truth')
+            ax.plot(list(smooth_training_values[test_term]), color='g', linestyle='-', marker='*', label='Smoothed Ground truth')
         ax.set_ylabel('Normalised\nFrequency' if normalised else 'Frequency', fontsize=12)
         ax.set_ylim([0, max_y])
         ax.axvline(x=lims[0], color='k', linestyle='--')

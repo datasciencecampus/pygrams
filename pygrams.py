@@ -71,6 +71,11 @@ def get_args(command_line_arguments):
     parser.add_argument("-dt", "--date_to", default=None,
                         help="The last date for the document cohort in YYYY/MM/DD format")
 
+    parser.add_argument("-tsdf", "--timeseries-date-from", default=None,
+                        help="The first date for the document cohort in YYYY/MM/DD format")
+    parser.add_argument("-tsdt", "--timeseries-date-to", default=None,
+                        help="The last date for the document cohort in YYYY/MM/DD format")
+
     # TF-IDF PARAMETERS
     # ngrams selection
     parser.add_argument("-mn", "--min_ngrams", type=int, choices=[1, 2, 3], default=1, help="the minimum ngram value")
@@ -130,6 +135,7 @@ def get_args(command_line_arguments):
                         help="number of steps ahead to analyse for")
 
     parser.add_argument("-ei", "--emergence-index", default='porter', help="options are: porter, quadratic, gradients")
+    parser.add_argument("-sma", "--smoothing-alg", default=None, help="options are: kalman, savgol")
 
     parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
                         help="analyse using exponential type fit or not")
@@ -179,7 +185,7 @@ def main(supplied_args):
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
                         emergence_index=args.emergence_index, exponential=args.exponential_fitting, nterms=args.nterms,
-                        patents_per_quarter_threshold=args.minimum_per_quarter,
+                        patents_per_quarter_threshold=args.minimum_per_quarter, sma = args.smoothing_alg
                         )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,

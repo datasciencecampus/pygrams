@@ -27,12 +27,13 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20,
+                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None
                  ):
 
         # load data
         self.__data_filename = data_filename
         self.__date_dict = docs_mask_dict['date']
+        self.__timeseries_date_dict = docs_mask_dict['timeseries_date']
         self.__timeseries_data = []
 
         self.__emergence_list = []
@@ -165,7 +166,10 @@ class Pipeline(object):
         if not calculate_timeseries:
             return
 
+        ###################################### em-tech pipeline ###########################
+
         # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
+        # TODO: timeseries matrix no longer needs to be sparse. Massive programing and maintenance burden for small gain
         print(f'Creating timeseries matrix...')
         read_timeseries_from_cache = True
         cache = False
@@ -200,8 +204,8 @@ class Pipeline(object):
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
-        min_date = self.__date_dict['from']
-        max_date = self.__date_dict['to']
+        min_date = self.__timeseries_date_dict['from']
+        max_date = self.__timeseries_date_dict['to']
         min_i=0
         max_i= len(all_quarters)
 
@@ -215,7 +219,7 @@ class Pipeline(object):
                 break
             max_i = i
         self.__lims=[min_i, max_i]
-        use_smooth = False
+        self.__timeseries_quarterly_smoothed = None if sma is None else []
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
                                desc='Calculating and smoothing quarterly timeseries',
@@ -228,20 +232,20 @@ class Pipeline(object):
             self.__timeseries_quarterly.append(quarterly_values)
 
             # temporary code
-            read_timeseries_from_cache = True
-            cache = False
+            read_state_space_from_cache = True
+            state_space_cache = False
             ##############
-            if emergence_index == 'gradients' and not read_timeseries_from_cache:
+            if (emergence_index == 'gradients' or sma == 'kalman') and not read_state_space_from_cache:
                 _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
                 smooth_series = smooth_series_s[0].tolist()[0]
                 derivatives = smooth_series_s[1].tolist()[0]
                 self.__timeseries_derivatives.append(derivatives)
                 self.__timeseries_intercept.append(intercept)
                 self.__timeseries_quarterly_smoothed.append(smooth_series)
-            elif emergence_index != 'gradients' :
+            elif sma == 'savgol' :
                 smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
                 self.__timeseries_quarterly_smoothed.append(smooth_series)
-        if cache:
+        if state_space_cache:
             utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
             utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
             utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
@@ -259,15 +263,15 @@ class Pipeline(object):
                    'perform operation']
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
-            if term_weights == 0.0:
+            if term_weights[term_index] == 0.0:
                 continue
             term_ngram = self.__term_ngrams[term_index]
             if term_ngram in temp_list:
                 continue
 
-            if use_smooth:
+            if self.__timeseries_quarterly_smoothed is not None:
                 quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
-            else :
+            else:
                 quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
 
             if len(quarterly_values) == 0 or max(quarterly_values) < float(patents_per_quarter_threshold):
@@ -296,17 +300,17 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
-        self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
-                           self.__term_ngrams, lims=self.__lims, category='emergent', method=emergence_index)
-
-        self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
-                           self.__term_ngrams, lims=self.__lims, category='declining', method=emergence_index)
+        # self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
+        #                    self.__term_ngrams, lims=self.__lims, category='emergent', method=emergence_index)
+        #
+        # self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
+        #                    self.__term_ngrams, lims=self.__lims, category='declining', method=emergence_index)
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
-            output_factory.create(output_type, self.__term_score_tuples,emergence_list=self.__emergence_list, wordcloud_title=wordcloud_title,
-                                  tfidf_reduce_obj=self.__tfidf_reduce_obj, name=outname,
-                                  nterms=nterms, timeseries_data=self.__timeseries_data,
+            output_factory.create(output_type, self.__term_score_tuples,emergence_list=self.__emergence_list,
+                                  wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,
+                                  name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
                                   date_dict=self.__date_dict, pick=self.__pick_method,
                                   doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
 
@@ -314,8 +318,9 @@ class Pipeline(object):
     def term_score_tuples(self):
         return self.__term_score_tuples
 
-    def get_multiplot(self, timeseries_terms_smooth,timeseries, test_terms, term_ngrams, lims,
-                      method = 'Net Growth', category='emergent'):
+    # run with 30 terms only.
+    def get_multiplot(self, timeseries_terms_smooth,timeseries, test_terms, term_ngrams, lims, method = 'Net Growth',
+                      category='emergent'):
         # libraries and data
         import matplotlib.pyplot as plt
         import pandas as pd
@@ -333,7 +338,6 @@ class Pipeline(object):
         for test_term in test_terms:
             term_index = term_ngrams.index(test_term)
             series_dict_smooth[term_ngrams[term_index]] = timeseries_terms_smooth[term_index]
-
 
         # make a data frame
         df = pd.DataFrame(series_dict)
@@ -353,14 +357,14 @@ class Pipeline(object):
             plt.subplot(6, 5, num)
 
             # plot the lineplot
-            plt.plot(df['x'][:-2], df[column][:-2], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
-            plt.plot(df['x'][:-2],df_smooth[column][:-2], color='g', linestyle='-', marker='',label='smoothed ground truth')
+            plt.plot(df['x'], df[column], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
+            plt.plot(df['x'],df_smooth[column], color='g', linestyle='-', marker='',label='smoothed ground truth')
 
             plt.axvline(x=lims[0], color='k', linestyle='--')
             plt.axvline(x=lims[1], color='k', linestyle='--')
 
             # same limits for everybody!
-            plt.xlim(0, series_dict['x'][-1])
+            plt.xlim(0, series_dict['x'])
 
             # not ticks everywhere
             if num in range(26):
