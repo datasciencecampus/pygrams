@@ -27,8 +27,8 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None
-                 ):
+                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None,
+                 read_timeseries_from_cache=False, read_state_space_from_cache=False):
 
         # load data
         self.__data_filename = data_filename
@@ -171,17 +171,15 @@ class Pipeline(object):
         # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
         # TODO: timeseries matrix no longer needs to be sparse. Massive programing and maintenance burden for small gain
         print(f'Creating timeseries matrix...')
-        read_timeseries_from_cache = True
-        cache = False
         pickled_base_file_name2 = path.join('outputs', 'cached')
         if not read_timeseries_from_cache:
             self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
             [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
              self.__weekly_iso_dates] = self.__timeseries_data
-            if cache:
-                utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, pickled_base_file_name2)
-                utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, pickled_base_file_name2)
-                utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, pickled_base_file_name2)
+
+            utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, pickled_base_file_name2)
+            utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, pickled_base_file_name2)
+            utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, pickled_base_file_name2)
         else:
             self.__term_counts_per_week = read_pickle(path.join(pickled_base_file_name2, 'weekly_series_terms.pkl.bz2'))
             self.__number_of_patents_per_week = read_pickle(
@@ -232,8 +230,6 @@ class Pipeline(object):
             self.__timeseries_quarterly.append(quarterly_values)
 
             # temporary code
-            read_state_space_from_cache = True
-            state_space_cache = False
             ##############
             if (emergence_index == 'gradients' or sma == 'kalman') and not read_state_space_from_cache:
                 _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
@@ -242,25 +238,27 @@ class Pipeline(object):
                 self.__timeseries_derivatives.append(derivatives)
                 self.__timeseries_intercept.append(intercept)
                 self.__timeseries_quarterly_smoothed.append(smooth_series)
+
+                utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
+                utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
+                utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
             elif sma == 'savgol' :
                 smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
                 self.__timeseries_quarterly_smoothed.append(smooth_series)
-        if state_space_cache:
-            utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
-            utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
-            utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
 
-        if emergence_index == 'gradients' and read_timeseries_from_cache:
+        if (emergence_index == 'gradients' or sma == 'kalman') and read_timeseries_from_cache:
             self.__timeseries_quarterly_smoothed = read_pickle(path.join(pickled_base_file_name2, 'smooth_series_s.pkl.bz2'))
             self.__timeseries_derivatives = read_pickle(path.join(pickled_base_file_name2, 'derivatives.pkl.bz2'))
 
         em = Emergence(all_quarterly_values[min_i:max_i])
-        temp_list=['unit configure',
-                   'example apparatus',
-                   'generally describe',
-                   'determination unit',
-                   'determination unit determine',
-                   'perform operation']
+        temp_list=[
+            # 'unit configure',
+            #        'example apparatus',
+            #        'generally describe',
+            #        'determination unit',
+            #        'determination unit determine',
+            #        'perform operation'
+        ]
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             if term_weights[term_index] == 0.0:

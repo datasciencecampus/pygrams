@@ -138,8 +138,6 @@ class TestPyGrams(unittest.TestCase):
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == self.tfidfFileName(self.out_name, max_df):
                 tfidf_obj = dump_args[0][0]
-
-
                 assert_func(tfidf_matrix=tfidf_obj.tfidf_matrix, feature_names=tfidf_obj.feature_names)
 
                 results_checked = True

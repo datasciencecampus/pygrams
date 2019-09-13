@@ -111,6 +111,10 @@ class TestArgsChecker(unittest.TestCase):
         self.setUpTest(mock_path)
         self.args.date_from = pd.Timestamp('2019/03/10')
         self.args.date_to = pd.Timestamp('2019/03/11')
+
+        self.args.timeseries_date_from = pd.Timestamp('2019/03/10')
+        self.args.timeseries_date_to = pd.Timestamp('2019/03/11')
+
         args_checker = ArgsChecker(self.args, self.args_default)
 
         args_dict = args_checker.get_docs_mask_dict()
@@ -123,6 +127,10 @@ class TestArgsChecker(unittest.TestCase):
         self.setUpTest(mock_path)
         self.args.date_from = None
         self.args.date_to = None
+
+        self.args.timeseries_date_from = None
+        self.args.timeseries_date_to = None
+
         args_checker = ArgsChecker(self.args, self.args_default)
 
         args_dict = args_checker.get_docs_mask_dict()

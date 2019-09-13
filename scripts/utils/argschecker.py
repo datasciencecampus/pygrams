@@ -163,8 +163,7 @@ class ArgsChecker:
 
         if self.args.timeseries_date_to is not None or self.args.timeseries_date_from is not None:
             timeseries_date_to = pd.to_datetime('today').date() if self.args.timeseries_date_to is None else pd.to_datetime(self.args.timeseries_date_to)
-            timeseries_date_from = pd.to_datetime('1900-01-01') if self.args.timeseries_date_from is None else pd.to_datetime(
-                self.args.timeseries_date_from)
+            timeseries_date_from = pd.to_datetime('1900-01-01') if self.args.timeseries_date_from is None else pd.to_datetime(self.args.timeseries_date_from)
             docs_mask_dict['timeseries_date'] = {
                 'to': date_to_year_week(timeseries_date_to),
                 'from': date_to_year_week(timeseries_date_from)
