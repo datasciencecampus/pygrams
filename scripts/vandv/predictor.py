@@ -51,4 +51,10 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
             results[predictor_name][test_term] = (
                 None, model.configuration, predicted_values, len(training_values))
 
+    if len(smoothed_training_values) == 0:
+        smoothed_training_values = None
+
+    if len(smoothed_test_values) == 0:
+        smoothed_test_values = None
+
     return results, training_values, test_values, smoothed_training_values, smoothed_test_values
