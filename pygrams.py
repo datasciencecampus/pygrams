@@ -8,7 +8,7 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
-predictor_names = ['All', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters',
+predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters',
                    'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
                    'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
                    'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
@@ -194,7 +194,7 @@ def main(supplied_args):
     # emtech integration
     if args.timeseries:
         if 0 in args.predictor_names:
-            algs_codes = list(range(1, len(predictor_names)))
+            algs_codes = list(range(1, 6))
         else:
             algs_codes = args.predictor_names
 
