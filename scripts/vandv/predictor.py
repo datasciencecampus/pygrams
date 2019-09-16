@@ -11,6 +11,7 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
 
     results = {}
     smoothed_training_values = {}
+    smoothed_test_values = {}
     training_values = {}
     test_values = {}
     test_offset = num_prediction_periods if test_forecasts else 0
@@ -24,18 +25,19 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
         timeseries_term_float = [float(v) for v in timeseries_term]
 
         term = term_ngrams[term_index]
-        training_values[term] = timeseries_term_float[:-test_offset - 1]
+        training_values[term] = timeseries_term_float[:-test_offset ] if test_offset > 0 else timeseries_term_float
         if smoothed_series is not None:
-            smoothed_training_values[term]=smoothed_series[term_index][:-test_offset - 1]
+            smoothed_training_values[term]=smoothed_series[term_index][:-test_offset ] if test_offset > 0 else smoothed_series[term_index]
         if test_forecasts:
-            test_values[term] = timeseries_term_float[-test_offset - 1:-1]
+            test_values[term] = timeseries_term_float[-test_offset :]
+            smoothed_test_values[term] = smoothed_series[term_index][-test_offset :]
 
     if timeseries_all is not None:
         term = '__ number of patents'
         test_terms = [term] + test_terms
-        training_values[term] = [float(x) for x in timeseries_all[:-num_prediction_periods - 1]]
+        training_values[term] = [float(x) for x in timeseries_all[:-num_prediction_periods ]]
         if test_forecasts:
-            test_values[term] = [float(x) for x in timeseries_all[-num_prediction_periods - 1:-1]]
+            test_values[term] = [float(x) for x in timeseries_all[-num_prediction_periods :]]
 
     for predictor_name in predictor_names:
         results[predictor_name] = {}
@@ -49,4 +51,10 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
             results[predictor_name][test_term] = (
                 None, model.configuration, predicted_values, len(training_values))
 
-    return results, training_values, test_values, smoothed_training_values
+    if len(smoothed_training_values) == 0:
+        smoothed_training_values = None
+
+    if len(smoothed_test_values) == 0:
+        smoothed_test_values = None
+
+    return results, training_values, test_values, smoothed_training_values, smoothed_test_values

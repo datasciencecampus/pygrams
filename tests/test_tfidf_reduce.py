@@ -30,6 +30,10 @@ class TestTfidfReduce(unittest.TestCase):
             'to': date_to,
             'from': date_from
         }
+        docs_mask_dict['timeseries_date'] = {
+            'to': date_to,
+            'from': date_from
+        }
         docs_mask_dict['date_header'] = 'publication_date'
 
         filename = os.path.join('tests', 'data', 'USPTO-random-100.csv')

@@ -138,8 +138,6 @@ class TestPyGrams(unittest.TestCase):
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == self.tfidfFileName(self.out_name, max_df):
                 tfidf_obj = dump_args[0][0]
-
-
                 assert_func(tfidf_matrix=tfidf_obj.tfidf_matrix, feature_names=tfidf_obj.feature_names)
 
                 results_checked = True
@@ -281,7 +279,7 @@ class TestPyGrams(unittest.TestCase):
         mock_pipeline_read_pickle.side_effect = pipeline_read_pickle_fake
         mock_pipeline_read_pickle.return_value = self.dumped_tfidf
         args = ['-ds', self.data_source_name, '-ts', '-tc',
-                '-it', self.tfidfOutputFolder(self.data_source_name, 1.0), '--date_header',
+                '--date_header',
                 'publication_date', '--max_document_frequency', '1.0',
                 '--input_tfidf', self.out_name + '-mdf-1.0']
         pygrams.main(args)

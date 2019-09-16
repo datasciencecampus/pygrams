@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
+from math import sqrt
 from scipy.optimize import minimize
 from itertools import product
 
 
-class SteadyStateModel:
+class StateSpaceModel:
     def __init__(self, timeseries):
         self.timeseries = timeseries
 
@@ -14,11 +15,8 @@ class SteadyStateModel:
         return pd.DataFrame([row for row in product(*dictionary.values())],
                             columns=dictionary.keys())
 
-    @staticmethod
-    def jacobian(x):
-        return np.array((-2 * .5 * (1 - x[0]) - 4 * x[0] * (x[1] - x[0] ** 2), 2 * (x[1] - x[0] ** 2)))
 
-# Calculating and smoothing quarterly timeseries:   1%|          | 1.08k/100k [23:31<36:43:32, 1.34s/term]
+    # Calculating and smoothing quarterly timeseries:   1%|          | 1.08k/100k [23:31<36:43:32, 1.34s/term]
     def param_estimator(self, sigma_gnu, sigma_eta, delta):
         param_dictionary = {'sigma_gnu': sigma_gnu, 'sigma_eta': sigma_eta, 'delta': delta}
         param_grid = self.expand_grid(param_dictionary)
@@ -222,9 +220,18 @@ class SteadyStateModel:
 
         return alphahat, mse_alphahat
 
-    def run_smoothing(self, sigma_gnu=[0.1, 0.5], sigma_eta=[0.1, 0.5], delta=[0.6,0.7]):
+    def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9]):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
+        MSE = sum([((x-y)*(x-y)) for x,y in zip(self.timeseries, alphahat[0].tolist()[0])])/len(self.timeseries)
+
+        if MSE < 1.0 and sum(self.timeseries)/len(self.timeseries) > 1.5:
+            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
+            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
+            delta = [0.3, 0.6, 0.9, 1.2, 1.5]
+            opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
+            dfk_out = self.dfk_llm_vard(opt_param)
+            alphahat, mse_alphahat = self.smfilt(dfk_out)
         return opt_param, dfk_out, alphahat, mse_alphahat
