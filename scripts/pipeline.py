@@ -1,6 +1,4 @@
-import bz2
-import pickle
-from os import makedirs, path
+from os import path
 
 from pandas import read_pickle
 from scipy.signal import savgol_filter
@@ -25,10 +23,9 @@ from scripts.vandv.predictor import evaluate_prediction
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
-                 pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
+                 cached_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None,
-                 read_timeseries_from_cache=False, read_state_space_from_cache=False):
+                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None):
 
         # load data
         self.__data_filename = data_filename
@@ -39,8 +36,7 @@ class Pipeline(object):
         self.__emergence_list = []
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
-        if pickled_tfidf_folder_name is None:
-
+        if cached_folder_name is None:
             dataframe = data_factory.get(data_filename)
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
@@ -68,29 +64,21 @@ class Pipeline(object):
             self.__cpc_dict = utils.cpc_dict(dataframe)
             self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe, docs_mask_dict['date_header'])
 
-            base_pickle_path = path.join('outputs', 'tfidf')
-            makedirs(base_pickle_path, exist_ok=True)
+            min_date = min(self.__dates)
+            max_date = max(self.__dates)
 
-            def pickle_object(short_name, obj):
-                folder_name = path.join(base_pickle_path, output_name + f'-mdf-{max_df}')
-                makedirs(folder_name, exist_ok=True)
-                file_name = path.join(folder_name, output_name + f'-mdf-{max_df}-{short_name}.pkl.bz2')
-                with bz2.BZ2File(file_name, 'wb') as pickle_file:
-                    pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
-
-            pickle_object('tfidf', self.__tfidf_obj)
-            pickle_object('dates', self.__dates)
-            pickle_object('cpc_dict', self.__cpc_dict)
+            self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
+            utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
+            utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
+            utils.pickle_object('cpc_dict', self.__cpc_dict, self.__cached_folder_name)
 
         else:
-            print(f'Reading document and TFIDF from pickle {pickled_tfidf_folder_name}')
+            print(f'Reading document and TFIDF from pickle {cached_folder_name}')
 
-            base_folder = path.basename(pickled_tfidf_folder_name)
-            pickled_base_file_name = path.join(pickled_tfidf_folder_name, base_folder)
-
-            self.__tfidf_obj = read_pickle(pickled_base_file_name + '-tfidf.pkl.bz2')
-            self.__dates = read_pickle(pickled_base_file_name + '-dates.pkl.bz2')
-            self.__cpc_dict = read_pickle(pickled_base_file_name + '-cpc_dict.pkl.bz2')
+            self.__cached_folder_name = path.join('cached', cached_folder_name)
+            self.__tfidf_obj = utils.unpickle_object('tfidf', self.__cached_folder_name)
+            self.__dates = utils.unpickle_object('dates', self.__cached_folder_name)
+            self.__cpc_dict = utils.unpickle_object('cpc_dict', self.__cached_folder_name)
 
             if self.__dates is not None:
                 min_date = min(self.__dates)
@@ -166,25 +154,22 @@ class Pipeline(object):
         if not calculate_timeseries:
             return
 
-        ###################################### em-tech pipeline ###########################
-
         # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
-        # TODO: timeseries matrix no longer needs to be sparse. Massive programing and maintenance burden for small gain
         print(f'Creating timeseries matrix...')
-        pickled_base_file_name2 = path.join('outputs', 'cached')
-        if not read_timeseries_from_cache:
+        if cached_folder_name is None or not (path.isfile(utils.pickle_name('weekly_series_terms', self.__cached_folder_name))
+                                              and path.isfile(utils.pickle_name('weekly_series_global', self.__cached_folder_name))
+                                              and path.isfile(utils.pickle_name('weekly_isodates', self.__cached_folder_name))):
             self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
             [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
              self.__weekly_iso_dates] = self.__timeseries_data
 
-            utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, pickled_base_file_name2)
-            utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, pickled_base_file_name2)
-            utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, pickled_base_file_name2)
+            utils.pickle_object('weekly_series_terms', self.__term_counts_per_week, self.__cached_folder_name)
+            utils.pickle_object('weekly_series_global', self.__number_of_patents_per_week, self.__cached_folder_name)
+            utils.pickle_object('weekly_isodates', self.__weekly_iso_dates, self.__cached_folder_name)
         else:
-            self.__term_counts_per_week = read_pickle(path.join(pickled_base_file_name2, 'weekly_series_terms.pkl.bz2'))
-            self.__number_of_patents_per_week = read_pickle(
-                path.join(pickled_base_file_name2, 'weekly_series_global.pkl.bz2'))
-            self.__weekly_iso_dates = read_pickle(path.join(pickled_base_file_name2, 'weekly_isodates.pkl.bz2'))
+            self.__term_counts_per_week = utils.unpickle_object('weekly_series_terms', self.__cached_folder_name)
+            self.__number_of_patents_per_week = utils.unpickle_object('weekly_series_global', self.__cached_folder_name)
+            self.__weekly_iso_dates = utils.unpickle_object('weekly_isodates', self.__cached_folder_name)
             self.__term_ngrams = self.__tfidf_obj.feature_names
 
         self.__M = m_steps_ahead
@@ -223,7 +208,7 @@ class Pipeline(object):
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
-                               desc='Calculating and smoothing quarterly timeseries',
+                               desc='Calculating  quarterly timeseries',
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
@@ -232,26 +217,31 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
             self.__timeseries_quarterly.append(quarterly_values)
 
-            # temporary code
-            ##############
-            if (emergence_index == 'gradients' or sma == 'kalman') and not read_state_space_from_cache:
-                _, _1, smooth_series_s, intercept = StateSpaceModel(quarterly_values).run_smoothing()
-                smooth_series = smooth_series_s[0].tolist()[0]
-                derivatives = smooth_series_s[1].tolist()[0]
-                self.__timeseries_derivatives.append(derivatives)
-                self.__timeseries_intercept.append(intercept)
-                self.__timeseries_quarterly_smoothed.append(smooth_series)
+        if emergence_index == 'gradients' or sma == 'kalman':
+            if cached_folder_name is None or not (path.isfile(utils.pickle_name('smooth_series_s', self.__cached_folder_name))
+                                                  and path.isfile(utils.pickle_name('derivatives', self.__cached_folder_name))):
+                for term_index, quarterly_values in tqdm(enumerate(self.__timeseries_quarterly), unit='term',
+                                       desc='smoothing quarterly timeseries with kalman filter',
+                                       leave=False, unit_scale=True, total=len(self.__timeseries_quarterly)):
+                    _, _1, smooth_series_s, _intercept = StateSpaceModel(quarterly_values).run_smoothing()
+                    smooth_series = smooth_series_s[0].tolist()[0]
+                    derivatives = smooth_series_s[1].tolist()[0]
+                    self.__timeseries_derivatives.append(derivatives)
+                    self.__timeseries_quarterly_smoothed.append(smooth_series)
 
-                utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, pickled_base_file_name2)
-                utils.pickle_object('intercept', self.__timeseries_intercept, pickled_base_file_name2)
-                utils.pickle_object('derivatives', self.__timeseries_derivatives, pickled_base_file_name2)
-            elif sma == 'savgol' :
+                utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, self.__cached_folder_name)
+                utils.pickle_object('derivatives', self.__timeseries_derivatives, self.__cached_folder_name)
+
+            else:
+                self.__timeseries_quarterly_smoothed = utils.unpickle_object('smooth_series_s', self.__cached_folder_name)
+                self.__timeseries_derivatives = utils.unpickle_object('derivatives', self.__cached_folder_name)
+
+        if sma == 'savgol':
+            for quarterly_values in tqdm(self.__timeseries_quarterly, unit='term',
+                                                     desc='savgol smoothing quarterly timeseries',
+                                                     leave=False, unit_scale=True):
                 smooth_series = savgol_filter(quarterly_values, 9, 2, mode='nearest')
                 self.__timeseries_quarterly_smoothed.append(smooth_series)
-
-        if (emergence_index == 'gradients' or sma == 'kalman') and read_timeseries_from_cache:
-            self.__timeseries_quarterly_smoothed = read_pickle(path.join(pickled_base_file_name2, 'smooth_series_s.pkl.bz2'))
-            self.__timeseries_derivatives = read_pickle(path.join(pickled_base_file_name2, 'derivatives.pkl.bz2'))
 
         em = Emergence(all_quarterly_values[min_i:max_i])
 
