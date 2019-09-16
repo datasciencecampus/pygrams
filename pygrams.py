@@ -48,8 +48,8 @@ def get_args(command_line_arguments):
     # Input files
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2',
                         help="the document source to process")
-    parser.add_argument("-it", "--input_tfidf", default=None,
-                        help="Load a pickled TFIDF output instead of creating TFIDF by processing a document source")
+    parser.add_argument("-uc", "--use_cache", default=None,
+                        help="Cache file to use, to speed up queries")
 
     # Document column header names
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
@@ -173,14 +173,14 @@ def main(supplied_args):
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
-    if args.input_tfidf is None:
+    if args.use_cache is None:
         pickled_tfidf_folder_name = None
     else:
-        pickled_tfidf_folder_name = os.path.join('outputs', 'tfidf', args.input_tfidf)
+        pickled_tfidf_folder_name = args.use_cache
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
-                        pickled_tfidf_folder_name=pickled_tfidf_folder_name,
+                        cached_folder_name=pickled_tfidf_folder_name,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,

@@ -1,7 +1,7 @@
-import bz2
 import json
-import pickle
+from bz2 import BZ2File
 from os import makedirs, path
+from pickle import dump
 
 from scripts.nmf_wrapper import nmf_topic_modelling
 from scripts.terms_graph import TermsGraph
@@ -32,7 +32,7 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         graph.save_graph("key-terms", 'data')
 
     elif output_type == 'wordcloud':
-        dict_freqs = dict([(p[0], (p[1])) for p in output])
+        dict_freqs = {p[0]: p[1] for p in output}
         wordcloud = MultiCloudPlot(freqsin=dict_freqs, max_words=len(output))
         filename_and_path = path.join('outputs', 'wordclouds', name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
@@ -40,8 +40,8 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
     elif output_type == 'termcounts':
         term_counts_filename = path.join('outputs', 'termcounts', name + '-term_counts.pkl.bz2')
         makedirs(path.dirname(term_counts_filename), exist_ok=True)
-        with bz2.BZ2File(term_counts_filename, 'wb') as pickle_file:
-            pickle.dump(timeseries_data, pickle_file, protocol=4)
+        with BZ2File(term_counts_filename, 'wb') as pickle_file:
+            dump(timeseries_data, pickle_file, protocol=4)
 
     elif output_type == 'json_config':
         doc_pickle_file_name = path.abspath(doc_pickle_file_name)

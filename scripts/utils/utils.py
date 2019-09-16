@@ -1,13 +1,13 @@
 import array as arr
-import bz2
-import pickle
+from bz2 import BZ2File
 from os import path, makedirs
+from pickle import dump
 
 import numpy as np
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
 from gensim.test.utils import datapath, get_tmpfile
-from pandas import to_datetime
+from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
 
 
@@ -24,11 +24,20 @@ def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):
     return non_zero_dates, quarterly_values
 
 
-def pickle_object(short_name, obj, pickle_path):
-    makedirs(pickle_path, exist_ok=True)
-    file_name = path.join(pickle_path, f'{short_name}.pkl.bz2')
-    with bz2.BZ2File(file_name, 'wb') as pickle_file:
-        pickle.dump(obj, pickle_file, protocol=4, fix_imports=False)
+def pickle_object(short_name, obj, folder_name):
+    makedirs(folder_name, exist_ok=True)
+    file_name = pickle_name(short_name, folder_name)
+    with BZ2File(file_name, 'wb') as pickle_file:
+        dump(obj, pickle_file, protocol=4, fix_imports=False)
+
+
+def unpickle_object( short_name, folder_name):
+    file_name = pickle_name(short_name, folder_name)
+    return read_pickle(file_name)
+
+
+def pickle_name( short_name, folder_name):
+    return path.join(folder_name, short_name + '.pkl.bz2')
 
 
 def stationary_terms(emergence_list, nterms):
