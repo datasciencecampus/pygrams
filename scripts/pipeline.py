@@ -1,6 +1,5 @@
 from os import path
 
-from pandas import read_pickle
 from scipy.signal import savgol_filter
 from tqdm import tqdm
 
