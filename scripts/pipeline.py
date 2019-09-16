@@ -254,21 +254,12 @@ class Pipeline(object):
             self.__timeseries_derivatives = read_pickle(path.join(pickled_base_file_name2, 'derivatives.pkl.bz2'))
 
         em = Emergence(all_quarterly_values[min_i:max_i])
-        temp_list=[
-            # 'unit configure',
-            #        'example apparatus',
-            #        'generally describe',
-            #        'determination unit',
-            #        'determination unit determine',
-            #        'perform operation'
-        ]
+
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             if term_weights[term_index] == 0.0:
                 continue
             term_ngram = self.__term_ngrams[term_index]
-            if term_ngram in temp_list:
-                continue
 
             if self.__timeseries_quarterly_smoothed is not None:
                 quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
@@ -300,12 +291,6 @@ class Pipeline(object):
         self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
-
-        # self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
-        #                    self.__term_ngrams, lims=self.__lims, category='emergent', method=emergence_index)
-        #
-        # self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
-        #                    self.__term_ngrams, lims=self.__lims, category='declining', method=emergence_index)
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
