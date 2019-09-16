@@ -156,7 +156,9 @@ class Pipeline(object):
 
         # TODO: offer timeseries cache as an option. Then filter dates and terms after reading the cached matrix
         print(f'Creating timeseries matrix...')
-        if cached_folder_name is None:
+        if cached_folder_name is None or not (path.isfile(utils.pickle_name('weekly_series_terms', self.__cached_folder_name))
+                                              and path.isfile(utils.pickle_name('weekly_series_global', self.__cached_folder_name))
+                                              and path.isfile(utils.pickle_name('weekly_isodates', self.__cached_folder_name))):
             self.__timeseries_data = self.__tfidf_reduce_obj.create_timeseries_data(self.__dates)
             [self.__term_counts_per_week, self.__term_ngrams, self.__number_of_patents_per_week,
              self.__weekly_iso_dates] = self.__timeseries_data
@@ -216,7 +218,8 @@ class Pipeline(object):
             self.__timeseries_quarterly.append(quarterly_values)
 
         if emergence_index == 'gradients' or sma == 'kalman':
-            if cached_folder_name is None:
+            if cached_folder_name is None or not (path.isfile(utils.pickle_name('smooth_series_s', self.__cached_folder_name))
+                                                  and path.isfile(utils.pickle_name('derivatives', self.__cached_folder_name))):
                 for term_index, quarterly_values in tqdm(enumerate(self.__timeseries_quarterly), unit='term',
                                        desc='smoothing quarterly timeseries with kalman filter',
                                        leave=False, unit_scale=True, total=len(self.__timeseries_quarterly)):
