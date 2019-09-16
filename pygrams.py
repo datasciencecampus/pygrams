@@ -174,7 +174,7 @@ def main(supplied_args):
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
-                        pickled_tfidf_folder_name=pickled_tfidf_folder_name,
+                        cached_folder_name=pickled_tfidf_folder_name,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
