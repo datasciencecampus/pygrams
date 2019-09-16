@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import numpy as np
@@ -23,7 +24,7 @@ class TestGraph(unittest.TestCase):
         max_df=0.3
         ngram_range = (min_n, max_n)
 
-        df = pd.read_pickle(FilePaths.us_patents_random_1000_pickle_name)
+        df = pd.read_pickle(os.path.join('..', FilePaths.us_patents_random_1000_pickle_name))
         tfidf_obj = tfidf_from_text(df['abstract'], ngram_range=ngram_range, max_document_frequency=max_df,
                                     tokenizer=StemTokenizer())
 
