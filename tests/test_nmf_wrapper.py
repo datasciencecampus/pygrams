@@ -1,6 +1,7 @@
 import unittest
-from numpy.testing import assert_almost_equal
+
 import pandas as pd
+from numpy.testing import assert_almost_equal
 
 from scripts import FilePaths
 from scripts.nmf_wrapper import nmf_topic_modelling
@@ -20,7 +21,6 @@ class TestNMFWrapper(unittest.TestCase):
         cls.__nmf = nmf_topic_modelling(nmf_topics, tfidf_obj.tfidf_matrix)
 
     def test_nmf_topic1(self):
-
         actual_topic_1_score = self.__nmf.components_[0][3302]
         expected_topic_1_score = 0.2044937886411859
 

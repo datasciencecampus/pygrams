@@ -11,13 +11,13 @@ class TestFilePaths(unittest.TestCase):
         self.platformname = platform.system()
 
     def test_us_patents_random_100_pickle_name(self):
-        self.assertTrue(os.path.isfile(FilePaths.us_patents_random_100_pickle_name))
+        self.assertTrue(os.path.isfile(os.path.join('..', FilePaths.us_patents_random_100_pickle_name)))
 
     def test_us_patents_random_1000_pickle_name(self):
-        self.assertTrue(os.path.isfile(FilePaths.us_patents_random_1000_pickle_name))
+        self.assertTrue(os.path.isfile(os.path.join('..', FilePaths.us_patents_random_1000_pickle_name)))
 
     def test_us_patents_random_10000_pickle_name(self):
-        self.assertTrue(os.path.isfile(FilePaths.us_patents_random_10000_pickle_name))
+        self.assertTrue(os.path.isfile(os.path.join('..', FilePaths.us_patents_random_10000_pickle_name)))
 
     def test_global_stopwords_filename(self):
         self.assertTrue(os.path.exists(FilePaths.global_stopwords_filename))

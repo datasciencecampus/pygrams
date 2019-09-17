@@ -61,7 +61,7 @@ class ArimaTests(unittest.TestCase):
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=1)
 
     def test_linearly_increasing_sequence_fuel_cell(self):
-        time_series = pd.read_csv(os.path.join('tests','data', 'fuel_cell_quarterly.csv')).values.tolist()
+        time_series = pd.read_csv(os.path.join('data', 'fuel_cell_quarterly.csv')).values.tolist()
         time_series = [item for sublist in time_series for item in sublist]
         num_predicted_periods = 4
         expected_prediction = [333., 333., 334., 335.]
@@ -72,7 +72,7 @@ class ArimaTests(unittest.TestCase):
         np_test.assert_almost_equal(actual_prediction, expected_prediction, decimal=0)
 
     def test_linearly_decreasing_sequence_image_data(self):
-        time_series = pd.read_csv(os.path.join('tests','data', 'image_data_quarterly.csv')).values.tolist()
+        time_series = pd.read_csv(os.path.join('data', 'image_data_quarterly.csv')).values.tolist()
         time_series = [item for sublist in time_series for item in sublist]
         num_predicted_periods = 4
         expected_prediction = [562., 561., 558., 556.]

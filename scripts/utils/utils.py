@@ -31,12 +31,12 @@ def pickle_object(short_name, obj, folder_name):
         dump(obj, pickle_file, protocol=4, fix_imports=False)
 
 
-def unpickle_object( short_name, folder_name):
+def unpickle_object(short_name, folder_name):
     file_name = pickle_name(short_name, folder_name)
     return read_pickle(file_name)
 
 
-def pickle_name( short_name, folder_name):
+def pickle_name(short_name, folder_name):
     return path.join(folder_name, short_name + '.pkl.bz2')
 
 
