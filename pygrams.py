@@ -134,8 +134,10 @@ def get_args(command_line_arguments):
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
 
-    parser.add_argument("-ei", "--emergence-index", default='porter', help="options are: porter, quadratic, gradients")
-    parser.add_argument("-sma", "--smoothing-alg", default=None, help="options are: kalman, savgol")
+    parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'quadratic', 'gradients'),
+                        help="Emergence calculation to use (default: %(default))")
+    parser.add_argument("-sma", "--smoothing-alg", default=None, choices=('kalman', 'savgol'),
+                        help="Time series smoothing to use (default: %(default))")
 
     parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
                         help="analyse using exponential type fit or not")
