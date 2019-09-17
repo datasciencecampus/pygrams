@@ -36,7 +36,7 @@ class TestTfidfReduce(unittest.TestCase):
         }
         docs_mask_dict['date_header'] = 'publication_date'
 
-        filename = os.path.join('tests', 'data', 'USPTO-random-100.csv')
+        filename = os.path.join('data', 'USPTO-random-100.csv')
 
         cls.__pipeline = Pipeline(filename, docs_mask_dict, ngram_range=ngram_range, text_header='abstract',
                                   max_df=max_df, output_name='test', calculate_timeseries=True)

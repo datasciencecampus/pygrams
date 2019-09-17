@@ -39,14 +39,16 @@ class TestTermsFilter(unittest.TestCase):
                                 0.0,
                                 0.0,
                                 0.0]
-        weights_vec_actual = FilterTerms(self.feature_names, user_queries, threshold=0.8).ngram_weights_vec[410:430]
+        weights_vec_actual = FilterTerms(self.feature_names, user_queries, threshold=0.8,
+                                         file_name='../models/glove/glove2vec.6B.50d.txt').ngram_weights_vec[410:430]
 
         self.assertListEqual(weights_vec_expected, weights_vec_actual)
         # assert what you like here. ie. first 20 or last 20 values, count of 1s or zeros, etc
 
     def test_embeddings_filter_cosine_dist(self):
         user_queries = ['pharmacy', 'health', 'chemist']
-        weights_vec_actual = FilterTerms(self.feature_names, user_queries).ngram_weights_vec[410:430]
+        weights_vec_actual = FilterTerms(self.feature_names, user_queries,
+                                         file_name='../models/glove/glove2vec.6B.50d.txt').ngram_weights_vec[410:430]
         weights_vec_expected = [0.5728331683597565,
                                 0.5728331683597565,
                                 0.023525821108745026,

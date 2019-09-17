@@ -55,7 +55,8 @@ script:
   # to report installed packages
   - pip freeze
   # command to run tests
-  - pytest --cov-config .coveragerc --cov=./ tests/
+  - cd tests
+  - pytest --cov-config ../.coveragerc --cov=../ ./
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

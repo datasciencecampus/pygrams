@@ -21,7 +21,7 @@ class EmergenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         [cls.term_counts_per_week, cls.term_ngrams, cls.num_patents_per_week, cls.week_iso_dates] = pd.read_pickle(
-            os.path.join('data', 'USPTO-random-500000-term_counts.pkl.bz2'))
+            os.path.join('..', 'data', 'USPTO-random-500000-term_counts.pkl.bz2'))
         cls.all_yearly_dates, cls.all_yearly_values = timeseries_weekly_to_yearly(
             cls.week_iso_dates, cls.num_patents_per_week)
         cls.em = Emergence(cls.all_yearly_values)
