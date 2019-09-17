@@ -1,14 +1,16 @@
-from gensim.models import KeyedVectors
+import os
+import zipfile
+
 import numpy as np
+from gensim.models import KeyedVectors
 from tqdm import tqdm
 
-import os
 import scripts.utils.utils as ut
-import zipfile
 
 
 class FilterTerms(object):
-    def __init__(self, tfidf_ngrams, user_ngrams, file_name='models/glove/glove2vec.6B.50d.txt', threshold=None):
+    def __init__(self, tfidf_ngrams, user_ngrams, file_name=os.path.join('models', 'glove', 'glove2vec.6B.50d.txt'),
+                 threshold=None):
 
         self.__user_ngrams = user_ngrams
         self.__tfidf_ngrams = tfidf_ngrams
@@ -16,8 +18,9 @@ class FilterTerms(object):
         self.__ngram_weights_vec = list(np.ones(len(tfidf_ngrams)))
         if user_ngrams is not None and len(user_ngrams)>0:
             if not os.path.isfile(file_name):
-                with zipfile.ZipFile(file_name+".zip","r") as zip_ref:
-                    zip_ref.extractall("models/glove/")
+                output_path = os.path.dirname(file_name)
+                with zipfile.ZipFile(file_name + ".zip", "r") as zip_ref:
+                    zip_ref.extractall(path=output_path)
             self.__model = KeyedVectors.load_word2vec_format(self.__file_name)
             self.__ngram_weights_vec = self.__get_embeddings_vec(threshold)
 

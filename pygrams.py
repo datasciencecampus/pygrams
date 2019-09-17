@@ -48,8 +48,8 @@ def get_args(command_line_arguments):
     # Input files
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2',
                         help="the document source to process")
-    parser.add_argument("-uc", "--use-cache", default=None,
-                        help="Use cached file to speed up queries")
+    parser.add_argument("-uc", "--use_cache", default=None,
+                        help="Cache file to use, to speed up queries")
 
     # Document column header names
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")

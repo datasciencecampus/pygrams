@@ -40,15 +40,6 @@ def pickle_name(short_name, folder_name):
     return path.join(folder_name, short_name + '.pkl.bz2')
 
 
-def unpickle_object( short_name, folder_name):
-    file_name = pickle_name(short_name, folder_name)
-    return read_pickle(file_name)
-
-
-def pickle_name( short_name, folder_name):
-    return path.join(folder_name, short_name + '.pkl.bz2')
-
-
 def stationary_terms(emergence_list, nterms):
     if len(emergence_list) == 0:
         return []
