@@ -255,7 +255,7 @@ class Pipeline(object):
             else:
                 quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
 
-            if len(quarterly_values) == 0 or max(self.__timeseries_quarterly[term_index])[min_i:max_i] < float(patents_per_quarter_threshold):
+            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(patents_per_quarter_threshold):
                 continue
 
             if emergence_index == 'quadratic':
@@ -383,7 +383,7 @@ class Pipeline(object):
             test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
             num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
 
-        predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
+        predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values, smoothed_test_values,
                                                                 predictors_to_run, test_terms=terms)
 
         html_results += report_predicted_emergence_labels_html(predicted_emergence)

@@ -44,12 +44,12 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
 
         for test_term in tqdm(test_terms, unit='term', desc='Validating prediction with ' + predictor_name):
 
-            model = factory.predictor_factory(predictor_name, test_term, training_values[test_term],
+            model = factory.predictor_factory(predictor_name, test_term, smoothed_training_values[test_term],
                                               num_prediction_periods)
             predicted_values = model.predict_counts()
 
             results[predictor_name][test_term] = (
-                None, model.configuration, predicted_values, len(training_values))
+                None, model.configuration, predicted_values, len(smoothed_training_values))
 
     if len(smoothed_training_values) == 0:
         smoothed_training_values = None
