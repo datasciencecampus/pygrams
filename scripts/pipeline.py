@@ -290,6 +290,8 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
+        self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
+
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
             output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
@@ -301,6 +303,16 @@ class Pipeline(object):
     @property
     def term_score_tuples(self):
         return self.__term_score_tuples
+
+    def get_state_space_forecast(self, timeseries, test_terms, term_ngrams):
+
+        series_dict = {}
+        series_dict['x'] = range(len(timeseries[0]))
+
+        for test_term in test_terms:
+            term_index = term_ngrams.index(test_term)
+            series = timeseries[term_index]
+            _, __, ___, ____ = StateSpaceModel(series).run_smoothing(forecast=True)
 
     # run with 30 terms only.
     def get_multiplot(self, timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
