@@ -323,11 +323,12 @@ class Pipeline(object):
             results[test_term]={}
             score=0
             for i in range(num_runs):
-                _, predicted_derivatives, ___, ____ = StateSpaceModel(series[i:i+window]).run_smoothing(forecast=True)
+                alpha, mse, ___, ____ = StateSpaceModel(series[i:i+window]).run_smoothing(forecast=True)
                 results[test_term][i]={}
-                results[test_term][i]['predicted_derivative']=predicted_derivatives
+                predicted_term_derivatives = np.array(alpha[1])[0]
+                results[test_term][i]['predicted_derivative']=predicted_term_derivatives
                 results[test_term][i]['derivative'] = derivatives[i+window-5:i+window]
-                results[test_term][i]['predicted_label'] = self.label_prediction(predicted_derivatives)
+                results[test_term][i]['predicted_label'] = self.label_prediction(predicted_term_derivatives)
                 results[test_term][i]['label'] = self.label_prediction(np.array(term_derivatives[i + window - 5:i + window]))
                 score += (results[test_term][i]['label'] == results[test_term][i]['predicted_label'])
             results[test_term]['score'] = score

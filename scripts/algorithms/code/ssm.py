@@ -16,39 +16,37 @@ class StateSpaceModel:
                             columns=dictionary.keys())
 
     def forecast(self, dkf_in, k):
+
         A = dkf_in['Alast'].values[0]
         P = dkf_in['Plast'].values[0]
         TT = dkf_in['TT'].values[0]
         Z = dkf_in['Z'].values[0]
-        Z_Transpose = np.transpose(Z)
         ncA0 = dkf_in['ncA0'].values[0]
         gamma = dkf_in['gamma_est'].values[0]
         mse_gamma = dkf_in['mse_gamma'].values[0]
         sigma2 = dkf_in['sigma2'].values[0]
-        Agamma = A[:, :ncA0-1]
+        ncolZ = Z.shape[1]
 
-        # yhat = range(0, k)
-        # mse_yhat = range(0, k)
+        Agamma = A[:, :ncA0 - 1]
+        alpha_hat     = np.matrix(np.vstack([-999.0]*ncolZ * k).reshape(ncolZ, k))
+        mse_alpha_hat = np.matrix(np.vstack([-999.0]*ncolZ*ncolZ * k).reshape(ncolZ, ncolZ * k))
 
         aux = np.vstack([-gamma, 1]).reshape(ncA0, 1)
         alpha = np.matmul(A,  aux)
-
-        mse_yhat=np.zeros(k)
-        yhat=np.zeros(k)
-        yhat[0] = np.matmul(Z,  alpha)
+        alpha_hat[: , 0] = alpha
 
         m1 = np.matmul(Agamma, mse_gamma)
         m2 = np.matmul(m1, np.transpose(Agamma))
         msealpha = (sigma2 * P) + m2
-        mse_yhat[0] = np.matmul(np.matmul(Z, msealpha), Z_Transpose)
+
+        mse_alpha_hat[:, 0:ncolZ] = msealpha
         if k > 1:
             for i in range(1,k):
-                Z_TT = np.matmul(Z, TT)
-                yhat[i] = np.matmul(Z_TT, alpha)
-                mse_yhat[i] = np.matmul(np.matmul(np.matmul( Z_TT, msealpha), np.transpose(TT)), Z_Transpose)
+                alpha_hat[:, i] = TT * alpha
+                mse_alpha_hat[: , ((i - 1) * ncolZ ): (ncolZ * i)] = TT * msealpha * TT.transpose()
                 TT = np.matmul(TT,  TT)
-            return yhat, mse_yhat
-        return None
+            return alpha_hat, mse_alpha_hat
+        return None, None
 
     # Calculating and smoothing quarterly timeseries:   1%|          | 1.08k/100k [23:31<36:43:32, 1.34s/term]
     def param_estimator(self, sigma_gnu, sigma_eta, delta):
