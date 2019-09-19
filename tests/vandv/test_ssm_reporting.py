@@ -24,7 +24,7 @@ class SSMReporting(unittest.TestCase):
 sample term 78 60
 extra term 93 87'''
 
-        output_html = html_table(results, [2, 3])
+        output_html = html_table(results)
 
         soup = BeautifulSoup(output_html, 'html.parser')
 
@@ -45,7 +45,7 @@ Trimmed (20% cut) mean 90 60
 Standard deviation 1108.82 293.053
 Trimmed (20% cut) standard deviation 10 0'''
 
-        output_html = summary_html_table(results, [2, 3], trimmed_proportion_to_cut=0.2)
+        output_html = summary_html_table(results, trimmed_proportion_to_cut=0.2)
 
         soup = BeautifulSoup(output_html, 'html.parser')
 

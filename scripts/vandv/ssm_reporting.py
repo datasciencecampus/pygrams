@@ -34,11 +34,14 @@ def __create_df_from_results(prediction_lengths, results):
     return df_results
 
 
-def html_table(results, prediction_lengths):
+def get_prediction_lengths(results):
+    return list(next(iter(results.values())).keys())
+
+
+def html_table(results):
+    prediction_lengths = get_prediction_lengths(results)
     df_results = __create_df_from_results(prediction_lengths, results)
-
     results_table = __html_table_from_dataframe(df_results, 'SSM')
-
     return results_table
 
 
@@ -57,7 +60,8 @@ def trim_proportion(data, proportion_to_cut):
     return data_tmp[tuple(sl)]
 
 
-def summary_html_table(results, prediction_lengths, trimmed_proportion_to_cut=0.1):
+def summary_html_table(results, trimmed_proportion_to_cut=0.1):
+    prediction_lengths = get_prediction_lengths(results)
     df_results = __create_df_from_results(prediction_lengths, results)
 
     means = {
