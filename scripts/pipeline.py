@@ -2,15 +2,14 @@ from os import path
 
 import numpy as np
 from scipy.signal import savgol_filter
-from tqdm import tqdm
 from sklearn.linear_model import LinearRegression
+from tqdm import tqdm
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
 from scripts.algorithms.code.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
-from scripts.algorithms.predictor_factory import PredictorFactory
 from scripts.documents_filter import DocumentsFilter
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
@@ -18,9 +17,7 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
 from scripts.utils import utils
-from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
-from scripts.vandv.graphs import report_prediction_as_graphs_html
-from scripts.vandv.predictor import evaluate_prediction
+from scripts.vandv import ssm_reporting
 
 
 class Pipeline(object):
@@ -292,10 +289,6 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
-        # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
-        results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
-                                                 self.__emergent, self.__term_ngrams, window=20 )
-        print(results)
 
     def label_prediction(self, derivatives, k=5):
         sum_derivatives = sum(derivatives)
@@ -445,24 +438,37 @@ class Pipeline(object):
                   f' likely because -mpq is too large for dataset provided')
             return '', None
 
+        # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
+        results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
+                                                 terms, self.__term_ngrams, window=20)
+        print(results)
+
         html_results = ''
+        prediction_lengths = results.values()[0]
+        html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
+        html_results += f'<h3>Term analysis</h2>\n'
+        html_results += ssm_reporting.html_table(results, prediction_lengths)
+        html_results += f'<h3>Analysis summary</h2>\n'
+        html_results += ssm_reporting.summary_html_table(results, prediction_lengths)
 
-        results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(
-            self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
-            test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
-            num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
+        return html_results, None
 
-        predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values, smoothed_test_values,
-                                                                predictors_to_run, test_terms=terms)
-
-        html_results += report_predicted_emergence_labels_html(predicted_emergence)
-
-        html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
-                                                         test_values=test_values,
-                                                         smoothed_test_values=smoothed_test_values,
-                                                         test_terms=terms, training_values=training_values,
-                                                         smoothed_training_values=smoothed_training_values,
-                                                         normalised=normalized,
-                                                         test_forecasts=train_test, lims=self.__lims)
-
-        return html_results, training_values.items()
+        # results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(
+        #     self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
+        #     test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
+        #     num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
+        #
+        # predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values, smoothed_test_values,
+        #                                                         predictors_to_run, test_terms=terms)
+        #
+        # html_results += report_predicted_emergence_labels_html(predicted_emergence)
+        #
+        # html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
+        #                                                  test_values=test_values,
+        #                                                  smoothed_test_values=smoothed_test_values,
+        #                                                  test_terms=terms, training_values=training_values,
+        #                                                  smoothed_training_values=smoothed_training_values,
+        #                                                  normalised=normalized,
+        #                                                  test_forecasts=train_test, lims=self.__lims)
+        #
+        # return html_results, training_values.items()

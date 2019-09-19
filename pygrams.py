@@ -217,20 +217,20 @@ def main(supplied_args):
 
             html_results, training_values = pipeline.run(predictors_to_run, normalized=args.normalised,
                                                                 train_test=args.test, emergence=emergence)
-            if training_values is None:
-                continue
-            # save training_values to csv file
-            #
-            # training_values:                                  csv file:
-            # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
-            #                                                   'term2', 2, 4, 1, 3
-            #
-            filename = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
-            with open(filename, 'w') as f:
-                w = csv.writer(f)
-                for key, values in training_values:
-                    my_list = ["'" + str(key) + "'"] + values
-                    w.writerow(my_list)
+            if training_values is not None:
+                # save training_values to csv file
+                #
+                # training_values:                                  csv file:
+                # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
+                #                                                   'term2', 2, 4, 1, 3
+                #
+                filename = os.path.join('outputs', 'emergence',
+                                        args.outputs_name + '_' + emergence + '_time_series.csv')
+                with open(filename, 'w') as f:
+                    w = csv.writer(f)
+                    for key, values in training_values:
+                        my_list = ["'" + str(key) + "'"] + values
+                        w.writerow(my_list)
 
             html_doc = f'''<!DOCTYPE html>
                 <html lang="en">
