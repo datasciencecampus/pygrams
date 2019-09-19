@@ -45,9 +45,8 @@ install:
   - python --version
   - python -m pip install -U pip
   - python -m easy_install -U setuptools
-  # command to install dependencies
-  #  - python setup.py install
-  - pip install -e .
+  # command to install dependencies; includes extra 'test' specific dependencies
+  - pip install -e .[test]
 
 script:
   # for codecov support
