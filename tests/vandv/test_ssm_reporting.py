@@ -42,8 +42,8 @@ extra term 93 87'''
         expected_text = '''terms 2 3
 Mean -146 116
 Trimmed (20% cut) mean 90 60
-Standard deviation 1108.82 293.053'''
-        # Trimmed (10% cut) standard deviation 455.073 0'''
+Standard deviation 1108.82 293.053
+Trimmed (20% cut) standard deviation 10 0'''
 
         output_html = summary_html_table(results, [2, 3], trimmed_proportion_to_cut=0.2)
 

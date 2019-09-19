@@ -1,5 +1,6 @@
 from statistics import stdev, mean
 
+import numpy as np
 import pandas as pd
 from scipy.stats import trim_mean
 
@@ -41,6 +42,21 @@ def html_table(results, prediction_lengths):
     return results_table
 
 
+def trim_proportion(data, proportion_to_cut):
+    # parts taken from scipy.stats.stats.trim_mean
+    nobs = data.shape[0]
+    lower_cut = int(proportion_to_cut * nobs)
+    upper_cut = nobs - lower_cut
+    if lower_cut > upper_cut:
+        raise ValueError("Proportion too big.")
+
+    data_tmp = np.partition(data, (lower_cut, upper_cut - 1), 0)
+
+    sl = [slice(None)] * data_tmp.ndim
+    sl[0] = slice(lower_cut, upper_cut)
+    return data_tmp[tuple(sl)]
+
+
 def summary_html_table(results, prediction_lengths, trimmed_proportion_to_cut=0.1):
     df_results = __create_df_from_results(prediction_lengths, results)
 
@@ -63,12 +79,12 @@ def summary_html_table(results, prediction_lengths, trimmed_proportion_to_cut=0.
         standard_deviations[f'{prediction_length}'] = stdev(df_results[f'{prediction_length}'])
     summary_df = summary_df.append(standard_deviations, ignore_index=True)
 
-    # trimmed_standard_deviations = {
-    #     'terms': f'<b>Trimmed ({trimmed_proportion_to_cut * 100.0:.0f}% cut) standard deviation</b>'}
-    # for prediction_length in prediction_lengths:
-    #     trimmed_data = trimboth(df_results[f'{prediction_length}'], trimmed_proportion_to_cut)
-    #     trimmed_standard_deviations[f'{prediction_length}'] = stdev(trimmed_data)
-    # summary_df = summary_df.append(trimmed_standard_deviations, ignore_index=True)
+    trimmed_standard_deviations = {
+        'terms': f'<b>Trimmed ({trimmed_proportion_to_cut * 100.0:.0f}% cut) standard deviation</b>'}
+    for prediction_length in prediction_lengths:
+        trimmed_data = trim_proportion(df_results[f'{prediction_length}'], trimmed_proportion_to_cut)
+        trimmed_standard_deviations[f'{prediction_length}'] = stdev(trimmed_data)
+    summary_df = summary_df.append(trimmed_standard_deviations, ignore_index=True)
 
     summary_table = __html_table_from_dataframe(summary_df, 'SSM summary')
 
