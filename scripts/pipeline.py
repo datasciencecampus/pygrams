@@ -3,12 +3,14 @@ from os import path
 import numpy as np
 from scipy.signal import savgol_filter
 from tqdm import tqdm
+from sklearn.linear_model import LinearRegression
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
 from scripts.algorithms.code.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
+from scripts.algorithms.predictor_factory import PredictorFactory
 from scripts.documents_filter import DocumentsFilter
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
@@ -290,7 +292,53 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
-        self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
+        # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
+        results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
+                                                 self.__emergent, self.__term_ngrams, window=20 )
+        print(results)
+
+    def label_prediction(self, derivatives, k=5):
+        sum_derivatives = sum(derivatives)
+
+        x = np.array(range(k)).reshape((-1, 1))
+        model = LinearRegression().fit(x, derivatives)
+        derivative_slope = model.coef_
+
+        if sum_derivatives >0:
+            if derivative_slope>0:
+                return 'p-increase'
+            else:
+                return 't-increase'
+        else:
+            if derivative_slope>0:
+                return 't-decrease'
+            else:
+                return 'p-decrease'
+
+    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window = 20):
+
+        series_dict = {}
+        series_dict['x'] = range(len(timeseries[0]))
+        results={}
+
+        for test_term in test_terms:
+            term_index = term_ngrams.index(test_term)
+            series = timeseries[term_index]
+            term_derivatives = derivatives[term_index]
+            nperiods=len(series)
+            num_runs = nperiods-window
+            results[test_term]={}
+            score=0
+            for i in range(num_runs):
+                _, predicted_derivatives, ___, ____ = StateSpaceModel(series[i:i+window]).run_smoothing(forecast=True)
+                results[test_term][i]={}
+                results[test_term][i]['predicted_derivative']=predicted_derivatives
+                results[test_term][i]['derivative'] = derivatives[i+window-5:i+window]
+                results[test_term][i]['predicted_label'] = self.label_prediction(predicted_derivatives)
+                results[test_term][i]['label'] = self.label_prediction(np.array(term_derivatives[i + window - 5:i + window]))
+                score += (results[test_term][i]['label'] == results[test_term][i]['predicted_label'])
+            results[test_term]['score'] = score
+        return results
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:

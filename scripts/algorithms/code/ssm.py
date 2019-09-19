@@ -259,6 +259,7 @@ class StateSpaceModel:
         dfk_out = self.dfk_llm_vard(opt_param)
         if forecast:
             yhat, mse_yhat = self.forecast(dfk_out, 5)
+            return  yhat, mse_yhat, None, None
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
         MSE = sum([((x-y)*(x-y)) for x,y in zip(self.timeseries, alphahat[0].tolist()[0])])/len(self.timeseries)
