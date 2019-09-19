@@ -1,10 +1,12 @@
+from statistics import stdev, mean
+
 import pandas as pd
 from scipy.stats import trim_mean
 
 
-def __html_table_from_dataframe(df_results, terms, term_style='{:.0}'):
-    df_summary_table = df_results.style.hide_index()
-    df_summary_table = df_summary_table.set_table_styles([
+def __html_table_from_dataframe(df_results, terms, term_style='{:.0f}'):
+    df_table = df_results.style.hide_index()
+    df_table = df_table.set_table_styles([
         dict(selector='table', props=[('border-collapse', 'collapse')]),
         dict(selector='td', props=[('border', '2px solid black'),
                                    ('text-align', 'right'),
@@ -12,14 +14,14 @@ def __html_table_from_dataframe(df_results, terms, term_style='{:.0}'):
                                    ('padding-right', '15px')])
     ])
     for term in terms:
-        df_summary_table = df_summary_table.format({term: term_style})
-    df_summary_table = df_summary_table.highlight_max(axis=1)
+        df_table = df_table.format({term: term_style})
+    df_table = df_table.highlight_max(axis=1)
 
     heading = '<style type="text/css">table {border-collapse: collapse;} </style>\n'
-    return heading + df_summary_table.render()
+    return heading + df_table.render()
 
 
-def html_table(results, prediction_lengths):
+def __create_df_from_results(prediction_lengths, results):
     df_results = pd.DataFrame({'terms': list(results.keys())})
     for prediction_length in prediction_lengths:
         prediction_length_results = []
@@ -28,30 +30,46 @@ def html_table(results, prediction_lengths):
 
         df_term_column = pd.DataFrame({f'{prediction_length}': prediction_length_results})
         df_results = df_results.join(df_term_column)
+    return df_results
+
+
+def html_table(results, prediction_lengths):
+    df_results = __create_df_from_results(prediction_lengths, results)
 
     results_table = __html_table_from_dataframe(df_results, 'SSM')
 
-    trimmed_mean_proportion_to_cut = 0.1
+    return results_table
+
+
+def summary_html_table(results, prediction_lengths, trimmed_proportion_to_cut=0.1):
+    df_results = __create_df_from_results(prediction_lengths, results)
+
+    means = {
+        'terms': f'<b>Mean</b>'}
+    for prediction_length in prediction_lengths:
+        means[f'{prediction_length}'] = mean(df_results[f'{prediction_length}'])
+    summary_df = pd.DataFrame(means, index=[0])
+
     trimmed_means = {
-        'terms': f'<b>Trimmed ({trimmed_mean_proportion_to_cut * 100.0:.0f}% cut) <br/> mean</b>'}
+        'terms': f'<b>Trimmed ({trimmed_proportion_to_cut * 100.0:.0f}% cut) mean</b>'}
     for prediction_length in prediction_lengths:
         trimmed_means[f'{prediction_length}'] = trim_mean(df_results[f'{prediction_length}'],
-                                                          trimmed_mean_proportion_to_cut)
-    # print(f'{term_name} trimmed mean={trimmed_means:.1f}')
-    df_results = df_results.append(trimmed_means, ignore_index=True)
+                                                          trimmed_proportion_to_cut)
+    summary_df = summary_df.append(trimmed_means, ignore_index=True)
 
-    # standard_deviations = {
-    #     'terms': f'<b>Standard deviation <br/>of {metric_name}</b>'}
-    # for predictor_name in predictor_names:
-    #     predictor_display_name = predictor_name.replace('-', '<br/>')
-    #     results_without_nan = [x for x in df_results[predictor_display_name] if not math.isnan(x)]
-    #     standard_deviations[predictor_display_name] = stdev(results_without_nan)
-    #     print(f'{predictor_name} {metric_name} standard deviation={standard_deviations[predictor_display_name]:.1f}')
-    # df_results = df_results.append(standard_deviations, ignore_index=True)
+    standard_deviations = {
+        'terms': f'<b>Standard deviation</b>'}
+    for prediction_length in prediction_lengths:
+        standard_deviations[f'{prediction_length}'] = stdev(df_results[f'{prediction_length}'])
+    summary_df = summary_df.append(standard_deviations, ignore_index=True)
 
-    summary_df = pd.DataFrame(trimmed_means, index=[0])
+    # trimmed_standard_deviations = {
+    #     'terms': f'<b>Trimmed ({trimmed_proportion_to_cut * 100.0:.0f}% cut) standard deviation</b>'}
+    # for prediction_length in prediction_lengths:
+    #     trimmed_data = trimboth(df_results[f'{prediction_length}'], trimmed_proportion_to_cut)
+    #     trimmed_standard_deviations[f'{prediction_length}'] = stdev(trimmed_data)
+    # summary_df = summary_df.append(trimmed_standard_deviations, ignore_index=True)
+
     summary_table = __html_table_from_dataframe(summary_df, 'SSM summary')
 
-    # summary_df = summary_df.append(standard_deviations, ignore_index=True)
-
-    return f'<h2>State Space Model Results</h2>\n{results_table}<p/>{summary_table}\n'
+    return summary_table
