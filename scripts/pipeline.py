@@ -314,7 +314,7 @@ class Pipeline(object):
         series_dict['x'] = range(len(timeseries[0]))
         results={}
 
-        for test_term in test_terms:
+        for test_term in tqdm(test_terms, unit='term', unit_scale=True):
             term_index = term_ngrams.index(test_term)
             series = timeseries[term_index]
             term_derivatives = derivatives[term_index]
@@ -444,12 +444,11 @@ class Pipeline(object):
         print(results)
 
         html_results = ''
-        prediction_lengths = results.values()[0]
         html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
         html_results += f'<h3>Term analysis</h2>\n'
-        html_results += ssm_reporting.html_table(results, prediction_lengths)
+        html_results += ssm_reporting.html_table(results)
         html_results += f'<h3>Analysis summary</h2>\n'
-        html_results += ssm_reporting.summary_html_table(results, prediction_lengths)
+        html_results += ssm_reporting.summary_html_table(results)
 
         return html_results, None
 
