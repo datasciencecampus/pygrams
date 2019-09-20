@@ -446,9 +446,9 @@ class Pipeline(object):
         html_results = ''
         html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
         html_results += f'<h3>Term analysis</h2>\n'
-        html_results += ssm_reporting.html_table(results)
+        html_results += ssm_reporting.html_table(5, results)
         html_results += f'<h3>Analysis summary</h2>\n'
-        html_results += ssm_reporting.summary_html_table(results)
+        html_results += ssm_reporting.summary_html_table(5, results)
 
         return html_results, None
 

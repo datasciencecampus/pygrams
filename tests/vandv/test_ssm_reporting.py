@@ -15,16 +15,63 @@ def extract_table_text_from_html(soup):
 
 
 class SSMReporting(unittest.TestCase):
-    def test_html_table(self):
-        results = {
-            'sample term': {2: 78, 3: 60},
-            'extra term': {2: 93, 3: 87}
+    example_results = {
+        'sample term 100% correct': {
+            0: {'predicted_label': 'p-increase',
+                'label': 'p-increase'},
+            1: {'predicted_label': 'p-increase',
+                'label': 'p-increase'},
+            2: {'predicted_label': 'p-increase',
+                'label': 'p-increase'},
+            'score': 3
+        },
+        'second term 67% correct': {
+            0: {'predicted_label': 't-decrease',
+                'label': 't-increase'},
+            1: {'predicted_label': 't-decrease',
+                'label': 't-decrease'},
+            2: {'predicted_label': 't-decrease',
+                'label': 't-decrease'},
+            'score': 2
+        },
+        'third term 33% correct': {
+            0: {'predicted_label': 't-increase',
+                'label': 'p-increase'},
+            1: {'predicted_label': 'p-increase',
+                'label': 't-increase'},
+            2: {'predicted_label': 't-increase',
+                'label': 't-increase'},
+            'score': 1
+        },
+        'fourth term 100% correct': {
+            0: {'predicted_label': 'p-increase',
+                'label': 'p-increase'},
+            1: {'predicted_label': 'p-increase',
+                'label': 'p-increase'},
+            2: {'predicted_label': 'p-increase',
+                'label': 'p-increase'},
+            'score': 3
+        },
+        'fifth term 0% correct': {
+            0: {'predicted_label': 'p-decrease',
+                'label': 'p-increase'},
+            1: {'predicted_label': 'p-increase',
+                'label': 'p-decrease'},
+            2: {'predicted_label': 'p-increase',
+                'label': 'p-decrease'},
+            'score': 0
         }
-        expected_text = '''terms 2 3
-sample term 78 60
-extra term 93 87'''
+    }
 
-        output_html = html_table(results)
+    def test_html_table(self):
+        expected_text = '''Terms 5
+sample term 100% correct 100%
+second term 67% correct 67%
+third term 33% correct 33%
+fourth term 100% correct 100%
+fifth term 0% correct 0%'''
+
+        output_html = html_table(5, self.example_results)
 
         soup = BeautifulSoup(output_html, 'html.parser')
 
@@ -32,20 +79,13 @@ extra term 93 87'''
         self.assertEqual(expected_text, actual_text)
 
     def test_summary_html_table(self):
-        results = {
-            'sample term': {2: 80, 3: 60},
-            'extra term': {2: 90, 3: 60},
-            'third term': {2: 100, 3: 60},
-            'fourth term': {2: 1000, 3: -200},
-            'fifth term': {2: -2000, 3: 600}
-        }
-        expected_text = '''terms 2 3
-Mean -146 116
-Trimmed (20% cut) mean 90 60
-Standard deviation 1108.82 293.053
-Trimmed (20% cut) standard deviation 10 0'''
+        expected_text = '''Summary 5
+Mean 60%
+Trimmed (20% cut) mean 67%
+Standard deviation 43%
+Trimmed (20% cut) standard deviation 33%'''
 
-        output_html = summary_html_table(results, trimmed_proportion_to_cut=0.2)
+        output_html = summary_html_table(5, self.example_results, trimmed_proportion_to_cut=0.2)
 
         soup = BeautifulSoup(output_html, 'html.parser')
 
