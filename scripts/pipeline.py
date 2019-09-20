@@ -308,10 +308,9 @@ class Pipeline(object):
             else:
                 return 'p-decrease'
 
-    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window=20):
+    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window=20,
+                                  k_range=(2, 3, 4, 5)):
 
-        series_dict = {}
-        series_dict['x'] = range(len(timeseries[0]))
         results = {}
 
         for test_term in tqdm(test_terms, unit='term', unit_scale=True):
@@ -321,20 +320,30 @@ class Pipeline(object):
             nperiods = len(series)
             num_runs = nperiods - window
             results[test_term] = {}
-            for k in range(2, 6):
+            for k in k_range:
                 score = 0
                 results_for_k = {}
+
                 for i in range(num_runs):
                     alpha, mse = StateSpaceModel(series[i:i + window]).run_smooth_forecast(k=k)
                     results_for_k[i] = {}
+
+                    predicted_term_values = np.array(alpha[0])[0]
+                    results_for_k[i]['predicted_values'] = predicted_term_values
+
                     predicted_term_derivatives = np.array(alpha[1])[0]
                     results_for_k[i]['predicted_derivative'] = predicted_term_derivatives
-                    results_for_k[i]['derivative'] = derivatives[i + window - k:i + window]
                     results_for_k[i]['predicted_label'] = self.label_prediction(predicted_term_derivatives, k=k)
-                    results_for_k[i]['label'] = self.label_prediction(
-                        np.array(term_derivatives[i + window - k:i + window]), k=k)
-                    score += (results_for_k[i]['label'] == results_for_k[i]['predicted_label'])
-                results_for_k['accuracy'] = score / num_runs
+
+                    if num_runs > 1:
+                        results_for_k[i]['derivative'] = derivatives[i + window - k:i + window]
+                        results_for_k[i]['label'] = self.label_prediction(
+                            np.array(term_derivatives[i + window - k:i + window]), k=k)
+                        score += (results_for_k[i]['label'] == results_for_k[i]['predicted_label'])
+
+                if num_runs > 1:
+                    results_for_k['accuracy'] = score / num_runs
+
                 results[test_term][k] = results_for_k
         return results
 
@@ -433,7 +442,13 @@ class Pipeline(object):
             return '', None
 
         # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
-        window_size = 30
+        if train_test:
+            k_range = range(2, self.__M + 1)
+            window_size = 30
+        else:
+            k_range = [self.__M]
+            window_size = len(self.__timeseries_quarterly[0]) - 1
+
         results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
                                                  terms, self.__term_ngrams, window=window_size)
         print(results)
@@ -443,10 +458,22 @@ class Pipeline(object):
         html_results = ''
         html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
         html_results += f'<p>Window size: {window_size}</p>\n'
-        html_results += f'<h3>Term analysis</h2>\n'
-        html_results += ssm_reporting.html_table(results)
-        html_results += f'<h3>Analysis summary</h2>\n'
-        html_results += ssm_reporting.summary_html_table(results)
+
+        if train_test:
+            html_results += '<p><b>Testing predictions</b></p>\n'
+            html_results += f'<h3>Term analysis</h2>\n'
+            html_results += ssm_reporting.html_table(results)
+            html_results += f'<h3>Analysis summary</h2>\n'
+            html_results += ssm_reporting.summary_html_table(results)
+
+        html_results += f'<h3>Time series</h2>\n'
+        html_results += ssm_reporting.prediction_as_graphs(
+            self.__timeseries_quarterly,
+            self.__timeseries_quarterly_smoothed,
+            self.__lims,
+            results)
+
+
 
         return html_results, None
 
