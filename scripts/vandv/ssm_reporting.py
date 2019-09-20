@@ -84,12 +84,11 @@ def summary_html_table(results, trimmed_proportion_to_cut=0.1):
     summary_df = summary_df.append(trimmed_means, ignore_index=True)
     summary_mean_table = __html_table_from_dataframe(summary_df)
 
-    summary_df = pd.DataFrame(means, index=[0])
     standard_deviations = {
         'Summary': f'<b>Standard deviation</b>'}
     for prediction_length in df_results.columns[1:]:
         standard_deviations[prediction_length] = stdev(df_results[prediction_length])
-    summary_df = summary_df.append(standard_deviations, ignore_index=True)
+    summary_df = pd.DataFrame(standard_deviations, index=[0])
 
     trimmed_standard_deviations = {
         'Summary': f'<b>Trimmed ({trimmed_proportion_to_cut * 100.0:.0f}% cut) standard deviation</b>'}
