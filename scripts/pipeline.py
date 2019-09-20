@@ -263,7 +263,8 @@ class Pipeline(object):
             else:
                 quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
 
-            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(patents_per_quarter_threshold):
+            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(
+                    patents_per_quarter_threshold):
                 continue
 
             if emergence_index == 'quadratic':
