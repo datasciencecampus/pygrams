@@ -432,14 +432,16 @@ class Pipeline(object):
             return '', None
 
         # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
+        window_size = 30
         results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
-                                                 terms, self.__term_ngrams, window=20)
+                                                 terms, self.__term_ngrams, window=window_size)
         print(results)
 
         # utils.pickle_object('results', results, self.__cached_folder_name)
 
         html_results = ''
         html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
+        html_results += f'<p>Window size: {window_size}</p>\n'
         html_results += f'<h3>Term analysis</h2>\n'
         html_results += ssm_reporting.html_table(results)
         html_results += f'<h3>Analysis summary</h2>\n'
