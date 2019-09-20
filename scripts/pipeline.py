@@ -263,7 +263,8 @@ class Pipeline(object):
             else:
                 quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
 
-            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(patents_per_quarter_threshold):
+            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(
+                    patents_per_quarter_threshold):
                 continue
 
             if emergence_index == 'quadratic':
@@ -289,7 +290,6 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
-
     def label_prediction(self, derivatives, k=5):
         sum_derivatives = sum(derivatives)
 
@@ -297,40 +297,44 @@ class Pipeline(object):
         model = LinearRegression().fit(x, derivatives)
         derivative_slope = model.coef_
 
-        if sum_derivatives >0:
-            if derivative_slope>0:
+        if sum_derivatives > 0:
+            if derivative_slope > 0:
                 return 'p-increase'
             else:
                 return 't-increase'
         else:
-            if derivative_slope>0:
+            if derivative_slope > 0:
                 return 't-decrease'
             else:
                 return 'p-decrease'
 
-    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window = 20):
+    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window=20):
 
         series_dict = {}
         series_dict['x'] = range(len(timeseries[0]))
-        results={}
+        results = {}
 
         for test_term in tqdm(test_terms, unit='term', unit_scale=True):
             term_index = term_ngrams.index(test_term)
             series = timeseries[term_index]
             term_derivatives = derivatives[term_index]
-            nperiods=len(series)
-            num_runs = nperiods-window
-            results[test_term]={}
-            score=0
-            for i in range(num_runs):
-                _, predicted_derivatives, ___, ____ = StateSpaceModel(series[i:i+window]).run_smoothing(forecast=True)
-                results[test_term][i]={}
-                results[test_term][i]['predicted_derivative']=predicted_derivatives
-                results[test_term][i]['derivative'] = derivatives[i+window-5:i+window]
-                results[test_term][i]['predicted_label'] = self.label_prediction(predicted_derivatives)
-                results[test_term][i]['label'] = self.label_prediction(np.array(term_derivatives[i + window - 5:i + window]))
-                score += (results[test_term][i]['label'] == results[test_term][i]['predicted_label'])
-            results[test_term]['score'] = score
+            nperiods = len(series)
+            num_runs = nperiods - window
+            results[test_term] = {}
+            for k in range(2, 6):
+                score = 0
+                results_for_k = {}
+                for i in range(num_runs):
+                    _, predicted_derivatives = StateSpaceModel(series[i:i + window]).run_smooth_forecast(k=k)
+                    results_for_k[i] = {}
+                    results_for_k[i]['predicted_derivative'] = predicted_derivatives
+                    results_for_k[i]['derivative'] = derivatives[i + window - k:i + window]
+                    results_for_k[i]['predicted_label'] = self.label_prediction(predicted_derivatives, k=k)
+                    results_for_k[i]['label'] = self.label_prediction(
+                        np.array(term_derivatives[i + window - k:i + window]), k=k)
+                    score += (results_for_k[i]['label'] == results_for_k[i]['predicted_label'])
+                results_for_k['accuracy'] = score / num_runs
+                results[test_term][k] = results_for_k
         return results
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
@@ -345,33 +349,22 @@ class Pipeline(object):
     def term_score_tuples(self):
         return self.__term_score_tuples
 
-    def get_state_space_forecast(self, timeseries, test_terms, term_ngrams):
-
-        series_dict = {}
-        series_dict['x'] = range(len(timeseries[0]))
-
-        for test_term in test_terms:
-            term_index = term_ngrams.index(test_term)
-            series = timeseries[term_index]
-            _, __, ___, ____ = StateSpaceModel(series).run_smoothing(forecast=True)
-
-    # run with 30 terms only.
     def get_multiplot(self, timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
                       category='emergent'):
+
+        if len(test_terms) != 30:
+            raise ValueError('Only supports 30 terms as multiplot is 6x5')
+
         # libraries and data
         import matplotlib.pyplot as plt
         import pandas as pd
 
-        series_dict = {}
-        series_dict['x'] = range(len(timeseries[0]))
-
+        series_dict = {'x': range(len(timeseries[0]))}
         for test_term in test_terms:
             term_index = term_ngrams.index(test_term)
             series_dict[term_ngrams[term_index]] = timeseries[term_index]
 
-        series_dict_smooth = {}
-        series_dict['x'] = range(len(timeseries_terms_smooth[0]))
-
+        series_dict_smooth = {'x': range(len(timeseries_terms_smooth[0]))}
         for test_term in test_terms:
             term_index = term_ngrams.index(test_term)
             series_dict_smooth[term_ngrams[term_index]] = timeseries_terms_smooth[term_index]
@@ -443,12 +436,14 @@ class Pipeline(object):
                                                  terms, self.__term_ngrams, window=20)
         print(results)
 
+        # utils.pickle_object('results', results, self.__cached_folder_name)
+
         html_results = ''
         html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
         html_results += f'<h3>Term analysis</h2>\n'
-        html_results += ssm_reporting.html_table(5, results)
+        html_results += ssm_reporting.html_table(results)
         html_results += f'<h3>Analysis summary</h2>\n'
-        html_results += ssm_reporting.summary_html_table(5, results)
+        html_results += ssm_reporting.summary_html_table(results)
 
         return html_results, None
 

@@ -16,50 +16,50 @@ def extract_table_text_from_html(soup):
 
 class SSMReporting(unittest.TestCase):
     example_results = {
-        'sample term 100% correct': {
+        'sample term 100% correct': {5: {
             0: {'predicted_label': 'p-increase',
                 'label': 'p-increase'},
             1: {'predicted_label': 'p-increase',
                 'label': 'p-increase'},
             2: {'predicted_label': 'p-increase',
                 'label': 'p-increase'},
-            'score': 3
+            'accuracy': 3 / 3}
         },
-        'second term 67% correct': {
+        'second term 67% correct': {5: {
             0: {'predicted_label': 't-decrease',
                 'label': 't-increase'},
             1: {'predicted_label': 't-decrease',
                 'label': 't-decrease'},
             2: {'predicted_label': 't-decrease',
                 'label': 't-decrease'},
-            'score': 2
+            'accuracy': 2 / 3}
         },
-        'third term 33% correct': {
+        'third term 33% correct': {5: {
             0: {'predicted_label': 't-increase',
                 'label': 'p-increase'},
             1: {'predicted_label': 'p-increase',
                 'label': 't-increase'},
             2: {'predicted_label': 't-increase',
                 'label': 't-increase'},
-            'score': 1
+            'accuracy': 1 / 3}
         },
-        'fourth term 100% correct': {
+        'fourth term 100% correct': {5: {
             0: {'predicted_label': 'p-increase',
                 'label': 'p-increase'},
             1: {'predicted_label': 'p-increase',
                 'label': 'p-increase'},
             2: {'predicted_label': 'p-increase',
                 'label': 'p-increase'},
-            'score': 3
+            'accuracy': 3 / 3}
         },
-        'fifth term 0% correct': {
+        'fifth term 0% correct': {5: {
             0: {'predicted_label': 'p-decrease',
                 'label': 'p-increase'},
             1: {'predicted_label': 'p-increase',
                 'label': 'p-decrease'},
             2: {'predicted_label': 'p-increase',
                 'label': 'p-decrease'},
-            'score': 0
+            'accuracy': 0 / 3}
         }
     }
 
@@ -71,7 +71,7 @@ third term 33% correct 33%
 fourth term 100% correct 100%
 fifth term 0% correct 0%'''
 
-        output_html = html_table(5, self.example_results)
+        output_html = html_table(self.example_results)
 
         soup = BeautifulSoup(output_html, 'html.parser')
 
@@ -85,7 +85,7 @@ Trimmed (20% cut) mean 67%
 Standard deviation 43%
 Trimmed (20% cut) standard deviation 33%'''
 
-        output_html = summary_html_table(5, self.example_results, trimmed_proportion_to_cut=0.2)
+        output_html = summary_html_table(self.example_results, trimmed_proportion_to_cut=0.2)
 
         soup = BeautifulSoup(output_html, 'html.parser')
 

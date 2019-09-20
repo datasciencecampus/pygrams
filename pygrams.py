@@ -216,7 +216,7 @@ def main(supplied_args):
             title += f' ({emergence})'
 
             html_results, training_values = pipeline.run(predictors_to_run, normalized=args.normalised,
-                                                                train_test=args.test, emergence=emergence)
+                                                         train_test=args.test, emergence=emergence)
             if training_values is not None:
                 # save training_values to csv file
                 #

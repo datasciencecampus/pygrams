@@ -1,8 +1,8 @@
+from itertools import product
+
 import numpy as np
 import pandas as pd
-from math import sqrt
 from scipy.optimize import minimize
-from itertools import product
 
 
 class StateSpaceModel:
@@ -25,28 +25,28 @@ class StateSpaceModel:
         gamma = dkf_in['gamma_est'].values[0]
         mse_gamma = dkf_in['mse_gamma'].values[0]
         sigma2 = dkf_in['sigma2'].values[0]
-        Agamma = A[:, :ncA0-1]
+        Agamma = A[:, :ncA0 - 1]
 
         # yhat = range(0, k)
         # mse_yhat = range(0, k)
 
         aux = np.vstack([-gamma, 1]).reshape(ncA0, 1)
-        alpha = np.matmul(A,  aux)
+        alpha = np.matmul(A, aux)
 
-        mse_yhat=np.zeros(k)
-        yhat=np.zeros(k)
-        yhat[0] = np.matmul(Z,  alpha)
+        mse_yhat = np.zeros(k)
+        yhat = np.zeros(k)
+        yhat[0] = np.matmul(Z, alpha)
 
         m1 = np.matmul(Agamma, mse_gamma)
         m2 = np.matmul(m1, np.transpose(Agamma))
         msealpha = (sigma2 * P) + m2
         mse_yhat[0] = np.matmul(np.matmul(Z, msealpha), Z_Transpose)
         if k > 1:
-            for i in range(1,k):
+            for i in range(1, k):
                 Z_TT = np.matmul(Z, TT)
                 yhat[i] = np.matmul(Z_TT, alpha)
-                mse_yhat[i] = np.matmul(np.matmul(np.matmul( Z_TT, msealpha), np.transpose(TT)), Z_Transpose)
-                TT = np.matmul(TT,  TT)
+                mse_yhat[i] = np.matmul(np.matmul(np.matmul(Z_TT, msealpha), np.transpose(TT)), Z_Transpose)
+                TT = np.matmul(TT, TT)
             return yhat, mse_yhat
         return None
 
@@ -254,19 +254,22 @@ class StateSpaceModel:
 
         return alphahat, mse_alphahat
 
-    def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9], forecast = False):
+    def run_smooth_forecast(self, sigma_gnu=(0.001, 0.01, 0.1), sigma_eta=(0.001, 0.01, 0.1), delta=(0.5, 0.9), k=5):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
-        if forecast:
-            yhat, mse_yhat = self.forecast(dfk_out, 5)
-            return  yhat, mse_yhat, None, None
+        return self.forecast(dfk_out, k)
+
+    def run_smoothing(self, sigma_gnu=(0.001, 0.01, 0.1), sigma_eta=(0.001, 0.01, 0.1), delta=(0.5, 0.9)):
+        opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
+        dfk_out = self.dfk_llm_vard(opt_param)
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
-        MSE = sum([((x-y)*(x-y)) for x,y in zip(self.timeseries, alphahat[0].tolist()[0])])/len(self.timeseries)
+        MSE = sum([((x - y) * (x - y)) for x, y in zip(self.timeseries, alphahat[0].tolist()[0])]) / len(
+            self.timeseries)
 
-        if MSE < 1.0 and sum(self.timeseries)/len(self.timeseries) > 1.5:
-            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
-            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
+        if MSE < 1.0 and sum(self.timeseries) / len(self.timeseries) > 1.5:
+            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5, 1.0, 1.5]
+            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5, 1.0, 1.5]
             delta = [0.3, 0.6, 0.9, 1.2, 1.5]
             opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
             dfk_out = self.dfk_llm_vard(opt_param)

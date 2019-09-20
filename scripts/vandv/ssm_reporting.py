@@ -22,26 +22,23 @@ def __html_table_from_dataframe(df, term_style='{:.0%}'):
     return heading + df_style.render()
 
 
-def __create_df_from_results(look_ahead, results):
+def __create_df_from_results(results):
     df_results = pd.DataFrame({'Terms': list(results.keys())})
-    look_ahead_results = []
-    for term_name in results:
-        predictions = []
-        for window_offset in results[term_name]:
-            if type(window_offset) is int:
-                prediction = results[term_name][window_offset]
-                predictions.append(prediction['predicted_label'] == prediction['label'])
+    k_range = list(next(iter(results.values())).keys())
 
-        prediction_accuracy = predictions.count(True) / len(predictions)
-        look_ahead_results.append(prediction_accuracy)
+    for k in k_range:
+        look_ahead_results = []
+        for term_name in results:
+            look_ahead_results.append(results[term_name][k]['accuracy'])
 
-    df_term_column = pd.DataFrame({f'{look_ahead}': look_ahead_results})
-    df_results = df_results.join(df_term_column)
+        df_term_column = pd.DataFrame({f'{k}': look_ahead_results})
+        df_results = df_results.join(df_term_column)
+
     return df_results
 
 
-def html_table(look_ahead, results):
-    df_results = __create_df_from_results(look_ahead, results)
+def html_table(results):
+    df_results = __create_df_from_results(results)
     results_table = __html_table_from_dataframe(df_results)
     return results_table
 
@@ -61,8 +58,8 @@ def trim_proportion(data, proportion_to_cut):
     return data_tmp[tuple(sl)]
 
 
-def summary_html_table(look_ahead, results, trimmed_proportion_to_cut=0.1):
-    df_results = __create_df_from_results(look_ahead, results)
+def summary_html_table(results, trimmed_proportion_to_cut=0.1):
+    df_results = __create_df_from_results(results)
 
     means = {
         'Summary': f'<b>Mean</b>'}
