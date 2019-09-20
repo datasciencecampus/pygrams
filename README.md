@@ -107,12 +107,12 @@ For example, for a corpus of book blurbs you could use:
 python pygrams.py -th='blurb' -dh='published_date'
 ```
 
-#### Using a pre-pickled TFIDF file (-it)
+#### Using cached files to speed up processing (-uc)
 
-In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source. These files are cached automatically upon the first run with data and the directory hosting them inherits the outputs name given. Running pygrams with cached tfidf matrix:
+In order save processing time, at various stages of the pipeline, we cache data structures that are costly and slow to compute, like the compressed tf-idf matrix, the timeseries matrix, the smooth series and its derivatives from kalman filter and others:
 
 ```
-python pygrams.py -it USPTO-mdf-0.05
+python pygrams.py -uc all-mdf-0.05-200501-201841
 ```
 
 ### TFIDF Dictionary
