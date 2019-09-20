@@ -252,12 +252,15 @@ class StateSpaceModel:
 
         return alphahat, mse_alphahat
 
-    def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9], forecast = False):
+
+    def run_smooth_forecast(self, sigma_gnu=(0.001, 0.01, 0.1), sigma_eta=(0.001, 0.01, 0.1), delta=(0.5, 0.9), k=5):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
-        if forecast:
-            yhat, mse_yhat = self.forecast(dfk_out, 5)
-            return  yhat, mse_yhat, None, None
+        return self.forecast(dfk_out, k)
+
+    def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9]):
+        opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
+        dfk_out = self.dfk_llm_vard(opt_param)
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
         MSE = sum([((x-y)*(x-y)) for x,y in zip(self.timeseries, alphahat[0].tolist()[0])])/len(self.timeseries)
