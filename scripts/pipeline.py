@@ -433,7 +433,7 @@ class Pipeline(object):
             return '', None
 
         # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
-        window_size = 30
+        window_size = 25
         results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
                                                  terms, self.__term_ngrams, window=window_size)
         print(results)
