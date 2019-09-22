@@ -10,7 +10,7 @@ class HoltWintersPredictor(object):
         self.__num_prediction_periods = num_prediction_periods
 
         y = np.array(data_in).reshape(-1, 1)
-        y = y + 0.000001  # HoltWinters doesn't like zeros
+        y = np.clip(y, 0.00001, None)  # HoltWinters doesn't like zeros
 
         self.__model = Holt(y, exponential=True, damped=True)
         self.__results = self.__model.fit(optimized=True)

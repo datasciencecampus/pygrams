@@ -18,6 +18,9 @@ from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
 from scripts.utils import utils
 from scripts.vandv import ssm_reporting
+from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
+from scripts.vandv.predictor import evaluate_prediction
+from scripts.vandv.predictor_reporting import report_prediction_as_graphs_html
 
 
 class Pipeline(object):
@@ -308,10 +311,9 @@ class Pipeline(object):
             else:
                 return 'p-decrease'
 
-    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window=20):
+    def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window=20,
+                                  k_range=(2, 3, 4, 5)):
 
-        series_dict = {}
-        series_dict['x'] = range(len(timeseries[0]))
         results = {}
 
         for test_term in tqdm(test_terms, unit='term', unit_scale=True):
@@ -321,20 +323,30 @@ class Pipeline(object):
             nperiods = len(series)
             num_runs = nperiods - window
             results[test_term] = {}
-            for k in range(2, 6):
+            for k in k_range:
                 score = 0
                 results_for_k = {}
+
                 for i in range(num_runs):
                     alpha, mse = StateSpaceModel(series[i:i + window]).run_smooth_forecast(k=k)
                     results_for_k[i] = {}
+
+                    predicted_term_values = np.array(alpha[0])[0]
+                    results_for_k[i]['predicted_values'] = predicted_term_values
+
                     predicted_term_derivatives = np.array(alpha[1])[0]
                     results_for_k[i]['predicted_derivative'] = predicted_term_derivatives
-                    results_for_k[i]['derivative'] = derivatives[i + window - k:i + window]
                     results_for_k[i]['predicted_label'] = self.label_prediction(predicted_term_derivatives, k=k)
-                    results_for_k[i]['label'] = self.label_prediction(
-                        np.array(term_derivatives[i + window - k:i + window]), k=k)
-                    score += (results_for_k[i]['label'] == results_for_k[i]['predicted_label'])
-                results_for_k['accuracy'] = score / num_runs
+
+                    if num_runs > 1:
+                        results_for_k[i]['derivative'] = derivatives[i + window - k:i + window]
+                        results_for_k[i]['label'] = self.label_prediction(
+                            np.array(term_derivatives[i + window - k:i + window]), k=k)
+                        score += (results_for_k[i]['label'] == results_for_k[i]['predicted_label'])
+
+                if num_runs > 1:
+                    results_for_k['accuracy'] = score / num_runs
+
                 results[test_term][k] = results_for_k
         return results
 
@@ -417,7 +429,7 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
@@ -432,40 +444,61 @@ class Pipeline(object):
                   f' likely because -mpq is too large for dataset provided')
             return '', None
 
-        # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
-        window_size = 25
-        results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
-                                                 terms, self.__term_ngrams, window=window_size)
-        print(results)
-
-        # utils.pickle_object('results', results, self.__cached_folder_name)
-
         html_results = ''
-        html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
-        html_results += f'<p>Window size: {window_size}</p>\n'
-        html_results += f'<h3>Term analysis</h2>\n'
-        html_results += ssm_reporting.html_table(results)
-        html_results += f'<h3>Analysis summary</h2>\n'
-        html_results += ssm_reporting.summary_html_table(results)
 
-        return html_results, None
+        if ss_only:
+            # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
+            if train_test:
+                k_range = range(2, self.__M + 1)
+                window_size = 30
+            else:
+                k_range = [self.__M]
+                window_size = len(self.__timeseries_quarterly[0]) - 1
 
-        # results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(
-        #     self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
-        #     test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
-        #     num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
-        #
-        # predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values, smoothed_test_values,
-        #                                                         predictors_to_run, test_terms=terms)
-        #
-        # html_results += report_predicted_emergence_labels_html(predicted_emergence)
-        #
-        # html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
-        #                                                  test_values=test_values,
-        #                                                  smoothed_test_values=smoothed_test_values,
-        #                                                  test_terms=terms, training_values=training_values,
-        #                                                  smoothed_training_values=smoothed_training_values,
-        #                                                  normalised=normalized,
-        #                                                  test_forecasts=train_test, lims=self.__lims)
-        #
-        # return html_results, training_values.items()
+            results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
+                                                     terms, self.__term_ngrams, window=window_size)
+            print(results)
+
+            # utils.pickle_object('results', results, self.__cached_folder_name)
+
+
+            html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
+            html_results += f'<p>Window size: {window_size}</p>\n'
+
+            if train_test:
+                html_results += '<p><b>Testing predictions</b></p>\n'
+                html_results += f'<h3>Term analysis</h2>\n'
+                html_results += ssm_reporting.html_table(results)
+                html_results += f'<h3>Analysis summary</h2>\n'
+                html_results += ssm_reporting.summary_html_table(results)
+
+            html_results += f'<h3>Time series</h2>\n'
+            html_results += ssm_reporting.prediction_as_graphs(
+                self.__timeseries_quarterly,
+                self.__timeseries_quarterly_smoothed,self.__term_ngrams,
+                self.__lims,
+                results)
+
+
+
+            return html_results, None
+        else:
+            results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(
+                self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
+                test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
+                num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
+
+            predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values, smoothed_test_values,
+                                                                    predictors_to_run, test_terms=terms)
+
+            html_results += report_predicted_emergence_labels_html(predicted_emergence)
+
+            html_results += report_prediction_as_graphs_html(results, predictors_to_run, self.__weekly_iso_dates,
+                                                             test_values=test_values,
+                                                             smoothed_test_values=smoothed_test_values,
+                                                             test_terms=terms, training_values=training_values,
+                                                             smoothed_training_values=smoothed_training_values,
+                                                             normalised=normalized,
+                                                             test_forecasts=train_test, lims=self.__lims)
+
+            return html_results, training_values.items()

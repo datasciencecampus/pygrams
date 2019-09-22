@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from math import sqrt
 from scipy.optimize import minimize
 from itertools import product
 
@@ -252,8 +251,7 @@ class StateSpaceModel:
 
         return alphahat, mse_alphahat
 
-
-    def run_smooth_forecast(self, sigma_gnu=(0.001, 0.01, 0.1), sigma_eta=(0.001, 0.01, 0.1), delta=(0.5, 0.9), k=5):
+    def run_smooth_forecast(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9], k=5):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
         return self.forecast(dfk_out, k)
