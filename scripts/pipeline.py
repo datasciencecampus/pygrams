@@ -449,18 +449,15 @@ class Pipeline(object):
         if ss_only:
             # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
             if train_test:
-                k_range = range(2, self.__M + 1)
                 window_size = 30
             else:
-                k_range = [self.__M]
                 window_size = len(self.__timeseries_quarterly[0]) - 1
 
             results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
                                                      terms, self.__term_ngrams, window=window_size)
-            print(results)
+            # print(results)
 
             # utils.pickle_object('results', results, self.__cached_folder_name)
-
 
             html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
             html_results += f'<p>Window size: {window_size}</p>\n'
@@ -479,9 +476,8 @@ class Pipeline(object):
                 self.__lims,
                 results)
 
-
-
             return html_results, None
+
         else:
             results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(
                 self.__timeseries_quarterly, self.__term_ngrams, predictors_to_run, test_terms=terms,
