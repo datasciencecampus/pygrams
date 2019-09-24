@@ -256,7 +256,8 @@ class StateSpaceModel:
         dfk_out = self.dfk_llm_vard(opt_param)
         return self.forecast(dfk_out, k)
 
-    def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9]):
+    def run_smoothing(self, sigma_gnu=[0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5],
+                      sigma_eta=[0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5], delta=[0.3, 0.6, 0.9, 1.2, 1.5]):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
         alphahat, mse_alphahat = self.smfilt(dfk_out)

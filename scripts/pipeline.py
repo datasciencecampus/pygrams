@@ -309,25 +309,29 @@ class Pipeline(object):
         else:
             return 'level'
 
-    def label_prediction(self, derivatives, k=5):
+    def label_prediction(self, derivatives):
+        if np.isnan(derivatives).any() or np.isinf(derivatives).any():
+            return 'NaN'
         sum_derivatives = sum(derivatives)
 
-        x = np.array(range(k)).reshape((-1, 1))
+        x = np.array(range(len(derivatives))).reshape((-1, 1))
         model = LinearRegression().fit(x, derivatives)
         derivative_slope = model.coef_
 
-        if sum_derivatives > 0:
+        if sum_derivatives > 0.1:
             if derivative_slope > 0:
                 return 'p-increase'
             else:
                 return 't-increase'
-        else:
+        elif sum_derivatives < -0.1:
             if derivative_slope > 0:
                 return 't-decrease'
             else:
                 return 'p-decrease'
+        else:
+            return 'level'
 
-    def evaluate_predictions(self, timeseries, test_terms, term_ngrams, methods, window=30, min_k=3, max_k=8):
+    def evaluate_predictions(self, timeseries, test_terms, term_ngrams, methods,smooth_series=None, derivatives=None, window=30, min_k=3, max_k=8):
 
         results_term = {}
         window_interval=1
@@ -335,6 +339,7 @@ class Pipeline(object):
         for test_term in tqdm(test_terms, unit='term', unit_scale=True):
             term_index = term_ngrams.index(test_term)
             term_series = timeseries[term_index]
+            term_series_smooth = smooth_series[term_index]
             nperiods = len(term_series)
             num_runs = nperiods - window
 
@@ -344,15 +349,28 @@ class Pipeline(object):
                 for i in range(0, num_runs, window_interval):
 
                     term_series_window = term_series[i:i + window]
+
                     term_series_window = np.clip(term_series_window, 0.00001, None)
+                    smooth_series_window = np.clip(term_series_smooth[i:i + window], 0.00001, None)
                     history_series = term_series_window[:-max_k]
-                    test_series = term_series_window[-max_k:]
+                    test_series = smooth_series_window[-max_k:]
+
                     factory = PredictorFactory.predictor_factory(method, '', history_series, max_k)
                     predicted_term_values = factory.predict_counts()
 
+                    if derivatives is not None:
+                        term_derivatives = derivatives[term_index]
+                        term_derivatives_window = term_derivatives[i:i + window]
+                        test_derivatives = term_derivatives_window[-max_k:]
+                        predicted_derivatives = factory.predict_derivatives()
+
                     for num_periods in range(min_k, max_k, 2):
-                        predicted_label = self.label_prediction_simple(predicted_term_values[:num_periods])
-                        actual_label = self.label_prediction_simple(test_series[:num_periods])
+                        predict_func = self.label_prediction_simple if derivatives is None else self.label_prediction
+                        values = predicted_term_values if derivatives is None else predicted_derivatives
+                        test_values = test_series if derivatives is None else test_derivatives
+
+                        predicted_label = predict_func(values[:num_periods])
+                        actual_label = predict_func(test_values[:num_periods])
                         score = 1 if predicted_label == actual_label else 0
                         # print(test_term +'_'+method+ '_'+actual_label+'_' + predicted_label + '_' + str(i))
                         if num_periods in scores:
@@ -521,8 +539,12 @@ class Pipeline(object):
             # results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
             #                                          terms, self.__term_ngrams, window=window_size)
 
-            results = self.evaluate_predictions(self.__timeseries_quarterly_smoothed, terms, self.__term_ngrams,
-                                                predictors_to_run, window=window_size)
+            results = self.evaluate_predictions(self.__timeseries_quarterly, terms, self.__term_ngrams,
+                                                predictors_to_run,derivatives= self.__timeseries_derivatives,
+                                                smooth_series=self.__timeseries_quarterly_smoothed, window=window_size)
+
+            # results = self.evaluate_predictions(self.__timeseries_quarterly_smoothed, terms, self.__term_ngrams,
+            #                                     predictors_to_run, window=window_size)
             print(results)
 
             # utils.pickle_object('results', results, self.__cached_folder_name)
