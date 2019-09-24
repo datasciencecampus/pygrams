@@ -540,7 +540,7 @@ class Pipeline(object):
             #                                          terms, self.__term_ngrams, window=window_size)
 
             results = self.evaluate_predictions(self.__timeseries_quarterly, terms, self.__term_ngrams,
-                                                predictors_to_run,derivatives= self.__timeseries_derivatives,
+                                                predictors_to_run,
                                                 smooth_series=self.__timeseries_quarterly_smoothed, window=window_size)
 
             # results = self.evaluate_predictions(self.__timeseries_quarterly_smoothed, terms, self.__term_ngrams,
