@@ -36,5 +36,41 @@ class TestReadme(unittest.TestCase):
     def test_10000_patents(self):
         pygrams.main(['-ds', 'USPTO-random-10000.pkl.bz2'])
 
-    def test_mn_mx(self):
+    def test_mn_mx_uni_bi_trigrams(self):
         pygrams.main(['-mn', '1', '-mx', '3'])
+
+    def test_mn_mx_unigrams(self):
+        pygrams.main(['-mn', '1', '-mx', '1'])
+
+    def test_mdf(self):
+        pygrams.main(['-mdf', '0.05'])
+
+    def test_pt(self):
+        pygrams.main(['-pt', '0'])
+
+    def test_prefilter_terms_10000(self):
+        pygrams.main(['--prefilter_terms', '10000'])
+
+    def test_date_from(self):
+        pygrams.main(['-df', '2000/02/20'])
+
+    def test_date_from_and_to(self):
+        pygrams.main(['-df', '2000/03/01', '-dt', '2016/07/31'])
+
+    def test_filter(self):
+        pygrams.main(['-fh', "['female','british']", '-fb', "'union'"])
+
+    def test_cpc(self):
+        pygrams.main(['-cpc', 'Y02', '-ps', 'USPTO-random-10000.pkl.bz2'])
+
+    def test_search_terms(self):
+        pygrams.main(['-st', 'pharmacy', 'medicine', 'chemist'])
+
+    def test_wordcloud(self):
+        pygrams.main(['-o', "'wordcloud'"])
+
+    def test_graph(self):
+        pygrams.main(['-o', "'graph'"])
+
+    def test_help(self):
+        pygrams.main(['-h'])
