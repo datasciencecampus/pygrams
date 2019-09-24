@@ -62,12 +62,16 @@ class Pipeline(object):
                       f'to {number_of_ngrams_after:,}')
 
             self.__cpc_dict = utils.cpc_dict(dataframe)
-            self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe, docs_mask_dict['date_header'])
+            if docs_mask_dict['date_header'] is None:
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
+                self.__dates = None
+            else:
+                self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe,
+                                                                                 docs_mask_dict['date_header'])
+                min_date = min(self.__dates)
+                max_date = max(self.__dates)
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
 
-            min_date = min(self.__dates)
-            max_date = max(self.__dates)
-
-            self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
             utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
             utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
             utils.pickle_object('cpc_dict', self.__cpc_dict, self.__cached_folder_name)

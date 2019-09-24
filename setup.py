@@ -72,6 +72,7 @@ def setup_package():
                           'xlrd', 'python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow',
                           'keras_tqdm', 'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
         # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
+        extras_require={'test': ['pytest']},
         python_requires='>=3.6',
         cmdclass={
             'install': CustomInstaller,
