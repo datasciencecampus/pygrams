@@ -9,8 +9,18 @@ import pygrams
 @pytest.mark.skipif('TRAVIS' not in os.environ, reason="Only execute with Travis due to speed")
 class TestReadme(unittest.TestCase):
     """
-    Batch of tests to execute same commands as mentioned in the README.md, to ensure they work without crashing
+    Batch of tests to execute same commands as mentioned in the README.md, to ensure they work without crashing.
+    Note that the tests need to be run at the main user folder as this shows the files exist - not to be run in the
+    tests folder.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        os.chdir('..')
+
+    @classmethod
+    def tearDownClass(cls):
+        os.chdir('tests')
 
     def test_no_arguments_and_use_cache(self):
         # clear cached result
