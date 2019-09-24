@@ -196,7 +196,7 @@ def main(supplied_args):
     # emtech integration
     if args.timeseries:
         if 0 in args.predictor_names:
-            algs_codes = list(range(1, 6))
+            algs_codes = list(range(1, 7))
         else:
             algs_codes = args.predictor_names
 

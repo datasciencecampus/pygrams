@@ -100,7 +100,7 @@ def summary_html_table(results, trimmed_proportion_to_cut=0.1):
 
     summary_sd_table = __html_table_from_dataframe(summary_df, highlight_max=False)
 
-    return summary_mean_table + summary_sd_table
+    return summary_mean_table + '\n<p/>\n\n' + summary_sd_table
 
 
 def prediction_as_graphs(data, smoothed_data,term_ngrams, lims, results):
