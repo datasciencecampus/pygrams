@@ -1,12 +1,10 @@
 import os
 import unittest
 
-import pytest
-
 import pygrams
 
 
-@pytest.mark.skipif('TRAVIS' not in os.environ, reason="Only execute with Travis due to speed")
+# @pytest.mark.skipif('TRAVIS' not in os.environ, reason="Only execute with Travis due to speed")
 class TestReadme(unittest.TestCase):
     """
     Batch of tests to execute same commands as mentioned in the README.md, to ensure they work without crashing.
@@ -52,25 +50,25 @@ class TestReadme(unittest.TestCase):
         pygrams.main(['--prefilter_terms', '10000'])
 
     def test_date_from(self):
-        pygrams.main(['-df', '2000/02/20'])
+        pygrams.main(['-dh', 'publication_date', '-df', '2000/02/20'])
 
     def test_date_from_and_to(self):
-        pygrams.main(['-df', '2000/03/01', '-dt', '2016/07/31'])
+        pygrams.main(['-dh', 'publication_date', '-df', '2000/03/01', '-dt', '2016/07/31'])
 
-    def test_filter(self):
-        pygrams.main(['-fh', "['female','british']", '-fb', "'union'"])
+    # def test_filter(self):
+    #     pygrams.main(['-fc', "['female','british']", '-fb', 'union'])
 
     def test_cpc(self):
-        pygrams.main(['-cpc', 'Y02', '-ps', 'USPTO-random-10000.pkl.bz2'])
+        pygrams.main(['-cpc', 'Y02', '-ds', 'USPTO-random-10000.pkl.bz2'])
 
     def test_search_terms(self):
         pygrams.main(['-st', 'pharmacy', 'medicine', 'chemist'])
 
     def test_wordcloud(self):
-        pygrams.main(['-o', "'wordcloud'"])
+        pygrams.main(['-o', 'wordcloud'])
 
     def test_graph(self):
-        pygrams.main(['-o', "'graph'"])
+        pygrams.main(['-o', 'graph'])
 
-    def test_help(self):
-        pygrams.main(['-h'])
+    # def test_help(self):
+    #     pygrams.main(['-h'])
