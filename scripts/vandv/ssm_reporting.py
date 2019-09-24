@@ -9,7 +9,7 @@ from tqdm import tqdm
 from scripts.vandv.graphs import plot_to_html_image
 
 
-def __html_table_from_dataframe(df, term_style='{:.0%}', highlight_max=True):
+def __html_table_from_dataframe(df, term_style='{:.0%}', highlight_max=True, first_col=1):
     df_style = df.style.hide_index()
     df_style = df_style.set_table_styles([
         dict(selector='table', props=[('border-collapse', 'collapse')]),
@@ -19,7 +19,7 @@ def __html_table_from_dataframe(df, term_style='{:.0%}', highlight_max=True):
                                    ('padding-right', '15px')])
     ])
 
-    for window_size in df.columns[1:]:
+    for window_size in df.columns[first_col:]:
         df_style = df_style.format({window_size: term_style})
 
     if highlight_max:
@@ -32,16 +32,17 @@ def __html_table_from_dataframe(df, term_style='{:.0%}', highlight_max=True):
 
 
 def __create_df_from_results(results):
-    df_results = pd.DataFrame({'Terms': list(results.keys())})
-    k_range = list(next(iter(results.values())).keys())
-
-    for k in k_range:
-        look_ahead_results = []
-        for term_name in results:
-            look_ahead_results.append(results[term_name][k]['accuracy'])
-
-        df_term_column = pd.DataFrame({f'{k}': look_ahead_results})
-        df_results = df_results.join(df_term_column)
+    df_results = pd.DataFrame(results).T
+    df_results.reset_index(level=0, inplace=True)
+    # k_range = list(next(iter(results.values())).keys())
+    #
+    # for k in k_range:
+    #     look_ahead_results = []
+    #     for term_name in results:
+    #         look_ahead_results.append(results[term_name][k]['accuracy'])
+    #
+    #     df_term_column = pd.DataFrame({f'{k}': look_ahead_results})
+    #     df_results = df_results.join(df_term_column)
 
     return df_results
 

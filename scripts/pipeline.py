@@ -10,6 +10,7 @@ import scripts.output_factory as output_factory
 import scripts.utils.date_utils
 from scripts.algorithms.code.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
+from scripts.algorithms.predictor_factory import PredictorFactory
 from scripts.documents_filter import DocumentsFilter
 from scripts.filter_terms import FilterTerms
 from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
@@ -293,6 +294,21 @@ class Pipeline(object):
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
 
+    @staticmethod
+    def label_prediction_simple(values):
+        if np.isnan(values).any() or np.isinf(values).any():
+            return 'NaN'
+        x = np.array(range(len(values))).reshape((-1, 1))
+        model = LinearRegression().fit(x, values)
+        slope = model.coef_
+
+        if slope > 0.1:
+            return 'emerging'
+        elif slope < -0.1:
+            return 'declining'
+        else:
+            return 'level'
+
     def label_prediction(self, derivatives, k=5):
         sum_derivatives = sum(derivatives)
 
@@ -310,6 +326,53 @@ class Pipeline(object):
                 return 't-decrease'
             else:
                 return 'p-decrease'
+
+    def evaluate_predictions(self, timeseries, test_terms, term_ngrams, methods, window=30, min_k=3, max_k=8):
+
+        results_term = {}
+        window_interval=1
+
+        for test_term in tqdm(test_terms, unit='term', unit_scale=True):
+            term_index = term_ngrams.index(test_term)
+            term_series = timeseries[term_index]
+            nperiods = len(term_series)
+            num_runs = nperiods - window
+
+            results_method = {}
+            for method in methods:
+                scores = {}
+                for i in range(0, num_runs, window_interval):
+
+                    term_series_window = term_series[i:i + window]
+                    term_series_window = np.clip(term_series_window, 0.00001, None)
+                    history_series = term_series_window[:-max_k]
+                    test_series = term_series_window[-max_k:]
+                    factory = PredictorFactory.predictor_factory(method, '', history_series, max_k)
+                    predicted_term_values = factory.predict_counts()
+
+                    for num_periods in range(min_k, max_k, 2):
+                        predicted_label = self.label_prediction_simple(predicted_term_values[:num_periods])
+                        actual_label = self.label_prediction_simple(test_series[:num_periods])
+                        score = 1 if predicted_label == actual_label else 0
+                        # print(test_term +'_'+method+ '_'+actual_label+'_' + predicted_label + '_' + str(i))
+                        if num_periods in scores:
+                            scores[num_periods] += score
+                        else:
+                            scores[num_periods] = score
+
+                for num_periods in range(min_k, max_k, 2):
+                    results_method[method+'_' + str(num_periods)] = scores[num_periods]/(num_runs/window_interval)
+
+            results_term[test_term] = results_method
+        return results_term
+
+    @staticmethod
+    def difference(dataset, interval=1):
+        diff = list()
+        for i in range(interval, len(dataset)):
+            value = dataset[i] - dataset[i - interval]
+            diff.append(value)
+        return np.array(diff)
 
     def evaluate_state_space_pred(self, timeseries, derivatives, test_terms, term_ngrams, window=20,
                                   k_range=(2, 3, 4, 5)):
@@ -429,7 +492,7 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=True):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
@@ -455,12 +518,14 @@ class Pipeline(object):
                 k_range = [self.__M]
                 window_size = len(self.__timeseries_quarterly[0]) - 1
 
-            results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
-                                                     terms, self.__term_ngrams, window=window_size)
+            # results = self.evaluate_state_space_pred(self.__timeseries_quarterly, self.__timeseries_derivatives,
+            #                                          terms, self.__term_ngrams, window=window_size)
+
+            results = self.evaluate_predictions(self.__timeseries_quarterly_smoothed, terms, self.__term_ngrams,
+                                                predictors_to_run, window=window_size)
             print(results)
 
             # utils.pickle_object('results', results, self.__cached_folder_name)
-
 
             html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
             html_results += f'<p>Window size: {window_size}</p>\n'
@@ -472,14 +537,10 @@ class Pipeline(object):
                 html_results += f'<h3>Analysis summary</h2>\n'
                 html_results += ssm_reporting.summary_html_table(results)
 
-            html_results += f'<h3>Time series</h2>\n'
-            html_results += ssm_reporting.prediction_as_graphs(
-                self.__timeseries_quarterly,
-                self.__timeseries_quarterly_smoothed,self.__term_ngrams,
-                self.__lims,
-                results)
-
-
+            # html_results += f'<h3>Time series</h2>\n'
+            # html_results += ssm_reporting.prediction_as_graphs(self.__timeseries_quarterly,
+            #                                                    self.__timeseries_quarterly_smoothed, self.__term_ngrams,
+            #                                                    self.__lims, results)
 
             return html_results, None
         else:
