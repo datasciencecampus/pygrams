@@ -70,7 +70,6 @@ Besides patent data, we have used pyGrams with other text data sources such as j
 
 When you type text into a computer it can't understand the words in the way that humans can. For example, the word *'key'* in *'key terms'* implies the computer needs to have some concept of 'meaning' to identify terms as *'key'*. The branch of Data Science responsible for processing and analysing language in this way is known as **Natural Language Processing (NLP)** and it provides many tools that Data Scientists can use to extract meaning from text data. There are two main methodologies for converting text in numerical format in NLP, namely the bag of words (BOW) approach and the word vector representation. Both come with their strengths and weaknesses. The BOW model is a sparse matrix of a dictionary of words or phrases with frequency counts. It is accurate for keyword extraction and allows for small phrases to be included, however it cannot capture context. Word vector representations convert terms into high dimensional vectors (50-300d). It can capture context really well for single words, but cannot scale to phrases easily with the same accuracy. Our tool uses both approaches in different parts of our pipeline.
 
-
 #### Term Frequency - Inverse Document Frequency (TF-IDF)
 
 pyGrams uses a process called Term Frequency - Inverse Document Frequency or **TF-IDF** for short to convert text into numerical form (BOW model with inverse document frequency weighting). TF-IDF is a widely used technique to retrieve key words (or in our case, terms) from a corpus. The output of TF-IDF is a sparse matrix whose columns represent a dictionary of phrases and rows represent each document of the corpus. TF-IDF can be calculated by the following equation:
@@ -91,7 +90,6 @@ tfidf_{ij} & = & \text{TF-IDF score for term {\it i} in document {\it j}}\\
 $
 
 For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are not normalised:
-
 **Term Frequency** = 5
 
  Also, assume we have 20 million documents and the term *'nuclear'* appears in ten thousand of these.

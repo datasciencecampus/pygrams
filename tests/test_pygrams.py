@@ -353,6 +353,55 @@ class TestPyGrams(unittest.TestCase):
     Extended from test_simple_two_patents_unigrams_only_output_tfidf - sets prefilter-terms to remove 'noise' terms
     """
 
+    """
+    Extended from test_simple_two_patents_unigrams_only_output_tfidf - sets prefilter-terms to remove 'noise' terms
+    """
+
+    @mock.patch("scripts.data_factory.read_pickle", create=True)
+    @mock.patch("pickle.dump", create=True)
+    @mock.patch("scripts.text_processing.open", create=True)
+    @mock.patch("bz2.BZ2File", create=True)
+    @mock.patch("scripts.pipeline.makedirs", create=True)
+    @mock.patch("os.path.isfile", create=True)
+    def test_simple_two_patents_unigrams_and_prefilter_only_output_tfidf(self, mock_path_isfile, mock_makedirs,
+                                                                         mock_bz2file, mock_open, mock_pickle_dump,
+                                                                         mock_read_pickle):
+        fake_df_data = {
+            'abstract': [
+                'abstract one',
+                'abstract two'
+            ]
+        }
+        max_df = 1.0
+        self.preparePyGrams(fake_df_data, mock_read_pickle, mock_open, mock_bz2file, mock_path_isfile)
+        args = ['-ds', self.data_source_name, '--date_header',
+                'publication_date', '--max_document_frequency', str(max_df), '--max_ngrams', '1',
+                '--prefilter_terms', '1']
+
+        pygrams.main(args)
+
+        # tf(t) = num of occurrences / number of words in doc
+        #
+        # smoothing is false, so no modification to log numerator or denominator:
+        # idf(d, t) = log [ n / df(d, t) ] + 1
+        #
+        # n = total number of docs
+        #
+        # norm='l2' by default
+
+        tfidf_abstract = (1 / 2) * (np.log(2 / 2) + 1)
+        tfidf_one = (1 / 2) * (np.log(2 / 1) + 1)
+        l2norm = np.sqrt(tfidf_abstract * tfidf_abstract + tfidf_one * tfidf_one)
+        l2norm_tfidf_abstract = tfidf_abstract / l2norm
+
+        def assert_tfidf_outputs(tfidf_matrix, feature_names):
+            self.assertListEqual(feature_names, ['abstract'])
+            tfidf_as_lists = tfidf_matrix.todense().tolist()
+            self.assertListAlmostEqual(tfidf_as_lists[0], [l2norm_tfidf_abstract], places=4)
+            self.assertListAlmostEqual(tfidf_as_lists[1], [l2norm_tfidf_abstract], places=4)
+
+        self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs, max_df)
+
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("scripts.utils.utils.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)

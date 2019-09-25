@@ -256,7 +256,6 @@ class Pipeline(object):
                 self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
         em = Emergence(all_quarterly_values[min_i:max_i])
-
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             if term_weights[term_index] == 0.0:
