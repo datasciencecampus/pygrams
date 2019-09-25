@@ -90,6 +90,7 @@ tfidf_{ij} & = & \text{TF-IDF score for term {\it i} in document {\it j}}\\
 $
 
 For example, lets say Document 1 contains 200 terms and the term *'nuclear'* appears five times. When the weights are not normalised:
+
 **Term Frequency** = 5
 
  Also, assume we have 20 million documents and the term *'nuclear'* appears in ten thousand of these.
