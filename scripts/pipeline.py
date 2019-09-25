@@ -8,7 +8,7 @@ from tqdm import tqdm
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
 import scripts.utils.date_utils
-from scripts.algorithms.code.ssm import StateSpaceModel
+from scripts.algorithms.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
 from scripts.algorithms.predictor_factory import PredictorFactory
 from scripts.documents_filter import DocumentsFilter
