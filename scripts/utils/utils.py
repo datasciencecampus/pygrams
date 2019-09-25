@@ -220,7 +220,6 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
 
 
 def checkdf(df, emtec, docs_mask_dict, text_header):
-
     if emtec or docs_mask_dict['date'] is not None:
         if docs_mask_dict['date_header'] not in df.columns:
             raise ValueError(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
