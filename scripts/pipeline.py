@@ -563,11 +563,6 @@ class Pipeline(object):
                 html_results += f'<h3>Analysis summary</h2>\n'
                 html_results += ssm_reporting.summary_html_table(results)
 
-            # html_results += f'<h3>Time series</h2>\n'
-            # html_results += ssm_reporting.prediction_as_graphs(self.__timeseries_quarterly,
-            #                                                    self.__timeseries_quarterly_smoothed, self.__term_ngrams,
-            #                                                    self.__lims, results)
-
             return html_results, None
         else:
             results, training_values, test_values, smoothed_training_values, smoothed_test_values = evaluate_prediction(

@@ -17,60 +17,20 @@ def extract_table_text_from_html(soup):
 
 class SSMReporting(unittest.TestCase):
     example_results = {
-        'sample term 100% correct': {5: {
-            0: {'predicted_label': 'p-increase',
-                'label': 'p-increase'},
-            1: {'predicted_label': 'p-increase',
-                'label': 'p-increase'},
-            2: {'predicted_label': 'p-increase',
-                'label': 'p-increase'},
-            'accuracy': 3 / 3}
-        },
-        'second term 67% correct': {5: {
-            0: {'predicted_label': 't-decrease',
-                'label': 't-increase'},
-            1: {'predicted_label': 't-decrease',
-                'label': 't-decrease'},
-            2: {'predicted_label': 't-decrease',
-                'label': 't-decrease'},
-            'accuracy': 2 / 3}
-        },
-        'third term 33% correct': {5: {
-            0: {'predicted_label': 't-increase',
-                'label': 'p-increase'},
-            1: {'predicted_label': 'p-increase',
-                'label': 't-increase'},
-            2: {'predicted_label': 't-increase',
-                'label': 't-increase'},
-            'accuracy': 1 / 3}
-        },
-        'fourth term 100% correct': {5: {
-            0: {'predicted_label': 'p-increase',
-                'label': 'p-increase'},
-            1: {'predicted_label': 'p-increase',
-                'label': 'p-increase'},
-            2: {'predicted_label': 'p-increase',
-                'label': 'p-increase'},
-            'accuracy': 3 / 3}
-        },
-        'fifth term 0% correct': {5: {
-            0: {'predicted_label': 'p-decrease',
-                'label': 'p-increase'},
-            1: {'predicted_label': 'p-increase',
-                'label': 'p-decrease'},
-            2: {'predicted_label': 'p-increase',
-                'label': 'p-decrease'},
-            'accuracy': 0 / 3}
-        }
+        'sample term 100% correct': {'ARIMA_3': 3 / 3, 'ARIMA_5': 0.8},
+        'second term 67% correct': {'ARIMA_3': 2 / 3, 'ARIMA_5': 0.8},
+        'third term 33% correct': {'ARIMA_3': 1 / 3, 'ARIMA_5': 0.8},
+        'fourth term 100% correct': {'ARIMA_3': 3 / 3, 'ARIMA_5': 0.8},
+        'fifth term 0% correct': {'ARIMA_3': 0 / 3, 'ARIMA_5': 0.8},
     }
 
     def test_html_table(self):
-        expected_text = '''Terms 5
-sample term 100% correct 100%
-second term 67% correct 67%
-third term 33% correct 33%
-fourth term 100% correct 100%
-fifth term 0% correct 0%
+        expected_text = '''Terms ARIMA_3 ARIMA_5
+sample term 100% correct 100% 80%
+second term 67% correct 67% 80%
+third term 33% correct 33% 80%
+fourth term 100% correct 100% 80%
+fifth term 0% correct 0% 80%
 '''
 
         output_html = html_table(self.example_results)
@@ -81,12 +41,12 @@ fifth term 0% correct 0%
         self.assertEqual(expected_text, actual_text)
 
     def test_summary_html_table(self):
-        expected_text = '''Summary 5
-Mean 60%
-Trimmed (20% cut) mean 67%
-Summary 5
-Standard deviation 43%
-Trimmed (20% cut) standard deviation 33%
+        expected_text = '''Summary ARIMA_3 ARIMA_5
+Mean 60% 80%
+Trimmed (20% cut) mean 67% 80%
+Summary ARIMA_3 ARIMA_5
+Standard deviation 43% 0%
+Trimmed (20% cut) standard deviation 33% 0%
 '''
 
         output_html = summary_html_table(self.example_results, trimmed_proportion_to_cut=0.2)

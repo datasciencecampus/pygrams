@@ -34,16 +34,7 @@ def __html_table_from_dataframe(df, term_style='{:.0%}', highlight_max=True, fir
 def __create_df_from_results(results):
     df_results = pd.DataFrame(results).T
     df_results.reset_index(level=0, inplace=True)
-    # k_range = list(next(iter(results.values())).keys())
-    #
-    # for k in k_range:
-    #     look_ahead_results = []
-    #     for term_name in results:
-    #         look_ahead_results.append(results[term_name][k]['accuracy'])
-    #
-    #     df_term_column = pd.DataFrame({f'{k}': look_ahead_results})
-    #     df_results = df_results.join(df_term_column)
-
+    df_results.rename(columns={'index': 'Terms'}, inplace=True)
     return df_results
 
 
