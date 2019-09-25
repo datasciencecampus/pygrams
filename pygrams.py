@@ -98,7 +98,7 @@ def get_args(command_line_arguments):
     # select outputs
 
     parser.add_argument("-o", "--output", nargs='*', default=[],
-                        choices=['graph', 'wordcloud'],  # suppress table output option
+                        choices=['graph', 'wordcloud', 'multiplot'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. ")
 
     # file names etc.
@@ -136,7 +136,7 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'quadratic', 'gradients'),
                         help="Emergence calculation to use")
-    parser.add_argument("-sma", "--smoothing-alg", default=None, choices=('kalman', 'savgol'),
+    parser.add_argument("-sma", "--smoothing-alg", default='savgol', choices=('kalman', 'savgol'),
                         help="Time series smoothing to use")
 
     parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",

@@ -140,6 +140,10 @@ class ArgsChecker:
             print(f"Cannot calculate emergence without a specifying a date column")
             app_exit = True
 
+        if 'multiplot' in self.args.output and not self.args.timeseries:
+            print("Cannot output multiplot without time series calculation")
+            app_exit = True
+
         if app_exit:
             exit(0)
 

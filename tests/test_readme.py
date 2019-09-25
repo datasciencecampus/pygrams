@@ -70,5 +70,8 @@ class TestReadme(unittest.TestCase):
     def test_graph(self):
         pygrams.main(['-o', 'graph'])
 
+    def test_multiplot(self):
+        pygrams.main(['-o', 'multiplot', '-ts', '-dh', 'publication_date'])
+
     # def test_help(self):
     #     pygrams.main(['-h'])

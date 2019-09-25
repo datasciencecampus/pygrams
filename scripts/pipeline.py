@@ -30,6 +30,8 @@ class Pipeline(object):
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
                  emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None):
 
+        self.__emergence_index = emergence_index
+
         # load data
         self.__data_filename = data_filename
         self.__date_dict = docs_mask_dict['date']
@@ -216,7 +218,7 @@ class Pipeline(object):
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
-                               desc='Calculating  quarterly timeseries',
+                               desc='Calculating quarterly timeseries',
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
@@ -335,10 +337,11 @@ class Pipeline(object):
         else:
             return 'level'
 
-    def evaluate_predictions(self, timeseries, test_terms, term_ngrams, methods,smooth_series=None, derivatives=None, window=30, min_k=3, max_k=8):
+    def evaluate_predictions(self, timeseries, test_terms, term_ngrams, methods, smooth_series=None, derivatives=None,
+                             window=30, min_k=3, max_k=8):
 
         results_term = {}
-        window_interval=1
+        window_interval = 1
 
         for test_term in tqdm(test_terms, unit='term', unit_scale=True):
             term_index = term_ngrams.index(test_term)
@@ -383,7 +386,7 @@ class Pipeline(object):
                             scores[num_periods] = score
 
                 for num_periods in range(min_k, max_k, 2):
-                    results_method[method+'_' + str(num_periods)] = scores[num_periods]/(num_runs/window_interval)
+                    results_method[method + '_' + str(num_periods)] = scores[num_periods] / (num_runs / window_interval)
 
             results_term[test_term] = results_method
         return results_term
@@ -437,21 +440,27 @@ class Pipeline(object):
 
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
-            output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
-                                  wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,
-                                  name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
-                                  date_dict=self.__date_dict, pick=self.__pick_method,
-                                  doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
+            if output_type == 'multiplot':
+                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
+                                   self.__term_ngrams, lims=self.__lims, category='emergent',
+                                   method=self.__emergence_index, output_name=outname)
+
+                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
+                                   self.__term_ngrams, lims=self.__lims, category='declining',
+                                   method=self.__emergence_index, output_name=outname)
+            else:
+                output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
+                                      wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,
+                                      name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
+                                      date_dict=self.__date_dict, pick=self.__pick_method,
+                                      doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
 
     @property
     def term_score_tuples(self):
         return self.__term_score_tuples
 
     def get_multiplot(self, timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
-                      category='emergent'):
-
-        if len(test_terms) != 30:
-            raise ValueError('Only supports 30 terms as multiplot is 6x5')
+                      category='emergent', output_name='multiplot'):
 
         # libraries and data
         import matplotlib.pyplot as plt
@@ -477,38 +486,50 @@ class Pipeline(object):
         # create a color palette
 
         # multiple line plot
+        fig, axs = plt.subplots(6, 5, figsize=(12, 10))
         num = 0
         for column in df.drop('x', axis=1):
             num += 1
 
+            if num > len(test_terms):
+                break
+
             # find the right spot on the plot
-            plt.subplot(6, 5, num)
+            current_graph = axs[(num - 1) % 6, (num - 1) // 6]
 
             # plot the lineplot
-            plt.plot(df['x'], df[column], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
-            plt.plot(df['x'], df_smooth[column], color='g', linestyle='-', marker='', label='smoothed ground truth')
+            current_graph.plot(df['x'], df[column], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
+            current_graph.plot(df['x'], df_smooth[column], color='g', linestyle='-', marker='',
+                               label='smoothed ground truth')
 
-            plt.axvline(x=lims[0], color='k', linestyle='--')
-            plt.axvline(x=lims[1], color='k', linestyle='--')
+            current_graph.axvline(x=lims[0], color='k', linestyle='--')
+            current_graph.axvline(x=lims[1], color='k', linestyle='--')
 
             # same limits for everybody!
-            plt.xlim(0, series_dict['x'])
+            current_graph.set_xlim((0, max(series_dict['x'])))
 
             # not ticks everywhere
             if num in range(26):
-                plt.tick_params(labelbottom='off')
+                current_graph.tick_params(labelbottom='off')
+
+            current_graph.tick_params(labelsize=8)
 
             # plt.tick_params(labelleft='off')
 
             # add title
-            plt.title(column, loc='left', fontsize=12, fontweight=0)
+            current_graph.title.set_text(column)
+            current_graph.title.set_fontsize(10)
+            current_graph.title.set_fontweight(0)
 
         # general title
-        plt.suptitle(category + " keywords selection using the " + method + " index", fontsize=13, fontweight=0,
+        fig.suptitle(category + " keywords selection using the " + method + " index", fontsize=16, fontweight=0,
                      color='black', style='italic')
 
+        plt.tight_layout(rect=(0, 0, 1, 0.95))
+
         # axis title
-        plt.show()
+        plt.savefig(path.join('outputs', 'emergence', f'{output_name}-{category}-{method}.pdf'), dpi=300)
+        plt.savefig(path.join('outputs', 'emergence', f'{output_name}-{category}-{method}.png'), dpi=300)
 
     @property
     def timeseries_data(self):
@@ -551,7 +572,7 @@ class Pipeline(object):
             #                                     predictors_to_run, window=window_size)
             print(results)
 
-            # utils.pickle_object('results', results, self.__cached_folder_name)
+            utils.pickle_object('results', results, self.__cached_folder_name)
 
             html_results += f'<h2>State Space Model: {emergence} terms</h2>\n'
             html_results += f'<p>Window size: {window_size}</p>\n'
@@ -570,7 +591,8 @@ class Pipeline(object):
                 test_forecasts=train_test, timeseries_all=self.__number_of_patents_per_week if normalized else None,
                 num_prediction_periods=self.__M, smoothed_series=self.__timeseries_quarterly_smoothed)
 
-            predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values, smoothed_test_values,
+            predicted_emergence = map_prediction_to_emergence_label(results, smoothed_training_values,
+                                                                    smoothed_test_values,
                                                                     predictors_to_run, test_terms=terms)
 
             html_results += report_predicted_emergence_labels_html(predicted_emergence)
