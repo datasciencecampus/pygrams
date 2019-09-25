@@ -352,7 +352,6 @@ class TestPyGrams(unittest.TestCase):
     """
     Extended from test_simple_two_patents_unigrams_only_output_tfidf - sets prefilter-terms to remove 'noise' terms
     """
-
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("scripts.utils.utils.dump", create=True)
     @mock.patch("scripts.text_processing.open", create=True)

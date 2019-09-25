@@ -39,7 +39,6 @@ class ArgsChecker:
             if date_from > date_to:
                 raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
 
-
         ################
 
         timeseries_date_from = None
@@ -135,9 +134,12 @@ class ArgsChecker:
             app_exit = True
 
         if self.args.timeseries and self.args.use_cache is None and self.args.date_header is None:
-
             print(f"date_header is None")
             print(f"Cannot calculate emergence without a specifying a date column")
+            app_exit = True
+
+        if 'multiplot' in self.args.output and not self.args.timeseries:
+            print("Cannot output multiplot without time series calculation")
             app_exit = True
 
         if app_exit:

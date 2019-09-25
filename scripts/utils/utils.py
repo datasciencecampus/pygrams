@@ -220,12 +220,9 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
 
 
 def checkdf(df, emtec, docs_mask_dict, text_header):
-    app_exit = False
-
     if emtec or docs_mask_dict['date'] is not None:
         if docs_mask_dict['date_header'] not in df.columns:
-            print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
-            app_exit = True
+            raise ValueError(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
 
     if docs_mask_dict['date_header'] is not None:
         if is_string_dtype(df[docs_mask_dict['date_header']]):
@@ -238,11 +235,7 @@ def checkdf(df, emtec, docs_mask_dict, text_header):
         print('Document dates not specified')
 
     if text_header not in df.columns:
-        print(f"text_header '{text_header}' not in dataframe")
-        app_exit = True
-
-    if app_exit:
-        exit(0)
+        raise ValueError(f"text_header '{text_header}' not in dataframe")
 
 
 def remove_empty_documents(data_frame, text_header):

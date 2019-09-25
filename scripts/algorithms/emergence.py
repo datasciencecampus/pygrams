@@ -78,7 +78,6 @@ class Emergence(object):
 
     @staticmethod
     def escore2(timeseries_term, show=False, term=None):
-
         xdata = np.linspace(0, len(timeseries_term) - 1, len(timeseries_term))
         normalized_term = timeseries_term
 

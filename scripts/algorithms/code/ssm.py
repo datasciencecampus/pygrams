@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from math import sqrt
 from scipy.optimize import minimize
 from itertools import product
 
@@ -15,6 +14,38 @@ class StateSpaceModel:
         return pd.DataFrame([row for row in product(*dictionary.values())],
                             columns=dictionary.keys())
 
+    def forecast(self, dkf_in, k):
+
+        A = dkf_in['Alast'].values[0]
+        P = dkf_in['Plast'].values[0]
+        TT = dkf_in['TT'].values[0]
+        Z = dkf_in['Z'].values[0]
+        ncA0 = dkf_in['ncA0'].values[0]
+        gamma = dkf_in['gamma_est'].values[0]
+        mse_gamma = dkf_in['mse_gamma'].values[0]
+        sigma2 = dkf_in['sigma2'].values[0]
+        ncolZ = Z.shape[1]
+
+        Agamma = A[:, :ncA0 - 1]
+        alpha_hat     = np.matrix(np.vstack([-999.0]*ncolZ * k).reshape(ncolZ, k))
+        mse_alpha_hat = np.matrix(np.vstack([-999.0]*ncolZ*ncolZ * k).reshape(ncolZ, ncolZ * k))
+
+        aux = np.vstack([-gamma, 1]).reshape(ncA0, 1)
+        alpha = np.matmul(A,  aux)
+        alpha_hat[: , 0] = alpha
+
+        m1 = np.matmul(Agamma, mse_gamma)
+        m2 = np.matmul(m1, np.transpose(Agamma))
+        msealpha = (sigma2 * P) + m2
+
+        mse_alpha_hat[:, 0:ncolZ] = msealpha
+        if k > 1:
+            for i in range(1,k):
+                alpha_hat[:, i] = TT * alpha
+                mse_alpha_hat[: , ((i - 1) * ncolZ ): (ncolZ * i)] = TT * msealpha * TT.transpose()
+                TT = np.matmul(TT,  TT)
+            return alpha_hat, mse_alpha_hat
+        return None, None
 
     # Calculating and smoothing quarterly timeseries:   1%|          | 1.08k/100k [23:31<36:43:32, 1.34s/term]
     def param_estimator(self, sigma_gnu, sigma_eta, delta):
@@ -219,6 +250,11 @@ class StateSpaceModel:
             mse_alphahat[:, (lTT * (ll - i - 1)): (lTT * (ll - i))] = mse
 
         return alphahat, mse_alphahat
+
+    def run_smooth_forecast(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9], k=5):
+        opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
+        dfk_out = self.dfk_llm_vard(opt_param)
+        return self.forecast(dfk_out, k)
 
     def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9]):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)

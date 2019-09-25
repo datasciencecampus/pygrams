@@ -180,13 +180,13 @@ unbias results to avoid double or triple counting contained n-grams.
 This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
 
 ```
-python pygrams.py -df=2000/02/20
+python pygrams.py -dh publication_date -df=2000/02/20
 ```
 
 The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
 
 ```
-python pygrams.py -df=2000/03/01 -dt=2016/07/31
+python pygrams.py -dh publication_date -df=2000/03/01 -dt=2016/07/31
 ```
 
 #### Column features filters (-fh, -fb)
@@ -208,7 +208,7 @@ This filter assumes that values are '0'/'1', or 'Yes'/'No'.
 This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". An example script is:
 
 ```
-python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
+python pygrams.py -cpc=Y02 -ds=USPTO-random-10000.pkl.bz2
 ```
 
 In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
@@ -314,8 +314,13 @@ Python pygrams.py -nrm=False
 Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud or 'graph summary'.
 
 ```
-python pygrams.py -o='wordcloud'
-python pygrams.py -o='graph'
+python pygrams.py -o wordcloud
+python pygrams.py -o graph
+```
+
+Time series analysis also supports a multiplot to present up to 30 terms time series (emergent and declining), output in the `outputs/emergence` folder:
+```
+python pygrams.py -ts -dh 'publication_date' -o multiplot
 ```
 
 The output options generate:

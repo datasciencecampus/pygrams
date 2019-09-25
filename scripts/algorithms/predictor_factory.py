@@ -8,6 +8,7 @@ from scripts.algorithms.lstm import LstmForecasterMultipleLookAhead, LstmForecas
     LstmForecasterMultipleModelSingleLookAhead
 from scripts.algorithms.naive_predictor import NaivePredictor
 from scripts.algorithms.polynomial_predictor import PolynomialPredictor
+from scripts.algorithms.state_space import StateSpaceModelObject
 
 
 class PredictorFactory(object):
@@ -50,7 +51,7 @@ class PredictorFactory(object):
             return PolynomialPredictor(training_values, num_prediction_periods, degree=3)
         elif predictor_name == 'Holt-Winters':
             return HoltWintersPredictor(training_values, num_prediction_periods)
-        # elif predictor_name == 'state-space':
-        #     return StateSpaceModel(training_values, num_prediction_periods)
+        elif predictor_name == 'ssm':
+            return StateSpaceModelObject(training_values, num_prediction_periods)
         else:
             raise ValueError('Unknown predictor: ' + predictor_name)

@@ -34,5 +34,4 @@ class MultiCloudPlot(object):
 
         fig1.suptitle(titlein, fontsize=14)
         fig1.savefig(output_file_name, dpi=300)
-        plt.show()
         plt.close(fig1)
