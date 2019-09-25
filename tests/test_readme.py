@@ -1,10 +1,13 @@
 import os
+import sys
 import unittest
+
+import pytest
 
 import pygrams
 
 
-# @pytest.mark.skipif('TRAVIS' not in os.environ, reason="Only execute with Travis due to speed")
+@pytest.mark.skipif(('TRAVIS' not in os.environ) or (sys.platform == 'win32'), reason="Only execute with Travis due to speed")
 class TestReadme(unittest.TestCase):
     """
     Batch of tests to execute same commands as mentioned in the README.md, to ensure they work without crashing.
