@@ -46,7 +46,8 @@ def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
     week_dates = []
     week_total = 0
 
-    for current_row_index in tqdm(range(number_of_rows), 'Calculating weekly term document-counts', unit='document'):
+    for current_row_index in tqdm(range(number_of_rows), 'Calculating weekly term document-counts', unit='document',
+                                  total=number_of_rows):
         new_week = int(uspto_week_dates[current_row_index])
 
         while new_week > current_week:
@@ -116,6 +117,20 @@ def timeseries_weekly_to_quarterly(weekly_dates, weekly_values):
             new_date = (year * 100) + 7
         else:
             new_date = (year * 100) + 10
+
+        if new_date in dict_dates:
+            dict_dates[new_date] += value
+        else:
+            dict_dates[new_date] = value
+
+    return list(dict_dates.keys()), list(dict_dates.values())
+
+
+def timeseries_weekly_to_yearly(weekly_dates, weekly_values):
+    dict_dates = {}
+    for date, value in zip(weekly_dates, weekly_values):
+        year = date // 100
+        new_date = year * 100
 
         if new_date in dict_dates:
             dict_dates[new_date] += value

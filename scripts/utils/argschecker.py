@@ -39,12 +39,42 @@ class ArgsChecker:
             if date_from > date_to:
                 raise PygramsException(f"date_from '{self.args.date_from}' cannot be after date_to '{self.args.date_to}'")
 
+        ################
+
+        timeseries_date_from = None
+        if isinstance(self.args.timeseries_date_from, str):
+            try:
+                date_from = datetime.datetime.strptime(self.args.timeseries_date_from, '%Y/%m/%d')
+            except ValueError:
+                raise PygramsException(
+                    f"date_from defined as '{self.args.date_from}' which is not in YYYY/MM/DD format")
+
+        timeseries_date_to = None
+        if isinstance(self.args.timeseries_date_to, str):
+            try:
+                timeseries_date_to = datetime.datetime.strptime(self.args.timeseries_date_to, '%Y/%m/%d')
+            except ValueError:
+                raise PygramsException(f"date_to defined as '{self.args.timeseries_date_to}' which is not in YYYY/MM/DD format")
+
+        if timeseries_date_from is not None and timeseries_date_to is not None:
+            if timeseries_date_from > timeseries_date_to:
+                raise PygramsException(
+                    f"date_from '{self.args.timeseries_date_from}' cannot be after date_to '{self.args.timeseries_date_to}'")
+            if timeseries_date_from < date_from:
+                raise PygramsException(
+                    f"timeseries date_from '{self.args.timeseries_date_from}' cannot be before tfidf date_to '{self.args.date_from}'")
+            if timeseries_date_to < date_to:
+                raise PygramsException(
+                    f"timeseries date_from '{self.args.timeseries_date_to}' cannot be aftere tfidf date_to '{self.args.date_to}'")
+
+        ###############
+
         if len(self.args.search_terms) > 0:
             print("The user input words are:")
             for idx, word in enumerate(self.args.search_terms):
                 print(f'{idx}. {word}')
 
-        if self.args.input_tfidf is None and self.args.date_header is None:
+        if self.args.use_cache is None and self.args.date_header is None:
             print()
             print('WARNING: No dates defined - time series analysis will not be possible with the cached object!')
             print()
@@ -103,10 +133,13 @@ class ArgsChecker:
             print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
             app_exit = True
 
-        if self.args.timeseries and self.args.input_tfidf is None and self.args.date_header is None:
-
+        if self.args.timeseries and self.args.use_cache is None and self.args.date_header is None:
             print(f"date_header is None")
             print(f"Cannot calculate emergence without a specifying a date column")
+            app_exit = True
+
+        if 'multiplot' in self.args.output and not self.args.timeseries:
+            print("Cannot output multiplot without time series calculation")
             app_exit = True
 
         if app_exit:
@@ -117,6 +150,7 @@ class ArgsChecker:
                           'cpc': self.args.cpc_classification,
                           'cite': None, 'columns': self.args.filter_columns,
                           'date': None,
+                          'timeseries_date': None,
                           'date_header': self.args.date_header
                           }
 
@@ -127,6 +161,14 @@ class ArgsChecker:
             docs_mask_dict['date'] = {
                 'to': date_to_year_week(date_to),
                 'from': date_to_year_week(date_from)
+            }
+
+        if self.args.timeseries_date_to is not None or self.args.timeseries_date_from is not None:
+            timeseries_date_to = pd.to_datetime('today').date() if self.args.timeseries_date_to is None else pd.to_datetime(self.args.timeseries_date_to)
+            timeseries_date_from = pd.to_datetime('1900-01-01') if self.args.timeseries_date_from is None else pd.to_datetime(self.args.timeseries_date_from)
+            docs_mask_dict['timeseries_date'] = {
+                'to': date_to_year_week(timeseries_date_to),
+                'from': date_to_year_week(timeseries_date_from)
             }
         return docs_mask_dict
 

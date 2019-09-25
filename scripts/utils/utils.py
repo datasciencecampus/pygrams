@@ -1,15 +1,47 @@
 import array as arr
+from bz2 import BZ2File
+from os import path, makedirs
+from pickle import dump
 
 import numpy as np
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
 from gensim.test.utils import datapath, get_tmpfile
-from pandas import to_datetime
+from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
 
 
+def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):
+    for idx, period in enumerate(all_quarters):
+        if idx >= len(non_zero_dates):
+            non_zero_dates.append(period)
+            quarterly_values.append(0)
+        elif period == non_zero_dates[idx]:
+            continue
+        else:
+            non_zero_dates.insert(idx, period)
+            quarterly_values.insert(idx, 0)
+    return non_zero_dates, quarterly_values
+
+
+def pickle_object(short_name, obj, folder_name):
+    makedirs(folder_name, exist_ok=True)
+    file_name = pickle_name(short_name, folder_name)
+    with BZ2File(file_name, 'wb') as pickle_file:
+        dump(obj, pickle_file, protocol=4, fix_imports=False)
+
+
+def unpickle_object(short_name, folder_name):
+    file_name = pickle_name(short_name, folder_name)
+    return read_pickle(file_name)
+
+
+def pickle_name(short_name, folder_name):
+    return path.join(folder_name, short_name + '.pkl.bz2')
+
+
 def stationary_terms(emergence_list, nterms):
-    if len(emergence_list)==0:
+    if len(emergence_list) == 0:
         return []
     zero_pivot_emergence = 1
     last_emergence = emergence_list[0][1]
@@ -188,12 +220,9 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
 
 
 def checkdf(df, emtec, docs_mask_dict, text_header):
-    app_exit = False
-
-    if emtec or docs_mask_dict['date'] is not None :
+    if emtec or docs_mask_dict['date'] is not None:
         if docs_mask_dict['date_header'] not in df.columns:
-            print(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
-            app_exit = True
+            raise ValueError(f"date_header '{docs_mask_dict['date_header']}' not in dataframe")
 
     if docs_mask_dict['date_header'] is not None:
         if is_string_dtype(df[docs_mask_dict['date_header']]):
@@ -206,11 +235,7 @@ def checkdf(df, emtec, docs_mask_dict, text_header):
         print('Document dates not specified')
 
     if text_header not in df.columns:
-        print(f"text_header '{text_header}' not in dataframe")
-        app_exit = True
-
-    if app_exit:
-        exit(0)
+        raise ValueError(f"text_header '{text_header}' not in dataframe")
 
 
 def remove_empty_documents(data_frame, text_header):

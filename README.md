@@ -20,7 +20,7 @@ The app pipeline (more details in the user option section):
    2. **[Term Filters](#term-filters)** These filters work on term level. Examples are: search terms list (eg. pharmacy, medicine, chemist)
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **[Emergence](#emergence-calculations)**
-   1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations or curve fitting. 
+   1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations, curve fitting, or calculations designed to favour exponential like emergence. 
    2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
 8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
@@ -107,12 +107,12 @@ For example, for a corpus of book blurbs you could use:
 python pygrams.py -th='blurb' -dh='published_date'
 ```
 
-#### Using a pre-pickled TFIDF file (-it)
+#### Using cached files to speed up processing (-uc)
 
-In order save processing time, a pre-pickled TFIDF output file may be loaded instead of creating TFIDF by processing a document source. These files are cached automatically upon the first run with data and the directory hosting them inherits the outputs name given. Running pygrams with cached tfidf matrix:
+In order save processing time, at various stages of the pipeline, we cache data structures that are costly and slow to compute, like the compressed tf-idf matrix, the timeseries matrix, the smooth series and its derivatives from kalman filter and others:
 
 ```
-python pygrams.py -it USPTO-mdf-0.05
+python pygrams.py -uc all-mdf-0.05-200501-201841
 ```
 
 ### TFIDF Dictionary
@@ -180,13 +180,13 @@ unbias results to avoid double or triple counting contained n-grams.
 This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
 
 ```
-python pygrams.py -df=2000/02/20
+python pygrams.py -dh publication_date -df=2000/02/20
 ```
 
 The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
 
 ```
-python pygrams.py -df=2000/03/01 -dt=2016/07/31
+python pygrams.py -dh publication_date -df=2000/03/01 -dt=2016/07/31
 ```
 
 #### Column features filters (-fh, -fb)
@@ -208,7 +208,7 @@ This filter assumes that values are '0'/'1', or 'Yes'/'No'.
 This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". An example script is:
 
 ```
-python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2
+python pygrams.py -cpc=Y02 -ds=USPTO-random-10000.pkl.bz2
 ```
 
 In the console the number of subset patents will be stated. For example, for `python pygrams.py -cpc=Y02 -ps=USPTO-random-10000.pkl.bz2` the number of Y02 patents is 197. Thus, the TFIDF will be run for 197 patents.
@@ -232,12 +232,20 @@ An option to choose between popular or emergent terminology outputs. Popular ter
 python pygrams.py -ts
 ```
 
-#### Curve Fitting (-cf)
+#### Emergence Index (-ei)
 
-An option to choose between curve fitting or [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players)  emergence calculations. Porter is used by default; curve fitting can be used instead, for example:
+An option to choose between quadratic fitting, [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) or gradients from state-space model using kalman filter smoothing  emergence indexes. Porter is used by default; quadratic fitting can be used instead, for example:
 
 ```
-python pygrams.py -ts -cf
+python pygrams.py -ts -ei quadratic
+```
+
+#### Exponential (-exp)
+
+An option designed to favour exponential like emergence, based on a yearly weighting function that linearly increases from zero, for example:
+
+```
+python pygrams.py -ts -exp
 ```
 
 ### Timeseries Forecasts
@@ -306,8 +314,13 @@ Python pygrams.py -nrm=False
 Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud or 'graph summary'.
 
 ```
-python pygrams.py -o='wordcloud'
-python pygrams.py -o='graph'
+python pygrams.py -o wordcloud
+python pygrams.py -o graph
+```
+
+Time series analysis also supports a multiplot to present up to 30 terms time series (emergent and declining), output in the `outputs/emergence` folder:
+```
+python pygrams.py -ts -dh 'publication_date' -o multiplot
 ```
 
 The output options generate:

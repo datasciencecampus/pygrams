@@ -71,7 +71,7 @@ def setup_package():
         install_requires=['matplotlib', 'numpy', 'scipy==1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn',
                           'xlrd', 'python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow',
                           'keras_tqdm', 'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
-        # extras_require={'dev': ['check-manifest'],'test': ['coverage'],},
+        extras_require={'test': ['beautifulsoup4', 'pytest']},
         python_requires='>=3.6',
         cmdclass={
             'install': CustomInstaller,

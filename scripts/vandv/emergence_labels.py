@@ -10,6 +10,7 @@ def map_prediction_to_emergence_label(results, training_values, test_values, pre
                                               ('stationary', -0.02),
                                               ('declining', None)
                                       )):
+
     def __map_helper(normalised_counts_to_trend, predicted_emergence, predictor_name, test_term,
                      emergence_linear_thresholds):
         if np.isnan(sum(normalised_counts_to_trend)):

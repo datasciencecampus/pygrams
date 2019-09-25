@@ -8,7 +8,7 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
-predictor_names = ['All', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters',
+predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters','ssm',
                    'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
                    'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
                    'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
@@ -48,8 +48,8 @@ def get_args(command_line_arguments):
     # Input files
     parser.add_argument("-ds", "--doc_source", default='USPTO-random-1000.pkl.bz2',
                         help="the document source to process")
-    parser.add_argument("-it", "--input_tfidf", default=None,
-                        help="Load a pickled TFIDF output instead of creating TFIDF by processing a document source")
+    parser.add_argument("-uc", "--use_cache", default=None,
+                        help="Cache file to use, to speed up queries")
 
     # Document column header names
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
@@ -69,6 +69,11 @@ def get_args(command_line_arguments):
     parser.add_argument("-df", "--date_from", default=None,
                         help="The first date for the document cohort in YYYY/MM/DD format")
     parser.add_argument("-dt", "--date_to", default=None,
+                        help="The last date for the document cohort in YYYY/MM/DD format")
+
+    parser.add_argument("-tsdf", "--timeseries-date-from", default=None,
+                        help="The first date for the document cohort in YYYY/MM/DD format")
+    parser.add_argument("-tsdt", "--timeseries-date-to", default=None,
                         help="The last date for the document cohort in YYYY/MM/DD format")
 
     # TF-IDF PARAMETERS
@@ -93,7 +98,7 @@ def get_args(command_line_arguments):
     # select outputs
 
     parser.add_argument("-o", "--output", nargs='*', default=[],
-                        choices=['graph', 'wordcloud'],  # suppress table output option
+                        choices=['graph', 'wordcloud', 'multiplot'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. ")
 
     # file names etc.
@@ -129,8 +134,13 @@ def get_args(command_line_arguments):
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
 
-    parser.add_argument("-cf", "--curve-fitting", default=False, action="store_true",
-                        help="analyse using curve or not")
+    parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'quadratic', 'gradients'),
+                        help="Emergence calculation to use")
+    parser.add_argument("-sma", "--smoothing-alg", default='savgol', choices=('kalman', 'savgol'),
+                        help="Time series smoothing to use")
+
+    parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
+                        help="analyse using exponential type fit or not")
 
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
@@ -165,18 +175,19 @@ def main(supplied_args):
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
-    if args.input_tfidf is None:
+    if args.use_cache is None:
         pickled_tfidf_folder_name = None
     else:
-        pickled_tfidf_folder_name = os.path.join('outputs', 'tfidf', args.input_tfidf)
+        pickled_tfidf_folder_name = args.use_cache
 
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
-                        pickled_tfidf_folder_name=pickled_tfidf_folder_name,
+                        cached_folder_name=pickled_tfidf_folder_name,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
-                        curves=args.curve_fitting, nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                        emergence_index=args.emergence_index, exponential=args.exponential_fitting, nterms=args.nterms,
+                        patents_per_quarter_threshold=args.minimum_per_quarter, sma = args.smoothing_alg
                         )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
@@ -185,7 +196,7 @@ def main(supplied_args):
     # emtech integration
     if args.timeseries:
         if 0 in args.predictor_names:
-            algs_codes = list(range(1, len(predictor_names)))
+            algs_codes = list(range(1, 7))
         else:
             algs_codes = args.predictor_names
 
@@ -194,7 +205,7 @@ def main(supplied_args):
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
 
-        for emergence in ['emergent', 'stationary', 'declining']:
+        for emergence in ['emergent', 'declining']:
             print(f'Running pipeline for "{emergence}"')
 
             if args.normalised:
@@ -205,21 +216,21 @@ def main(supplied_args):
             title += f' ({emergence})'
 
             html_results, training_values = pipeline.run(predictors_to_run, normalized=args.normalised,
-                                                                train_test=args.test, emergence=emergence)
-            if training_values is None:
-                continue
-            # save training_values to csv file
-            #
-            # training_values:                                  csv file:
-            # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
-            #                                                   'term2', 2, 4, 1, 3
-            #
-            filename = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
-            with open(filename, 'w') as f:
-                w = csv.writer(f)
-                for key, values in training_values:
-                    my_list = ["'" + str(key) + "'"] + values
-                    w.writerow(my_list)
+                                                         train_test=args.test, emergence=emergence)
+            if training_values is not None:
+                # save training_values to csv file
+                #
+                # training_values:                                  csv file:
+                # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
+                #                                                   'term2', 2, 4, 1, 3
+                #
+                filename = os.path.join('outputs', 'emergence',
+                                        args.outputs_name + '_' + emergence + '_time_series.csv')
+                with open(filename, 'w') as f:
+                    w = csv.writer(f)
+                    for key, values in training_values:
+                        my_list = ["'" + str(key) + "'"] + values
+                        w.writerow(my_list)
 
             html_doc = f'''<!DOCTYPE html>
                 <html lang="en">
