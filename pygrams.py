@@ -8,7 +8,7 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
-predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters',
+predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters','ssm',
                    'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
                    'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
                    'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
@@ -98,7 +98,7 @@ def get_args(command_line_arguments):
     # select outputs
 
     parser.add_argument("-o", "--output", nargs='*', default=[],
-                        choices=['graph', 'wordcloud'],  # suppress table output option
+                        choices=['graph', 'wordcloud', 'multiplot'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. ")
 
     # file names etc.
@@ -136,7 +136,7 @@ def get_args(command_line_arguments):
 
     parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'quadratic', 'gradients'),
                         help="Emergence calculation to use")
-    parser.add_argument("-sma", "--smoothing-alg", default=None, choices=('kalman', 'savgol'),
+    parser.add_argument("-sma", "--smoothing-alg", default='savgol', choices=('kalman', 'savgol'),
                         help="Time series smoothing to use")
 
     parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
@@ -196,7 +196,7 @@ def main(supplied_args):
     # emtech integration
     if args.timeseries:
         if 0 in args.predictor_names:
-            algs_codes = list(range(1, 6))
+            algs_codes = list(range(1, 7))
         else:
             algs_codes = args.predictor_names
 
@@ -216,21 +216,21 @@ def main(supplied_args):
             title += f' ({emergence})'
 
             html_results, training_values = pipeline.run(predictors_to_run, normalized=args.normalised,
-                                                                train_test=args.test, emergence=emergence)
-            if training_values is None:
-                continue
-            # save training_values to csv file
-            #
-            # training_values:                                  csv file:
-            # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
-            #                                                   'term2', 2, 4, 1, 3
-            #
-            filename = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence + '_time_series.csv')
-            with open(filename, 'w') as f:
-                w = csv.writer(f)
-                for key, values in training_values:
-                    my_list = ["'" + str(key) + "'"] + values
-                    w.writerow(my_list)
+                                                         train_test=args.test, emergence=emergence)
+            if training_values is not None:
+                # save training_values to csv file
+                #
+                # training_values:                                  csv file:
+                # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
+                #                                                   'term2', 2, 4, 1, 3
+                #
+                filename = os.path.join('outputs', 'emergence',
+                                        args.outputs_name + '_' + emergence + '_time_series.csv')
+                with open(filename, 'w') as f:
+                    w = csv.writer(f)
+                    for key, values in training_values:
+                        my_list = ["'" + str(key) + "'"] + values
+                        w.writerow(my_list)
 
             html_doc = f'''<!DOCTYPE html>
                 <html lang="en">

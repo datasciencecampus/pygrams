@@ -318,6 +318,11 @@ python pygrams.py -o wordcloud
 python pygrams.py -o graph
 ```
 
+Time series analysis also supports a multiplot to present up to 30 terms time series (emergent and declining), output in the `outputs/emergence` folder:
+```
+python pygrams.py -ts -dh 'publication_date' -o multiplot
+```
+
 The output options generate:
 
 - Report is a text file containing top n terms (default is 250 terms, see `-np` for more details)
