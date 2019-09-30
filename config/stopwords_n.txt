@@ -8,3 +8,4 @@ generally describe
 determination unit
 determination unit determine
 perform operation
+certain aspect

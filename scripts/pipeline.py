@@ -18,6 +18,7 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
 from scripts.utils import utils
+from scripts.utils.date_utils import iso_date_weekly_to_quarterly
 from scripts.vandv import ssm_reporting
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.predictor import evaluate_prediction
@@ -199,8 +200,8 @@ class Pipeline(object):
         # find indexes for date-range
         min_date = max_date = None
         if self.__timeseries_date_dict is not None:
-            min_date = self.__timeseries_date_dict['from']
-            max_date = self.__timeseries_date_dict['to']
+            min_date = iso_date_weekly_to_quarterly(self.__timeseries_date_dict['from'])
+            max_date = iso_date_weekly_to_quarterly(self.__timeseries_date_dict['to'])
 
         min_i = 0
         max_i = len(all_quarters)
@@ -209,11 +210,13 @@ class Pipeline(object):
             if min_date is not None and min_date < quarter:
                 break
             min_i = i
+        min_i
 
         for i, quarter in enumerate(all_quarters):
             if max_date is not None and max_date < quarter:
                 break
             max_i = i
+
         self.__lims = [min_i, max_i]
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
