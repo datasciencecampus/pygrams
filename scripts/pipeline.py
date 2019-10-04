@@ -26,9 +26,9 @@ from scripts.vandv.predictor_reporting import report_prediction_as_graphs_html
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
-                 cached_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
-                 terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None):
+                 cached_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0, terms_threshold=None,
+                 output_name=None, calculate_timeseries=None, m_steps_ahead=5, emergence_index='porter',
+                 exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None, plot=False):
 
         self.__emergence_index = emergence_index
 
@@ -50,8 +50,12 @@ class Pipeline(object):
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
                                                tokenizer=LemmaTokenizer())
-            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
+            if plot:
+                scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "original matrix")
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=False)
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
+            if plot:
+                scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "unigrams cleaned")
 
             if prefilter_terms != 0:
                 tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
@@ -62,6 +66,8 @@ class Pipeline(object):
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+                if plot:
+                    scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "subset matrix")
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
@@ -133,14 +139,18 @@ class Pipeline(object):
         #  Hence return nothing - operate in place on tfidf.
         print(f'Creating a masked tfidf matrix from filters...')
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
-        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
+        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, unbias=True)
         tfidf_mask_obj.update_mask(doc_filters, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
         # todo: this mutiply and remove null will disappear - maybe put weight combiner last so it can remove 0 weights
         # mask the tfidf matrix
+        # somewhere here we need to do a clean-up as we will have a number of n-gram featues with null counts
 
         tfidf_masked = tfidf_mask.multiply(self.__tfidf_obj.tfidf_matrix)
+        if plot:
+            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
+            scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "unbias")
 
         tfidf_masked, self.__dates = utils.remove_all_null_rows_global(tfidf_masked, self.__dates)
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,}'

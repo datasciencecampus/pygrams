@@ -56,34 +56,40 @@ class TestGraph(unittest.TestCase):
         self.assertEquals(50, len(self.__nodes))
 
     def test_num_links(self):
-        self.assertEquals(454, len(self.__links))
+        self.assertEquals(122, len(self.__links))
 
     def test_terms_in_nodes(self):
         texts = [x['text'] for x in self.__nodes]
 
-        self.assertIn('central portion', texts)
-        self.assertIn('fluid commun', texts)
-        self.assertIn('phenyl ring', texts)
-        self.assertIn('gate line', texts)
+        term1 = 'liquid crystal display'
+        term2 = 'light emit diod'
+        term3 = 'silicon oxid film'
+        term4 = 'memori cell array'
 
-        idx_1 = texts.index("central portion")
-        idx_2 = texts.index("fluid commun")
-        idx_3 = texts.index("phenyl ring")
-        idx_4 = texts.index("gate line")
 
-        self.assertAlmostEqual(0.024110680522099224,  self.__nodes[idx_1]['freq'])
-        self.assertAlmostEqual(0.004707609539032177,   self.__nodes[idx_2]['freq'])
-        self.assertAlmostEqual(0.09743319564023586, self.__nodes[idx_3]['freq'])
-        self.assertAlmostEqual(0.07346334072037178,  self.__nodes[idx_4]['freq'])
+        self.assertIn(term1, texts)
+        self.assertIn(term2, texts)
+        self.assertIn(term3, texts)
+        self.assertIn(term4, texts)
+
+        idx_1 = texts.index(term1)
+        idx_2 = texts.index(term2)
+        idx_3 = texts.index(term3)
+        idx_4 = texts.index(term4)
+
+        self.assertAlmostEqual(1.0,  self.__nodes[idx_1]['freq'])
+        self.assertAlmostEqual(0.3843968432449123,   self.__nodes[idx_2]['freq'])
+        self.assertAlmostEqual(0.18575011289737894, self.__nodes[idx_3]['freq'])
+        self.assertAlmostEqual(0.17051092571690024,  self.__nodes[idx_4]['freq'])
 
     def test_terms_in_links(self):
 
         texts = [(x['source'], x['target']) for x in self.__links]
 
-        link_1 = ('semiconductor substrat', 'diffus barrier materi')
-        link_2 = ('pharmaceut composit', 'activ inhibit product')
-        link_3 = ('central portion', 'convex outer surfac')
-        link_4 = ('comput system', 'core network')
+        link_1 = ('intern combust engin', 'project cylind head')
+        link_2 = ('pharmaceut accept salt', 'alzheim diseas wherein')
+        link_3 = ('compound inhibit aak1', 'gener direct compound')
+        link_4 = ('accord provid seed', 'corn plant cross')
 
         self.assertIn(link_1, texts)
         self.assertIn(link_2, texts)
@@ -95,10 +101,10 @@ class TestGraph(unittest.TestCase):
         idx_4 = texts.index(link_3)
         idx_3 = texts.index(link_4)
 
-        self.assertAlmostEqual(0.1973562778129399, self.__links[idx_1]['size'])
-        self.assertAlmostEqual(0.1327523967624187, self.__links [idx_2]['size'])
-        self.assertAlmostEqual(0.2533744512434524, self.__links [idx_3]['size'])
-        self.assertAlmostEqual(0.11818446670638738, self.__links[idx_4]['size'])
+        self.assertAlmostEqual(0.363314129688573, self.__links[idx_1]['size'])
+        self.assertAlmostEqual(0.4505715354487106, self.__links [idx_2]['size'])
+        self.assertAlmostEqual(1.0, self.__links [idx_3]['size'])
+        self.assertAlmostEqual(0.47140336153614726, self.__links[idx_4]['size'])
 
 
 

@@ -61,29 +61,75 @@ class TestTfidfMask(unittest.TestCase):
 
     def test_num_non_zeros_no_clean_rows(self):
         self.init_mask('Y02', 2)
-        self.assertEqual(2024, len(self.__tfidf_mask.data))
+        self.assertEqual(8741, len(self.__tfidf_mask.data))
 
     def test_terms(self):
         self.init_mask('Y02', 2)
-        expected_terms = ['variabl turbocharg',
-                          'acceler drive region',
-                          'compress air',
+        expected_terms = ['acceler drive region',
+                          'adjust flow exhaust',
+                          'air cylind vane',
+                          'air suppli compress',
+                          'amount suppli cylind',
+                          'combust fuel variabl',
+                          'compress air cylind',
                           'compress extern air',
-                          'compressor rotat',
-                          'control divid',
+                          'compressor rotat synchron',
+                          'control divid oper',
+                          'control system variabl',
+                          'control vane inject',
                           'cylind gener power',
+                          'cylind torqu engin',
+                          'cylind vane adjust',
                           'deceler drive region',
+                          'divid oper region',
+                          'drive region acceler',
+                          'drive region deceler',
+                          'drive region fuel',
+                          'engin compressor rotat',
                           'engin control system',
+                          'engin control vane',
+                          'engin cylind gener',
+                          'exhaust engin compressor',
                           'exhaust ga exhaust',
                           'exhaust ga suppli',
+                          'extern air suppli',
+                          'flow exhaust ga',
                           'fuel amount suppli',
-                          'fuel inject',
-                          'inject time',
-                          'oper region',
+                          'fuel inject cylind',
+                          'fuel variabl turbocharg',
+                          'ga exhaust engin',
+                          'ga suppli turbin',
+                          'gener power combust',
+                          'inject time fuel',
+                          'oper region vehicl',
+                          'power combust fuel',
+                          'region acceler drive',
+                          'region deceler drive',
+                          'region fuel amount',
+                          'region vehicl steady-spe',
+                          'rotat exhaust ga',
+                          'rotat synchron turbin',
                           'steady-spe drive region',
-                          'turbin rotat',
+                          'suppli compress air',
+                          'suppli cylind torqu',
+                          'suppli turbin control',
+                          'synchron turbin compress',
+                          'system variabl turbocharg',
+                          'time fuel inject',
+                          'torqu engin control',
+                          'turbin compress extern',
+                          'turbin control divid',
+                          'turbin rotat exhaust',
+                          'turbocharg engin cylind',
+                          'turbocharg turbin rotat',
                           'vane adjust flow',
+                          'vane inject time',
+                          'variabl turbocharg engin',
+                          'variabl turbocharg turbin',
+                          'vehicl steady-spe drive',
                           'drive region',
+                          'engin control',
+                          'variabl turbocharg',
                           'exhaust ga']
 
         tfidf_matrix = self.__tfidf_obj.tfidf_matrix
@@ -100,24 +146,24 @@ class TestTfidfMask(unittest.TestCase):
     def test_num_non_zeros_clean_rows_clean_unigrams(self):
         self.init_mask('Y02', 1, uni_factor=0.4)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
-        self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(71, len(tfidf_mask_nozero_rows.data))
 
     def test_num_non_zeros_clean_rows_clean_unigrams_and_df(self):
         self.init_mask('Y02', 1, uni_factor=0.4)
         tfidf_mask_nozero_rows, dates = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__dates)
-        self.assertEqual(26, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(71, len(tfidf_mask_nozero_rows.data))
         self.assertEqual(1, tfidf_mask_nozero_rows.shape[0])
         self.assertIsNone(self.__dates)
 
     def test_num_non_zeros_clean_rows(self):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
-        self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(66, len(tfidf_mask_nozero_rows.data))
 
     def test_num_non_zeros_clean_rows_and_df(self):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows, dates = utils.remove_all_null_rows_global(self.__tfidf_mask, self.__dates)
-        self.assertEqual(20, len(tfidf_mask_nozero_rows.data))
+        self.assertEqual(66, len(tfidf_mask_nozero_rows.data))
         self.assertEqual(1, tfidf_mask_nozero_rows.shape[0])
         self.assertIsNone(self.__dates)
 
@@ -131,8 +177,8 @@ class TestTfidfMask(unittest.TestCase):
         self.init_mask('Y02', 2)
         tfidf_mask_nozero_rows = utils.remove_all_null_rows(self.__tfidf_mask)
         vocabulary = self.__tfidf_obj.vocabulary
-        expected_term1_val = 0.25
-        expected_term2_val = 0.2962962962962961
+        expected_term1_val = 0.0625
+        expected_term2_val = 0.08779149519890259
 
         term1 = 'exhaust ga'  # 0.25
         term2 = 'drive region'  # 0.2962962962962961

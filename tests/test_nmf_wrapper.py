@@ -21,31 +21,31 @@ class TestNMFWrapper(unittest.TestCase):
         cls.__nmf = nmf_topic_modelling(nmf_topics, tfidf_obj.tfidf_matrix)
 
     def test_nmf_topic1(self):
-        actual_topic_1_score = self.__nmf.components_[0][3302]
-        expected_topic_1_score = 0.2044937886411859
+        actual_topic_1_score = self.__nmf.components_[0][1748]
+        expected_topic_1_score = 0.006004153474348771
 
         assert_almost_equal(actual_topic_1_score, expected_topic_1_score, decimal=3)
 
     def test_nmf_topic2(self):
-        actual_topic_2_score = self.__nmf.components_[1][281]
-        expected_topic_2_score = 0.276781
+        actual_topic_2_score = self.__nmf.components_[1][3269]
+        expected_topic_2_score = 0.06834714897242646
 
         assert_almost_equal(actual_topic_2_score, expected_topic_2_score, decimal=3)
 
     def test_nmf_topic3(self):
-        actual_topic_3_score = self.__nmf.components_[2][2983]
-        expected_topic_3_score = 0.441
+        actual_topic_3_score = self.__nmf.components_[2][6291]
+        expected_topic_3_score = 0.04205993683629748
 
         assert_almost_equal(actual_topic_3_score, expected_topic_3_score, decimal=3)
 
     def test_nmf_topic4(self):
-        actual_topic_4_score = self.__nmf.components_[3][1683]
-        expected_topic_4_score = 0.219
+        actual_topic_4_score = self.__nmf.components_[3][849]
+        expected_topic_4_score = 0.020628785653052678
 
         assert_almost_equal(actual_topic_4_score, expected_topic_4_score, decimal=3)
 
     def test_nmf_topic5(self):
-        actual_topic_5_score = self.__nmf.components_[4][252]
-        expected_topic_5_score = 0.275
+        actual_topic_5_score = self.__nmf.components_[4][7006]
+        expected_topic_5_score = 0.004466893271055121
 
         assert_almost_equal(actual_topic_5_score, expected_topic_5_score, decimal=3)

@@ -11,6 +11,53 @@ from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
 
 
+def tfidf_plot(tfidf_obj, message):
+    count_mat = tfidf_obj.count_matrix
+    idf = tfidf_obj.idf
+    counts_arr_sorted = count_mat.toarray().sum(axis=0)
+    import matplotlib.pyplot as plt
+    plt.scatter(counts_arr_sorted, idf, s=5)
+    plt.xlabel('sum_tf')
+    plt.ylabel('idf')
+    plt.title(r'sum_tf vs idf | ' + message)
+    plt.show()
+
+
+def tfidf_plot2(count_mat, idf, message):
+    counts_arr_sorted = count_mat.toarray().sum(axis=0)
+    import matplotlib.pyplot as plt
+    plt.scatter(counts_arr_sorted, idf, s=5)
+    plt.xlabel('sum_tf')
+    plt.ylabel('idf')
+    plt.title(r'sum_tf vs idf | ' + message)
+    plt.show()
+
+
+def histogram(count_matrix):
+    import matplotlib.mlab as mlab
+    import matplotlib.pyplot as plt
+    counts_arr_sorted = count_matrix.toarray().sum(axis=0)
+    num_bins = 100
+    mu = np.mean(counts_arr_sorted)  # mean of distribution
+    sigma = np.std(counts_arr_sorted)  # standard deviation of distribution
+    # the histogram of the data
+    n, bins, patches = plt.hist(counts_arr_sorted, num_bins, facecolor='blue', alpha=0.5)
+    # add df vs tf plots here
+    # add a 'best fit' line
+    y = mlab.normpdf(bins, mu, sigma)
+    plt.plot(bins, y, 'r--')
+    plt.yscale('log')
+    plt.xlabel('Sum of term counts')
+    plt.ylabel('Num Terms')
+    plt.title(r'Histogram of sum of term frequencies')
+    print(n)
+    print(bins)
+    print(patches)
+    plt.ylim(bottom=1)
+    plt.show()
+    exit(0)
+
+
 def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):
     for idx, period in enumerate(all_quarters):
         if idx >= len(non_zero_dates):
@@ -186,16 +233,14 @@ def stop(tokensin, unigrams, ngrams, digits=True):
     new_tokens = []
     for token in tokensin:
         ngram = token.split()
+        n_digits = sum([1 if x.isdigit() else 0 for x in ngram])
+        if n_digits > 0 and digits:
+            continue
         if len(ngram) == 1:
-            if ngram[0] not in unigrams and not ngram[0].isdigit():
+            if ngram[0] not in unigrams:
                 new_tokens.append(token)
         else:
-            word_in_ngrams = False
-            for word in ngram:
-                if word in ngrams or (digits and word.isdigit()):
-                    word_in_ngrams = True
-                    break
-            if not word_in_ngrams:
+            if token not in ngrams:
                 new_tokens.append(token)
     return new_tokens
 
@@ -205,16 +250,14 @@ def stop_tup(tuples, unigrams, ngrams, digits=True):
     for tuple in tuples:
         token = tuple[1]
         ngram = token.split()
+        n_digits = sum([1 if x.isdigit() else 0 for x in ngram])
+        if n_digits > 0 and digits:
+            continue
         if len(ngram) == 1:
-            if ngram[0] not in unigrams and not ngram[0].isdigit():
+            if ngram[0] not in unigrams:
                 new_tuples.append(tuple)
         else:
-            word_in_ngrams = False
-            for word in ngram:
-                if word in ngrams or (digits and word.isdigit()):
-                    word_in_ngrams = True
-                    break
-            if not word_in_ngrams:
+            if token not in ngrams:
                 new_tuples.append(tuple)
     return new_tuples
 

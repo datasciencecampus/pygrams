@@ -12,6 +12,7 @@ class TestTfidfReduce(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.maxDiff = None
         min_n = 2
         max_n = 3
         max_df = 0.3
@@ -44,29 +45,30 @@ class TestTfidfReduce(unittest.TestCase):
         cls.__term_score_tuples = cls.__pipeline.term_score_tuples
 
     def test_terms(self):
+
         term_score_tuples = self.__term_score_tuples
         actual_terms = [x for _, x in term_score_tuples]
         
-        expected_terms = ['mounting surface',
-                          'transmit path',
-                          'electronic element',
-                          'link document',
-                          'amide derivative',
-                          'valproic acid',
-                          'voice message',
-                          'jack mechanism',
-                          'pharmaceutical formulation',
-                          'light beam',
-                          'angular velocity',
-                          'contact beam',
-                          'conductive material',
-                          'endodontic instrument',
-                          'mass offset',
-                          'section bend',
-                          'component material',
-                          'terminal channel',
-                          'stationary household appliance',
-                          'fault point'
+        expected_terms = ['hard disk drive',
+'stationary household appliance',
+'plurality transmit path',
+'handheld electronic device',
+'light emit diode',
+'organic light emit',
+'production pharmaceutical formulation',
+'electron source substrate',
+'specify laser diode',
+'acid provide treatment',
+'amide derivative valproic',
+'aqueous polymer coat',
+'coat superparamagnetic nanoparticles',
+'derivative valproic acid',
+'disclose aqueous polymer',
+'polymer coat superparamagnetic',
+'provide treatment epilepsy',
+'superparamagnetic nanoparticles nanoparticles',
+'valproic acid provide',
+'signal conversion device'
                           ]
 
         self.assertListEqual(actual_terms[:20], expected_terms)
@@ -74,26 +76,26 @@ class TestTfidfReduce(unittest.TestCase):
     def test_scores(self):
         term_score_tuples = self.__term_score_tuples
         actual_scores = [x for x, _ in term_score_tuples]
-        expected_scores = [0.8728715609439694,
-                           0.8259734063804905,
-                           0.7754588414852185,
-                           0.7620007620011429,
-                           0.7071067811865476,
-                           0.7071067811865476,
-                           0.7071067811865475,
-                           0.6882472016116852,
-                           0.6666666666666666,
-                           0.6246950475544241,
-                           0.6198903382379372,
-                           0.6031800939323297,
-                           0.5806718350868961,
-                           0.5773502691896257,
-                           0.5773502691896257,
-                           0.5773502691896257,
-                           0.5669467095138407,
-                           0.5597177778726654,
-                           0.5570860145311556,
-                           0.5568900989230109]
+        expected_scores = [0.4411597312432845,
+                           0.42008401133852175,
+                           0.39902364202939306,
+                           0.3750831625076115,
+                           0.321230276498425,
+                           0.321230276498425,
+                           0.32025631050624814,
+                           0.31905076990550885,
+                           0.30337887539713954,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.3015113476990308,
+                           0.29584763849200485]
 
 
         support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)

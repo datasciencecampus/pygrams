@@ -86,6 +86,7 @@ class WordAnalyzer(object):
     ngram_range = None
     stemmed_stop_word_set_n = None
     stemmed_stop_word_set_uni = None
+    stemmed_stop_word_set_glob = None
 
 
     @staticmethod
@@ -96,16 +97,20 @@ class WordAnalyzer(object):
 
         # global stopwords
         with open(FilePaths.global_stopwords_filename, 'r') as f:
-            stemmed_stop_word_set_glob = set(WordAnalyzer.tokenizer(f.read())).union(list(string.punctuation))
+            WordAnalyzer.stemmed_stop_word_set_glob = set(WordAnalyzer.tokenizer(f.read())).union(string.punctuation)
 
         # we want to stop some words on n>1 ngrams
         with open(FilePaths.ngram_stopwords_filename, 'r') as f:
-            WordAnalyzer.stemmed_stop_word_set_n = set(WordAnalyzer.tokenizer(f.read())).union(
-                list(stemmed_stop_word_set_glob))
+            stop_lst = f.readlines()
+            stop_lst = [x.strip() for x in stop_lst]
+            n_grams_stops = []
+            for stop_token in stop_lst:
+                n_grams_stop = WordAnalyzer.tokenizer(stop_token)
+                n_grams_stops.append(' '.join(n_grams_stop))
+            WordAnalyzer.stemmed_stop_word_set_n = set(n_grams_stops)
 
         with open(FilePaths.unigram_stopwords_filename, 'r') as f:
-            WordAnalyzer.stemmed_stop_word_set_uni = set(WordAnalyzer.tokenizer(f.read())).union(
-                list(stemmed_stop_word_set_glob))
+            WordAnalyzer.stemmed_stop_word_set_uni = set(WordAnalyzer.tokenizer(f.read()))
 
     # Based on VectorizeMixin in sklearn text.py
     @staticmethod
@@ -113,7 +118,11 @@ class WordAnalyzer(object):
         """based on VectorizerMixin._word_ngrams in sklearn/feature_extraction/text.py,
         from scikit-learn; extended to prevent generation of n-grams containing stop words"""
         min_n, max_n = WordAnalyzer.ngram_range
-        original_tokens = WordAnalyzer.tokenizer(WordAnalyzer.preprocess(doc))
+        original_tokens_unstopped = WordAnalyzer.tokenizer(WordAnalyzer.preprocess(doc))
+        original_tokens=[]
+        for token in original_tokens_unstopped:
+            if token not in WordAnalyzer.stemmed_stop_word_set_glob:
+                original_tokens.append(token)
         tokens = original_tokens if min_n == 1 else []
 
         # handle token n-grams
