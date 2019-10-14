@@ -182,12 +182,12 @@ def normalize(ydata):
     return np.asarray([(_y - miny) / diff for _y in ydata])
 
 
-def stop(tokensin, unigrams, ngrams, digits=True):
+def stop(tokensin, unigrams, ngrams, digits=True, tuples=False):
     new_tokens = []
-    for token in tokensin:
+    for element in tokensin:
+        token = token[1] if tuples else element
         ngram = token.split()
-        n_digits = sum([1 if x.isdigit() else 0 for x in ngram])
-        if n_digits > 0 and digits:
+        if any([x.isdigit() for x in ngram]) and digits:
             continue
         if len(ngram) == 1:
             if ngram[0] not in unigrams:
@@ -196,23 +196,6 @@ def stop(tokensin, unigrams, ngrams, digits=True):
             if token not in ngrams:
                 new_tokens.append(token)
     return new_tokens
-
-
-def stop_tup(tuples, unigrams, ngrams, digits=True):
-    new_tuples = []
-    for tuple in tuples:
-        token = tuple[1]
-        ngram = token.split()
-        n_digits = sum([1 if x.isdigit() else 0 for x in ngram])
-        if n_digits > 0 and digits:
-            continue
-        if len(ngram) == 1:
-            if ngram[0] not in unigrams:
-                new_tuples.append(tuple)
-        else:
-            if token not in ngrams:
-                new_tuples.append(tuple)
-    return new_tuples
 
 
 def checkdf(df, emtec, docs_mask_dict, text_header):

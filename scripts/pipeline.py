@@ -154,7 +154,7 @@ class Pipeline(object):
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
         self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
-                                                  WordAnalyzer.stemmed_stop_word_set_n)
+                                                  WordAnalyzer.stemmed_stop_word_set_n, tuples=True)
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
