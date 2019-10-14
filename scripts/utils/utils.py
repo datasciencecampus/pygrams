@@ -185,7 +185,7 @@ def normalize(ydata):
 def stop(tokensin, unigrams, ngrams, digits=True, tuples=False):
     new_tokens = []
     for element in tokensin:
-        token = token[1] if tuples else element
+        token = element[1] if tuples else element
         ngram = token.split()
         if any([x.isdigit() for x in ngram]) and digits:
             continue
