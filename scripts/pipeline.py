@@ -81,7 +81,7 @@ class Pipeline(object):
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
                 if plot:
                     ngram_counts_new = utils.ngrams_count_tups(term_score_tuples)
-                    scripts.utils.utils.boxplots(term_score_tuples[:num_tuples_to_retain], self.__cached_folder_name)
+                    scripts.utils.utils.boxplots(term_score_tuples, self.__cached_folder_name, num_tuples_to_retain)
                     scripts.utils.utils.plot_ngram_bars(ngram_counts, ngram_counts_new, self.__cached_folder_name)
                     scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "subset matrix", dir_name=self.__cached_folder_name)
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)

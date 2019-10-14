@@ -1,6 +1,7 @@
 import array as arr
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from bz2 import BZ2File
 from os import path, makedirs
@@ -11,17 +12,38 @@ from gensim.scripts.glove2word2vec import glove2word2vec
 from gensim.test.utils import datapath, get_tmpfile
 from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
+import seaborn as sns
 
 
-def boxplots(term_score_tups, dir_name):
+def boxplots(term_score_tups, dir_name, nterms):
     dir_name = dir_name.replace('cached', 'outputs', 1)
     if not path.isdir(dir_name):
         makedirs(dir_name)
-    unigrams = [x[0] for x in term_score_tups if x[0]>0 and len(x[1].split())==1]
-    bigrams  = [x[0] for x in term_score_tups if x[0]>0 and len(x[1].split())==2]
-    trigrams = [x[0] for x in term_score_tups if x[0]>0 and len(x[1].split())==3]
-    box_plot_data = [unigrams, bigrams, trigrams]
-    plt.boxplot(box_plot_data)
+
+    tfidf = [x[0] for x in term_score_tups]
+
+    ngrams=[]
+    for x in term_score_tups:
+        if len(x[1].split())==1:
+            ngrams.append('uni')
+        elif len(x[1].split())==2:
+            ngrams.append('bi')
+        elif len(x[1].split())==3:
+            ngrams.append('tri')
+
+    original = ['Yes' if x < nterms else 'No' for x in range(len(term_score_tups))]
+
+    data = []
+    for a, b, c in zip(tfidf, ngrams, original):
+        data.append([a, b, c])
+
+    ngram_df = pd.DataFrame(data, columns=['tfidf', 'ngram', 'subset'])
+
+    sns.set(style="whitegrid")
+    ax = sns.boxplot(x="ngram", y="tfidf", hue="subset", data = ngram_df, palette = "Set3", whis=9)
+    ax.set_yscale('log', basey=2)
+    ax.set_title(r'n-gram sum tfidf range')
+
     plt.savefig(path.join(dir_name, 'ngram_boxplots.png'))
     plt.close()
 
