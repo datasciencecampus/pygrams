@@ -139,8 +139,8 @@ def get_args(command_line_arguments):
     parser.add_argument("-sma", "--smoothing-alg", default='savgol', choices=('kalman', 'savgol'),
                         help="Time series smoothing to use")
 
-    parser.add_argument("-exp", "--exponential_fitting", default=False, action="store_true",
-                        help="analyse using exponential type fit or not")
+    parser.add_argument("-plt", "--plots", default=False, action="store_true",
+                        help="plot graphs for features (ngrams)")
 
     parser.add_argument("-nrm", "--normalised", default=False, action="store_true",
                         help="analyse using normalised patents counts or not")
@@ -186,7 +186,7 @@ def main(supplied_args):
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
-                        emergence_index=args.emergence_index, exponential=args.exponential_fitting, nterms=args.nterms,
+                        emergence_index=args.emergence_index, plot=args.plots, nterms=args.nterms,
                         patents_per_quarter_threshold=args.minimum_per_quarter, sma = args.smoothing_alg
                         )
 

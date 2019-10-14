@@ -13,20 +13,75 @@ from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
 
 
-def tfidf_plot(tfidf_obj, message):
+def plot_ngram_bars(ngrams1, ngrams2, dir_name):
+    dir_name = dir_name.replace('cached', 'outputs', 1)
+    if not path.isdir(dir_name):
+        makedirs(dir_name)
+    labels = ['uni-grams', 'bi-grams', 'tri-grams']
+
+    x = np.arange(len(labels))  # the label locations
+    width = 0.35  # the width of the bars
+
+    fig, ax = plt.subplots()
+    rects1 = ax.bar(x - width / 2, ngrams1, width, label='original')
+    rects2 = ax.bar(x + width / 2, ngrams2, width, label='processed')
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('counts')
+    ax.set_title('ngram counts original vs processed tf-idf matrix')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+
+    def autolabel(rects):
+        """Attach a text label above each bar in *rects*, displaying its height."""
+        for rect in rects:
+            height = rect.get_height()
+            ax.annotate('{}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+
+    autolabel(rects1)
+    autolabel(rects2)
+
+    fig.tight_layout()
+
+    plt.savefig(path.join(dir_name, 'ngram_counts.png'))
+    plt.close()
+
+def ngrams_count_tups(features_tups):
+    ones = sum([1 for x in features_tups if len(x[1].split()) == 1 and x[0] > 0])
+    twos = sum([1 for x in features_tups if len(x[1].split()) == 2 and x[0] > 0])
+    threes = sum([1 for x in features_tups if len(x[1].split()) == 3 and x[0] > 0])
+    return [ones, twos, threes]
+
+def ngrams_counts(features):
+    ones = sum([1 for x in features if len(x.split()) == 1])
+    twos = sum([1 for x in features if len(x.split()) == 2])
+    threes = sum([1 for x in features if len(x.split()) == 3])
+    return [ones, twos, threes]
+
+
+def tfidf_plot(tfidf_obj, message, dir_name=None):
     count_mat = tfidf_obj.count_matrix
     idf = tfidf_obj.idf
+    dir_name = dir_name.replace('cached', 'outputs', 1)
+    if not path.isdir(dir_name):
+        makedirs(dir_name)
 
-    return tfidf_plot2(count_mat, idf, message)
+    return tfidf_plot2(count_mat, idf, message, dir_name)
 
 
-def tfidf_plot2(count_mat, idf, message):
+def tfidf_plot2(count_mat, idf, message, dir_name):
     counts_arr_sorted = count_mat.toarray().sum(axis=0)
     plt.scatter(counts_arr_sorted, idf, s=5)
     plt.xlabel('sum_tf')
     plt.ylabel('idf')
     plt.title(r'sum_tf vs idf | ' + message)
-    plt.show()
+    plt.savefig(path.join(dir_name, '_'.join(message.split()) + '.png'))
+    plt.close()
 
 
 def histogram(count_matrix):

@@ -28,7 +28,7 @@ class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  cached_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None):
+                 emergence_index='porter', plot=False, nterms=50, patents_per_quarter_threshold=20, sma=None):
 
         self.__emergence_index = emergence_index
 
@@ -42,31 +42,11 @@ class Pipeline(object):
         self.__pick_method = pick_method
         # calculate or fetch tf-idf mat
         if cached_folder_name is None:
+
             dataframe = data_factory.get(data_filename)
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
 
-            self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
-                                               ngram_range=ngram_range,
-                                               max_document_frequency=max_df,
-                                               tokenizer=LemmaTokenizer())
-            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
-            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
-
-            if prefilter_terms != 0:
-                tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
-                term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-                num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples))
-
-                feature_subset = sorted([x[1] for x in term_score_tuples[:num_tuples_to_retain]])
-
-                number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
-                self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
-                number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
-                print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
-                      f'to {number_of_ngrams_after:,}')
-
-            self.__cpc_dict = utils.cpc_dict(dataframe)
             if docs_mask_dict['date_header'] is None:
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
                 self.__dates = None
@@ -76,6 +56,39 @@ class Pipeline(object):
                 min_date = min(self.__dates)
                 max_date = max(self.__dates)
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
+
+            self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
+                                               ngram_range=ngram_range,
+                                               max_document_frequency=max_df,
+                                               tokenizer=LemmaTokenizer())
+            if plot:
+                ngram_counts = utils.ngrams_counts(self.__tfidf_obj.feature_names)
+                scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "original matrix", dir_name=self.__cached_folder_name)
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.2, unbias=True)
+            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
+            if plot:
+                scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "ngrams adjusted", dir_name=self.__cached_folder_name)
+
+            if prefilter_terms != 0:
+                tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
+                term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+
+                num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples))
+
+                feature_subset = sorted([x[1] for x in term_score_tuples[:num_tuples_to_retain]])
+
+                number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
+                self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+                if plot:
+                    ngram_counts_new = utils.ngrams_count_tups(term_score_tuples)
+                    scripts.utils.utils.plot_ngram_bars(ngram_counts, ngram_counts_new, self.__cached_folder_name)
+                    scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "subset matrix", dir_name=self.__cached_folder_name)
+                number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
+                print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
+                      f'to {number_of_ngrams_after:,}')
+
+            self.__cpc_dict = utils.cpc_dict(dataframe)
+
 
             utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
             utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
@@ -133,7 +146,7 @@ class Pipeline(object):
         #  Hence return nothing - operate in place on tfidf.
         print(f'Creating a masked tfidf matrix from filters...')
         # tfidf mask ( doc_ids, doc_weights, embeddings_filter will all merge to a single mask in the future)
-        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8)
+        tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=None, unbias=False)
         tfidf_mask_obj.update_mask(doc_filters, term_weights)
         tfidf_mask = tfidf_mask_obj.tfidf_mask
 
@@ -141,6 +154,10 @@ class Pipeline(object):
         # mask the tfidf matrix
 
         tfidf_masked = tfidf_mask.multiply(self.__tfidf_obj.tfidf_matrix)
+
+        if plot:
+            self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
+            scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "final adjustment", dir_name=self.__cached_folder_name)
 
         tfidf_masked, self.__dates = utils.remove_all_null_rows_global(tfidf_masked, self.__dates)
         print(f'Processing TFIDF matrix of {tfidf_masked.shape[0]:,}'

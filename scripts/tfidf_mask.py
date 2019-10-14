@@ -13,8 +13,9 @@ class TfidfMask(object):
 
         if unbias:
             # do unigrams
-            if ngram_range[0] == 1:
-                self.__clean_unigrams(self.__max_bigram())
+            if ngram_range[0] == 1 and uni_factor is not None:
+                min_tfidf, maxtfidf = self.__min_max_bigram()
+                self.__clean_unigrams2(min_tfidf, maxtfidf)
 
             for i in range(ngram_range[0], ngram_range[1]):
                 self.__unbias_ngrams(i + 1)
@@ -55,8 +56,26 @@ class TfidfMask(object):
                         self.__tfidf_mask.data[j] = 0.0
         return 0
 
+    def __clean_unigrams2(self, min_bi_freq, max_bi_freq):
+        # iterate through rows ( docs)
+        for i in range(self.__tfidf_matrix.shape[0]):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+
+                col_idx = self.__tfidf_matrix.indices[j]
+                ngram = self.__feature_names[col_idx]
+                ngram_terms = ngram.split()
+
+                if len(ngram_terms) == 1:
+                    if not (( 1 + (1-self.__uni_factor)) * min_bi_freq < self.__tfidf_matrix.data[j] < self.__uni_factor * max_bi_freq):
+                        self.__tfidf_mask.data[j] = 0.0
+        return 0
+
     def __max_bigram(self):
-        max_tf = 0.0
+        max_tfidf = 0.0
         # iterate through rows ( docs)
         for i in range(self.__tfidf_matrix.shape[0]):
             start_idx_ptr = self.__tfidf_matrix.indptr[i]
@@ -70,8 +89,28 @@ class TfidfMask(object):
                 ngram_terms = ngram.split()
 
                 if len(ngram_terms) == 2:
-                    max_tf = max(self.__tfidf_matrix.data[j], max_tf)
-        return max_tf
+                    max_tfidf = max(self.__tfidf_matrix.data[j], max_tfidf)
+        return max_tfidf
+
+    def __min_max_bigram(self):
+        max_tfidf = 0.0
+        min_tfidf = 100000.0
+        # iterate through rows ( docs)
+        for i in range(self.__tfidf_matrix.shape[0]):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+
+                col_idx = self.__tfidf_matrix.indices[j]
+                ngram = self.__feature_names[col_idx]
+                ngram_terms = ngram.split()
+
+                if len(ngram_terms) == 2:
+                    max_tfidf = max(self.__tfidf_matrix.data[j], max_tfidf)
+                    min_tfidf = min(self.__tfidf_matrix.data[j], min_tfidf)
+        return min_tfidf, max_tfidf
 
     def __unbias_ngrams(self, max_ngram_length):
         # iterate through rows ( docs)
