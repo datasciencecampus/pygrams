@@ -14,8 +14,7 @@ class TfidfMask(object):
         if unbias:
             # do unigrams
             if ngram_range[0] == 1 and uni_factor is not None:
-                min_tfidf, maxtfidf = self.__min_max_bigram()
-                self.__clean_unigrams2(min_tfidf, maxtfidf)
+                self.__clean_unigrams(self.__max_bigram())
 
             for i in range(ngram_range[0], ngram_range[1]):
                 self.__unbias_ngrams(i + 1)

@@ -64,7 +64,7 @@ class Pipeline(object):
             if plot:
                 ngram_counts = utils.ngrams_counts(self.__tfidf_obj.feature_names)
                 scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "original matrix", dir_name=self.__cached_folder_name)
-            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.2, unbias=True)
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=None, unbias=True)
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
             if plot:
                 scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "ngrams adjusted", dir_name=self.__cached_folder_name)
@@ -81,6 +81,7 @@ class Pipeline(object):
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
                 if plot:
                     ngram_counts_new = utils.ngrams_count_tups(term_score_tuples)
+                    scripts.utils.utils.boxplots(term_score_tuples[:num_tuples_to_retain], self.__cached_folder_name)
                     scripts.utils.utils.plot_ngram_bars(ngram_counts, ngram_counts_new, self.__cached_folder_name)
                     scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "subset matrix", dir_name=self.__cached_folder_name)
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)

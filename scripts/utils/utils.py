@@ -13,6 +13,19 @@ from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
 
 
+def boxplots(term_score_tups, dir_name):
+    dir_name = dir_name.replace('cached', 'outputs', 1)
+    if not path.isdir(dir_name):
+        makedirs(dir_name)
+    unigrams = [x[0] for x in term_score_tups if x[0]>0 and len(x[1].split())==1]
+    bigrams  = [x[0] for x in term_score_tups if x[0]>0 and len(x[1].split())==2]
+    trigrams = [x[0] for x in term_score_tups if x[0]>0 and len(x[1].split())==3]
+    box_plot_data = [unigrams, bigrams, trigrams]
+    plt.boxplot(box_plot_data)
+    plt.savefig(path.join(dir_name, 'ngram_boxplots.png'))
+    plt.close()
+
+
 def plot_ngram_bars(ngrams1, ngrams2, dir_name):
     dir_name = dir_name.replace('cached', 'outputs', 1)
     if not path.isdir(dir_name):
