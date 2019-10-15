@@ -1,3 +1,4 @@
+from math import log10, floor
 from os import path
 
 import numpy as np
@@ -60,11 +61,12 @@ class Pipeline(object):
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
-                                               tokenizer=LemmaTokenizer())
+                                               tokenizer=LemmaTokenizer(), min_df=floor(log10(dataframe.shape[0])))
             if plot:
                 ngram_counts = utils.ngrams_counts(self.__tfidf_obj.feature_names)
                 scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "original matrix", dir_name=self.__cached_folder_name)
-            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=None, unbias=True)
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
+
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
             if plot:
                 scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "ngrams adjusted", dir_name=self.__cached_folder_name)
@@ -171,8 +173,8 @@ class Pipeline(object):
 
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-        self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
-                                                  WordAnalyzer.stemmed_stop_word_set_n)
+        self.__term_score_tuples = utils.stop(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
+                                                  WordAnalyzer.stemmed_stop_word_set_n, tuples=True)
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
