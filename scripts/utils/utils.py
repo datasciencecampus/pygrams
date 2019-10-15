@@ -191,10 +191,10 @@ def stop(tokensin, unigrams, ngrams, digits=True, tuples=False):
             continue
         if len(ngram) == 1:
             if ngram[0] not in unigrams:
-                new_tokens.append(token)
+                new_tokens.append(element)
         else:
             if token not in ngrams:
-                new_tokens.append(token)
+                new_tokens.append(element)
     return new_tokens
 
 

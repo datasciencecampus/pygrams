@@ -19,27 +19,27 @@ class TestTermsFilter(unittest.TestCase):
 
     def test_embeddings_filter_binary(self):
         user_queries = ['pharmacy', 'health', 'chemist']
-        weights_vec_expected = [0.0,
+        weights_vec_expected = [1.0,
+                                1.0,
                                 0.0,
                                 0.0,
                                 0.0,
+                                1.0,
+                                1.0,
+                                1.0,
+                                1.0,
+                                1.0,
+                                1.0,
                                 0.0,
                                 0.0,
                                 0.0,
+                                1.0,
+                                1.0,
                                 0.0,
                                 0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
+                                1.0,
                                 0.0]
-        weights_vec_actual = FilterTerms(self.feature_names, user_queries, threshold=0.8,
+        weights_vec_actual = FilterTerms(self.feature_names, user_queries, threshold=0.75,
                                          file_name='../models/glove/glove2vec.6B.50d.txt').ngram_weights_vec[410:430]
 
         self.assertListEqual(weights_vec_expected, weights_vec_actual)
