@@ -1,3 +1,5 @@
+from math import log, sqrt
+
 import numpy as np
 from tqdm import tqdm
 
@@ -36,6 +38,74 @@ class TfidfReduce(object):
                 pick_value = 0.0
             ngrams_scores_tuple.append((pick_value, ngram))
         return ngrams_scores_tuple
+
+    def collect_vector_for_feature(self, csc_mat):
+        mp_vec=[]
+        for j in range(csc_mat.shape[1]):
+            start_idx_ptr = csc_mat.indptr[j]
+            end_idx_ptr = csc_mat.indptr[j + 1]
+            mpj=0
+            # iterate through rows with non-zero entries
+            for i in range(start_idx_ptr, end_idx_ptr):
+                # row_idx = csc_mat.indices[i]
+                pij = csc_mat.data[i]
+                mpj+=pij
+            mp_vec.append(mpj)
+        return np.array(mp_vec)
+
+
+    def __get_zipf_scores(self):
+        ngrams = self.__tfidf_ngrams
+        tf_norm = self.__tf_normalized
+        tfidf_score = self.__tfidf_score
+        ngram_count = self.__ngram_count
+
+
+
+        tf_norm = tf_norm.tocsc()
+        tfidf = tfidf_score.tocsc()
+        count = ngram_count.tocsc()
+
+        if not tf_norm.getformat() == 'csc':
+            print('problem')
+
+
+        N=tf_norm.shape[0]
+        mp_vec = self.collect_vector_for_feature(tf_norm)/N
+        tfidf_vec = self.collect_vector_for_feature(tfidf)
+        ngram_vec = self.collect_vector_for_feature(count)
+        probabilities_vec = mp_vec * N
+
+
+        variance_vec = []
+        for j in range(tf_norm.shape[1]):
+            start_idx_ptr = tf_norm.indptr[j]
+            end_idx_ptr = tf_norm.indptr[j + 1]
+            vpj = 0
+            # iterate through rows with non-zero entries
+            for i in range(start_idx_ptr, end_idx_ptr):
+                # row_idx = csc_mat.indices[i]
+                pij = tf_norm.data[i]
+                vpj += (pij - mp_vec[j]) ** 2
+            variance = sqrt(vpj / N)
+            variance_vec.append(variance)
+
+        entropy_vec = []
+        for j in range(tf_norm.shape[1]):
+            start_idx_ptr = tf_norm.indptr[j]
+            end_idx_ptr = tf_norm.indptr[j + 1]
+            entropy_j=0
+            # iterate through rows with non-zero entries
+            for i in range(start_idx_ptr, end_idx_ptr):
+                # row_idx = csc_mat.indices[i]
+                pij = tf_norm.data[i]
+                entropy_j += pij * log(1/pij)
+            entropy_vec.append(entropy_j)
+
+        sat_vec = mp_vec / np.array(variance_vec)
+
+
+
 
     def extract_ngrams_from_docset(self, pick_method, verbose=True):
         if self.__tfidf_masked.getformat() == 'csr':
