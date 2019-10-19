@@ -3,6 +3,7 @@ from os import path
 
 import numpy as np
 from scipy.signal import savgol_filter
+from scipy.stats import stats
 from sklearn.linear_model import LinearRegression
 from tqdm import tqdm
 
@@ -63,9 +64,10 @@ class Pipeline(object):
                                                max_document_frequency=max_df,
                                                tokenizer=LemmaTokenizer(), min_df=floor(log10(dataframe.shape[0])))
             if plot:
+                utils.histogram(self.__tfidf_obj.count_matrix)
                 ngram_counts = utils.ngrams_counts(self.__tfidf_obj.feature_names)
                 scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "original matrix", dir_name=self.__cached_folder_name)
-            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
+            tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=None, unbias=True)
 
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
             if plot:
@@ -73,17 +75,19 @@ class Pipeline(object):
 
             if prefilter_terms != 0:
                 tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
-                term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+                term_score_tuples1 = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
 
-                num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples))
+                num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples1))
 
-                feature_subset = sorted([x[1] for x in term_score_tuples[:num_tuples_to_retain]])
+                feature_subset = sorted([x[1] for x in term_score_tuples1[:num_tuples_to_retain]])
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
                 if plot:
-                    ngram_counts_new = utils.ngrams_count_tups(term_score_tuples)
-                    scripts.utils.utils.boxplots(term_score_tuples, self.__cached_folder_name, num_tuples_to_retain)
+                    tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
+                    term_score_tuples2 = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+                    ngram_counts_new = utils.ngrams_count_tups(term_score_tuples2)
+                    scripts.utils.utils.boxplots(term_score_tuples1, self.__cached_folder_name, num_tuples_to_retain)
                     scripts.utils.utils.plot_ngram_bars(ngram_counts, ngram_counts_new, self.__cached_folder_name)
                     scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "subset matrix", dir_name=self.__cached_folder_name)
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
@@ -91,7 +95,6 @@ class Pipeline(object):
                       f'to {number_of_ngrams_after:,}')
 
             self.__cpc_dict = utils.cpc_dict(dataframe)
-
 
             utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
             utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
@@ -281,43 +284,67 @@ class Pipeline(object):
                 self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
         em = Emergence(all_quarterly_values[min_i:max_i])
-        for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
-                               leave=False, unit_scale=True):
-            if term_weights[term_index] == 0.0:
-                continue
-            term_ngram = self.__term_ngrams[term_index]
+        self.__emergence_list2=[]
+        print(min_i)
+        print(max_i)
+        for i in range (-15, 5):
+            for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
+                                   leave=False, unit_scale=True):
+                if term_weights[term_index] == 0.0:
+                    continue
+                term_ngram = self.__term_ngrams[term_index]
 
-            if self.__timeseries_quarterly_smoothed is not None:
-                quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
-            else:
-                quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
+                known_values4 = self.__timeseries_quarterly_smoothed[term_index][max_i + i:max_i+4 + i]
+                x = range(len(known_values4))
+                values = [[x,y] for x, y in zip (x, known_values4)]
+                r = stats.linregress(values)
+                slope = r.slope
+                use_raw=False
+                if self.__timeseries_quarterly_smoothed is not None and not use_raw:
+                    quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i + i:max_i + i]
+                else:
+                    quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i + i:max_i + i]
 
-            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(
-                    patents_per_quarter_threshold):
-                continue
-
-            if emergence_index == 'quadratic':
-                escore = em.escore2(quarterly_values)
-            elif emergence_index == 'porter':
+                if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i + i:max_i + i])) < float(
+                        patents_per_quarter_threshold):
+                    continue
                 if not em.is_emergence_candidate(quarterly_values):
                     continue
-                escore = em.calculate_escore(quarterly_values)
-            elif emergence_index == 'gradients':
-                derivatives = self.__timeseries_derivatives[term_index][min_i:max_i]
-                escore = em.net_growth(quarterly_values, derivatives)
-            else:
-                weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
-                escore = em.escore_exponential(weekly_values)
+                if emergence_index == 'porter':
+                    escore = em.calculate_escore(quarterly_values)
+                elif emergence_index == 'gradients':
+                    derivatives = self.__timeseries_derivatives[term_index][min_i + i:max_i + i]
+                    escore = em.net_growth(quarterly_values, derivatives)
+                else:
+                    weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
+                    escore = em.escore_exponential(weekly_values)
 
-            self.__emergence_list.append((term_ngram, escore))
+                self.__emergence_list.append((term_ngram, escore))
+                self.__emergence_list2.append((escore, slope))
 
         nterms2 = min(nterms, len(self.__emergence_list))
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
+        self.__emergence_list2.sort(key=lambda emergence: -emergence[0])
+
+        self.__emergence_list_up = [x for x in self.__emergence_list2 if x[0]>0]
+        self.__emergence_list_down = [x for x in self.__emergence_list2 if x[0] < 0]
+
+        emergence_hit_count = sum([1 for x in self.__emergence_list_up if x[1]>0])
+        emergence_len = len(self.__emergence_list_up)
+
+        decline_hit_count = sum([1 for x in self.__emergence_list_down if x[1] < 0])
+        decline_len = len(self.__emergence_list_down)
 
         self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
         self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
+        scripts.utils.utils.escore_slope_plot(self.__emergence_list_up, self.__cached_folder_name, fname='escores_emerging_no_'+emergence_index, method=emergence_index)
+        scripts.utils.utils.escore_slope_plot(self.__emergence_list_down, self.__cached_folder_name, fname='escores_declining_no_'+emergence_index, method=emergence_index)
+        scripts.utils.utils.escore_slope_plot(self.__emergence_list2, self.__cached_folder_name, fname='all_no_'+emergence_index, method=emergence_index)
+
+        print(emergence_index + ' emergence hit: ' + str(emergence_hit_count) + ' | ' + str(emergence_len) + ' | ' + str(emergence_hit_count/emergence_len))
+        print(emergence_index + ' decline hit: ' + str(decline_hit_count) + ' | ' + str(decline_len) + ' | ' + str(decline_hit_count/decline_len))
 
     @staticmethod
     def label_prediction_simple(values):
@@ -357,7 +384,7 @@ class Pipeline(object):
             return 'level'
 
     def evaluate_predictions(self, timeseries, test_terms, term_ngrams, methods, smooth_series=None, derivatives=None,
-                             window=30, min_k=3, max_k=8):
+                             window=10, min_k=3, max_k=8):
 
         results_term = {}
         window_interval = 1
@@ -575,7 +602,7 @@ class Pipeline(object):
             # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
             if train_test:
                 k_range = range(2, self.__M + 1)
-                window_size = 30
+                window_size = 10
             else:
                 k_range = [self.__M]
                 window_size = len(self.__timeseries_quarterly[0]) - 1

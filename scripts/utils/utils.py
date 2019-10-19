@@ -86,11 +86,13 @@ def plot_ngram_bars(ngrams1, ngrams2, dir_name):
     plt.savefig(path.join(dir_name, 'ngram_counts.png'))
     plt.close()
 
+
 def ngrams_count_tups(features_tups):
     ones = sum([1 for x in features_tups if len(x[1].split()) == 1 and x[0] > 0])
     twos = sum([1 for x in features_tups if len(x[1].split()) == 2 and x[0] > 0])
     threes = sum([1 for x in features_tups if len(x[1].split()) == 3 and x[0] > 0])
     return [ones, twos, threes]
+
 
 def ngrams_counts(features):
     ones = sum([1 for x in features if len(x.split()) == 1])
@@ -116,6 +118,31 @@ def tfidf_plot2(count_mat, idf, message, dir_name):
     plt.ylabel('idf')
     plt.title(r'sum_tf vs idf | ' + message)
     plt.savefig(path.join(dir_name, '_'.join(message.split()) + '.png'))
+    plt.close()
+
+
+def escore_slope_plot(escore_slope_tup, dir_name, fname='escores_slopes', method='net-growth'):
+    dir_name = dir_name.replace('cached', 'outputs', 1)
+    if not path.isdir(dir_name):
+        makedirs(dir_name)
+
+    escores = [x[0] for x in escore_slope_tup]
+    slopes = [x[1] for x in escore_slope_tup]
+
+    plt.scatter(escores, slopes, s=5)
+    plt.axhline(y=0, color='k', linestyle='--')
+    plt.axvline(x=0, color='k', linestyle='--')
+
+    # Add correlation line
+    axes = plt.gca()
+    m, b = np.polyfit(escores, slopes, 1)
+    X_plot = np.linspace(axes.get_xlim()[0], axes.get_xlim()[1], 100)
+    plt.plot(X_plot, m * X_plot + b, '-')
+
+    plt.xlabel('escores')
+    plt.ylabel('slopes')
+    plt.title(r'escores vs slopes 4 steps ahead | ' + method )
+    plt.savefig(path.join(dir_name, fname+'.png'))
     plt.close()
 
 

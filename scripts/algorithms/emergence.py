@@ -41,7 +41,7 @@ class Emergence(object):
         at_least_n_recs = num_term_records >= self.MIN_DOCS_FOR_EMERGENCE
         active2base_ratio = num_records_active_term / num_records_base_term
 
-        return at_least_n_recs and active2base_ratio > self.ACTIVE2BASE_RATIO_THRESHOLD and base2all_below_threshold \
+        return at_least_n_recs and (active2base_ratio > self.ACTIVE2BASE_RATIO_THRESHOLD or active2base_ratio < self.ACTIVE2BASE_RATIO_THRESHOLD/4) and base2all_below_threshold \
                and self.has_multiple_author_sets()
 
     @staticmethod
