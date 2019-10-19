@@ -12,9 +12,7 @@ class TfidfReduce(object):
         self.__feature_names = feature_names
 
         self.__tf_normalized = tfidf_obj.tf_matrix
-        self.__tfidf_score = tfidf_obj.tfidf_matrix
         self.__ngram_count = tfidf_obj.ngram_counts
-        self.__idf = tfidf_obj.idf
 
     @property
     def feature_names(self):
@@ -62,7 +60,7 @@ class TfidfReduce(object):
     def __get_zipf_scores(self):
 
         tf_norm = self.__tf_normalized
-        tfidf_score = self.__tfidf_score
+        tfidf_score = self.__tfidf_masked
         ngram_count = self.__ngram_count
 
 
