@@ -7,9 +7,14 @@ from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
 
 
 class TfidfReduce(object):
-    def __init__(self, tfidf_masked, feature_names):
+    def __init__(self, tfidf_masked, feature_names, tfidf_obj=None):
         self.__tfidf_masked = tfidf_masked
         self.__feature_names = feature_names
+
+        self.__tf_normalized = tfidf_obj.tf_matrix
+        self.__tfidf_score = tfidf_obj.tfidf_matrix
+        self.__ngram_count = tfidf_obj.ngram_counts
+        self.__idf = tfidf_obj.idf
 
     @property
     def feature_names(self):
@@ -55,7 +60,7 @@ class TfidfReduce(object):
 
 
     def __get_zipf_scores(self):
-        ngrams = self.__tfidf_ngrams
+
         tf_norm = self.__tf_normalized
         tfidf_score = self.__tfidf_score
         ngram_count = self.__ngram_count
