@@ -48,6 +48,8 @@ class Pipeline(object):
             dataframe = data_factory.get(data_filename)
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
+            text = dataframe[text_header].values
+            lens = [len(x.split()) for x in text]
 
             if docs_mask_dict['date_header'] is None:
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
@@ -74,8 +76,37 @@ class Pipeline(object):
                 scripts.utils.utils.tfidf_plot(self.__tfidf_obj, "ngrams adjusted", dir_name=self.__cached_folder_name)
 
             if prefilter_terms != 0:
-                tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
+                tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names, tfidf_obj=self.__tfidf_obj, lens=lens)
                 term_score_tuples1 = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
+                variance, entropy, sat, tfidf_vec, probabilities_vec, ngram_vec = tfidf_reduce_obj.get_zipf_scores()
+                sum_tfidf = [x[0] for x in term_score_tuples1]
+                if plot:
+                    scripts.utils.utils.scatter(variance, tfidf_vec, 'variance', 'sum_tfidf', 'variance vs sum_tfidf', self.__cached_folder_name)
+                    scripts.utils.utils.scatter(entropy, tfidf_vec, 'entropy', 'sum_tfidf', 'entropy vs sum_tfidf', self.__cached_folder_name)
+                    scripts.utils.utils.scatter(sat, tfidf_vec, 'sat', 'sum_tfidf', 'sat vs sum_tfidf', self.__cached_folder_name)
+
+                    scripts.utils.utils.scatter(sat, variance, 'sat', 'variance', 'sat vs variance',
+                                                self.__cached_folder_name)
+
+                    scripts.utils.utils.scatter(sat, entropy, 'sat', 'entropy', 'sat vs entropy',
+                                                self.__cached_folder_name)
+
+                    scripts.utils.utils.scatter(variance, entropy, 'variance', 'entropy', 'variance vs entropy',
+                                                self.__cached_folder_name)
+
+                    scripts.utils.utils.scatter(variance, probabilities_vec, 'variance', 'probs', 'variance vs probs',
+                                                self.__cached_folder_name)
+                    scripts.utils.utils.scatter(entropy, probabilities_vec, 'entropy', 'probs', 'entropy vs probs',
+                                                self.__cached_folder_name)
+                    scripts.utils.utils.scatter(sat, probabilities_vec, 'sat', 'probs', 'sat vs probs',
+                                                self.__cached_folder_name)
+
+                    scripts.utils.utils.scatter(variance, ngram_vec, 'variance', 'ngram_vec', 'variance vs ngram_vec',
+                                                self.__cached_folder_name)
+                    scripts.utils.utils.scatter(entropy, ngram_vec, 'entropy', 'ngram_vec', 'entropy vs ngram_vec',
+                                                self.__cached_folder_name)
+                    scripts.utils.utils.scatter(sat, ngram_vec, 'sat', 'ngram_vec', 'sat vs ngram_vec',
+                                                self.__cached_folder_name)
 
                 num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples1))
 

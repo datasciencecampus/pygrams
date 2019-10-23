@@ -120,6 +120,17 @@ def tfidf_plot2(count_mat, idf, message, dir_name):
     plt.savefig(path.join(dir_name, '_'.join(message.split()) + '.png'))
     plt.close()
 
+def scatter(arr1, arr2, xlab, ylab, title, dir_name):
+    dir_name = dir_name.replace('cached', 'outputs', 1)
+    if not path.isdir(dir_name):
+        makedirs(dir_name)
+    plt.scatter(arr1, arr2, s=5)
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    plt.title(title)
+    plt.savefig(path.join(dir_name, '_'.join(title.split()) + '.png'))
+    plt.close()
+
 
 def escore_slope_plot(escore_slope_tup, dir_name, fname='escores_slopes', method='net-growth'):
     dir_name = dir_name.replace('cached', 'outputs', 1)
@@ -168,7 +179,6 @@ def histogram(count_matrix):
     print(patches)
     plt.ylim(bottom=1)
     plt.show()
-    exit(0)
 
 
 def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):

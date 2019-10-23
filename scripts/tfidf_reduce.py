@@ -7,12 +7,13 @@ from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
 
 
 class TfidfReduce(object):
-    def __init__(self, tfidf_masked, feature_names, tfidf_obj=None):
+    def __init__(self, tfidf_masked, feature_names, tfidf_obj=None, lens=None):
         self.__tfidf_masked = tfidf_masked
         self.__feature_names = feature_names
-
-        self.__tf_normalized = tfidf_obj.tf_matrix
-        self.__ngram_count = tfidf_obj.ngram_counts
+        self.__lens = lens
+        if tfidf_obj is not None:
+            self.__ngram_count = tfidf_obj.count_matrix
+            self.__tf_normalized = self.__normalized_count_matrix(lens, self.__ngram_count.copy())
 
     @property
     def feature_names(self):
@@ -21,6 +22,17 @@ class TfidfReduce(object):
     @property
     def tfidf_masked(self):
         return self.__tfidf_masked
+
+    def __normalized_count_matrix(self, lens, csr_mat):
+        csr_mat.data = np.array([np.float32(round(x)) for x in csr_mat.data])
+        for i in range(csr_mat.shape[0]):
+            start_idx_ptr = csr_mat.indptr[i]
+            end_idx_ptr = csr_mat.indptr[i + 1]
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+                # row_idx = csc_mat.indices[i]
+                csr_mat.data[j] /= lens[i]
+        return csr_mat
 
     def extract_ngrams_from_row(self, row_num):
         if self.__tfidf_masked.getformat() == 'csc':
@@ -56,14 +68,10 @@ class TfidfReduce(object):
             mp_vec.append(mpj)
         return np.array(mp_vec)
 
-
-    def __get_zipf_scores(self):
-
+    def get_zipf_scores(self):
         tf_norm = self.__tf_normalized
         tfidf_score = self.__tfidf_masked
         ngram_count = self.__ngram_count
-
-
 
         tf_norm = tf_norm.tocsc()
         tfidf = tfidf_score.tocsc()
@@ -72,13 +80,12 @@ class TfidfReduce(object):
         if not tf_norm.getformat() == 'csc':
             print('problem')
 
-
         N=tf_norm.shape[0]
-        mp_vec = self.collect_vector_for_feature(tf_norm)/N
+        tot_pij =  self.collect_vector_for_feature(tf_norm)
+        mp_vec = tot_pij/N
         tfidf_vec = self.collect_vector_for_feature(tfidf)
         ngram_vec = self.collect_vector_for_feature(count)
         probabilities_vec = mp_vec * N
-
 
         variance_vec = []
         for j in range(tf_norm.shape[1]):
@@ -87,10 +94,10 @@ class TfidfReduce(object):
             vpj = 0
             # iterate through rows with non-zero entries
             for i in range(start_idx_ptr, end_idx_ptr):
-                # row_idx = csc_mat.indices[i]
+                row_idx = tf_norm.indices[i]
                 pij = tf_norm.data[i]
-                vpj += (pij - mp_vec[j]) ** 2
-            variance = sqrt(vpj / N)
+                vpj += (pij - mp_vec[j]) ** 2 * self.__lens[row_idx]
+            variance = vpj
             variance_vec.append(variance)
 
         entropy_vec = []
@@ -105,10 +112,9 @@ class TfidfReduce(object):
                 entropy_j += pij * log(1/pij)
             entropy_vec.append(entropy_j)
 
-        sat_vec = mp_vec / np.array(variance_vec)
+        sat_vec = mp_vec / np.sqrt(np.array(variance_vec))
 
-
-
+        return variance_vec, entropy_vec, sat_vec, tfidf_vec, probabilities_vec, ngram_vec
 
     def extract_ngrams_from_docset(self, pick_method, verbose=True):
         if self.__tfidf_masked.getformat() == 'csr':
