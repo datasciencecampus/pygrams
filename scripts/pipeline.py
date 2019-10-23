@@ -534,7 +534,7 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, state_space_eval=False):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
@@ -551,7 +551,7 @@ class Pipeline(object):
 
         html_results = ''
 
-        if ss_only:
+        if state_space_eval:
             # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
             if train_test:
                 k_range = range(2, self.__M + 1)
