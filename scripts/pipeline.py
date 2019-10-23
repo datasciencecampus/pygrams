@@ -534,7 +534,7 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=True):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
