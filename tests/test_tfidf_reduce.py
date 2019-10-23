@@ -12,6 +12,7 @@ class TestTfidfReduce(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.maxDiff = None
         min_n = 2
         max_n = 3
         max_df = 0.3
@@ -46,27 +47,27 @@ class TestTfidfReduce(unittest.TestCase):
     def test_terms(self):
         term_score_tuples = self.__term_score_tuples
         actual_terms = [x for _, x in term_score_tuples]
-        
-        expected_terms = ['mounting surface',
-                          'transmit path',
-                          'electronic element',
-                          'link document',
-                          'amide derivative',
-                          'valproic acid',
-                          'voice message',
-                          'jack mechanism',
-                          'pharmaceutical formulation',
-                          'light beam',
-                          'angular velocity',
-                          'contact beam',
-                          'conductive material',
-                          'endodontic instrument',
-                          'mass offset',
-                          'section bend',
-                          'component material',
-                          'terminal channel',
-                          'stationary household appliance',
-                          'fault point'
+
+        expected_terms = ['electronic device',
+                          'reaction product',
+                          'first second',
+                          'system provide',
+                          'support member',
+                          'substrate surface',
+                          'unit couple',
+                          'data line',
+                          'unit form',
+                          'light emit',
+                          'second layer',
+                          'exhaust gas',
+                          'breast cancer',
+                          'anchor anchor',
+                          'bottom face',
+                          'pharmaceutical composition',
+                          'resource define',
+                          'update electronic',
+                          'communication device',
+                          'physical contact'
                           ]
 
         self.assertListEqual(actual_terms[:20], expected_terms)
@@ -74,30 +75,30 @@ class TestTfidfReduce(unittest.TestCase):
     def test_scores(self):
         term_score_tuples = self.__term_score_tuples
         actual_scores = [x for x, _ in term_score_tuples]
-        expected_scores = [0.8728715609439694,
-                           0.8259734063804905,
-                           0.7754588414852185,
-                           0.7620007620011429,
-                           0.7071067811865476,
-                           0.7071067811865476,
-                           0.7071067811865475,
-                           0.6882472016116852,
-                           0.6666666666666666,
-                           0.6246950475544241,
-                           0.6198903382379372,
-                           0.6031800939323297,
-                           0.5806718350868961,
-                           0.5773502691896257,
-                           0.5773502691896257,
-                           0.5773502691896257,
-                           0.5669467095138407,
-                           0.5597177778726654,
-                           0.5570860145311556,
-                           0.5568900989230109]
+        expected_scores = [
+                            3.0527220691623183,
+                            2.9999999706316087,
+                            2.2381454887637147,
+                            2.230131148163388,
+                            2.154072530925622,
+                            1.9999999747370003,
+                            1.9428090291641258,
+                            1.8645696190816343,
+                            1.8164965663393273,
+                            1.7909478939875219,
+                            1.778715966795346,
+                            1.7409794973448056,
+                            1.7071068010737243,
+                            1.7071067687152195,
+                            1.7071067687152195,
+                            1.7071067687152195,
+                            1.7071067687152195,
+                            1.7071067687152195,
+                            1.7003553944678127,
+                            1.6631362012358317]
 
-
-        support.assert_list_almost_equal(self, actual_scores[:20], expected_scores)
+        support.assert_list_almost_equal(self, actual_scores[:20], expected_scores[:20])
 
     def test_timeseries_mat(self):
         timeseries_data = self.__pipeline.timeseries_data
-        self.assertEqual(sum(timeseries_data[2]), 100)
+        self.assertEqual(sum(timeseries_data[2]), 62)

@@ -1,3 +1,4 @@
+from math import log10, floor
 from os import path
 
 import numpy as np
@@ -45,11 +46,10 @@ class Pipeline(object):
             dataframe = data_factory.get(data_filename)
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
-
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
-                                               tokenizer=LemmaTokenizer())
+                                               tokenizer=LemmaTokenizer(), min_df=floor(log10(dataframe.shape[0])))
             tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
 
@@ -153,8 +153,8 @@ class Pipeline(object):
 
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-        self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
-                                                  WordAnalyzer.stemmed_stop_word_set_n)
+        self.__term_score_tuples = utils.stop(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
+                                                  WordAnalyzer.stemmed_stop_word_set_n, tuples=True)
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
