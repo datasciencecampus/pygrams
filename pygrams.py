@@ -193,6 +193,8 @@ def main(supplied_args):
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
                     nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
 
+    outputs_name = pipeline.outputs_folder_name
+
     # emtech integration
     if args.timeseries:
         if 0 in args.predictor_names:
@@ -224,7 +226,9 @@ def main(supplied_args):
                 # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
                 #                                                   'term2', 2, 4, 1, 3
                 #
-                filename = os.path.join('outputs', 'emergence',
+                dir_path = os.path.join(outputs_name, 'emergence')
+                os.makedirs(dir_path, exist_ok=True)
+                filename = os.path.join(dir_path,
                                         args.outputs_name + '_' + emergence + '_time_series.csv')
                 with open(filename, 'w') as f:
                     w = csv.writer(f)

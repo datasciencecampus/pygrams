@@ -46,6 +46,18 @@ class Pipeline(object):
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
 
+            if docs_mask_dict['date_header'] is None:
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
+                self.__dates = None
+            else:
+                self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe,
+                                                                                 docs_mask_dict['date_header'])
+                min_date = min(self.__dates)
+                max_date = max(self.__dates)
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
+
+
+
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
@@ -67,15 +79,6 @@ class Pipeline(object):
                       f'to {number_of_ngrams_after:,}')
 
             self.__cpc_dict = utils.cpc_dict(dataframe)
-            if docs_mask_dict['date_header'] is None:
-                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
-                self.__dates = None
-            else:
-                self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe,
-                                                                                 docs_mask_dict['date_header'])
-                min_date = min(self.__dates)
-                max_date = max(self.__dates)
-                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
 
             utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
             utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
@@ -113,6 +116,8 @@ class Pipeline(object):
         #  union: if more entries after single, add / or
         #  intersection: if more entries after single, multiple / and
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
+
+        self.__outputs_folder_name = self.__cached_folder_name.replace('cached', 'outputs')
         print(f'Applying documents filter...')
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, self.__cpc_dict,
@@ -452,11 +457,16 @@ class Pipeline(object):
                                       wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,
                                       name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
                                       date_dict=self.__date_dict, pick=self.__pick_method,
-                                      doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
+                                      doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics,
+                                      outputs_dir=self.__outputs_folder_name)
 
     @property
     def term_score_tuples(self):
         return self.__term_score_tuples
+
+    @property
+    def outputs_folder_name(self):
+        return self.__outputs_folder_name
 
     def get_multiplot(self, timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
                       category='emergent', output_name='multiplot'):
@@ -534,7 +544,7 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=True):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':

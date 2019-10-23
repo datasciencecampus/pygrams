@@ -10,10 +10,12 @@ from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0):
+           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0, outputs_dir=None):
 
     if output_type == 'report':
-        filename_and_path = path.join('outputs', 'reports', name + '.txt')
+        dir_path = path.join(outputs_dir, 'reports')
+        makedirs(dir_path, exist_ok=True)
+        filename_and_path = path.join(dir_path, name + '.txt')
         print()
         with open(filename_and_path, 'w') as file:
             counter = 1
@@ -24,28 +26,40 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                     counter += 1
 
     elif output_type == 'graph':
+        dir_path = path.join(outputs_dir, 'reports')
+        makedirs(dir_path, exist_ok=True)
+
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
         graph = TermsGraph(dict_freqs_list, tfidf_reduce_obj)
-        name_and_path = path.join('outputs', 'reports', name + '_graph.txt')
+        name_and_path = path.join(dir_path, name + '_graph.txt')
         graph.save_graph_report(name_and_path, nterms)
         graph.save_graph("key-terms", 'data')
 
     elif output_type == 'wordcloud':
+        dir_path = path.join(outputs_dir, 'wordclouds')
+        makedirs(dir_path, exist_ok=True)
+
         dict_freqs = {p[0]: p[1] for p in output}
         wordcloud = MultiCloudPlot(freqsin=dict_freqs, max_words=len(output))
-        filename_and_path = path.join('outputs', 'wordclouds', name)
+        filename_and_path = path.join(dir_path, name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
 
     elif output_type == 'termcounts':
-        term_counts_filename = path.join('outputs', 'termcounts', name + '-term_counts.pkl.bz2')
+        dir_path = path.join(outputs_dir, 'termcounts')
+        makedirs(dir_path, exist_ok=True)
+
+        term_counts_filename = path.join(dir_path, name + '-term_counts.pkl.bz2')
         makedirs(path.dirname(term_counts_filename), exist_ok=True)
         with BZ2File(term_counts_filename, 'wb') as pickle_file:
             dump(timeseries_data, pickle_file, protocol=4)
 
     elif output_type == 'json_config':
+        dir_path = path.join(outputs_dir, 'reports')
+        makedirs(dir_path, exist_ok=True)
+
         doc_pickle_file_name = path.abspath(doc_pickle_file_name)
-        report_name_and_path = path.join('outputs', 'reports', name + '.txt')
+        report_name_and_path = path.join(dir_path, name + '.txt')
         json_file_name = path.splitext(report_name_and_path)[0] + '.json'
 
         json_data = {
@@ -69,10 +83,13 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         with open(json_file_name, 'w') as json_file:
             json.dump(json_data, json_file)
     elif output_type =='nmf':
+        dir_path = path.join(outputs_dir, 'reports')
+        makedirs(dir_path, exist_ok=True)
+
         # topic modelling
         topic_terms_to_print = 10
         nmf = nmf_topic_modelling(nmf_topics, tfidf_reduce_obj.tfidf_masked)
-        filename_and_path = path.join('outputs', 'reports', name + '_nmf.txt')
+        filename_and_path = path.join(dir_path, name + '_nmf.txt')
         with open(filename_and_path, 'w') as file:
 
             # print topics
@@ -92,7 +109,10 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
             print()
             file.write('\n')
     elif output_type == 'emergence_report':
-        filename_and_path = path.join('outputs', 'reports', name + '_timeseries.csv')
+        dir_path = path.join(outputs_dir, 'reports')
+        makedirs(dir_path, exist_ok=True)
+
+        filename_and_path = path.join(dir_path, name + '_timeseries.csv')
         with open(filename_and_path, 'w') as file:
             print()
             print('Emergent')
