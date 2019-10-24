@@ -154,7 +154,9 @@ class TestPyGrams(unittest.TestCase):
         self.assertTrue(self.publication_date_auto_tested)
         self.assertTrue(self.patent_id_auto_tested)
 
-        expected_term_counts_filename = self.termCountsFileName(self.out_name)
+        dir =  self.out_name + '-mdf-1.0-200052-200052/'
+        expected_term_counts_filename = self.termCountsFileName(dir, self.out_name)
+
         results_checked = False
         for dump_args in mock_pickle_dump.call_args_list:
             if dump_args[0][1] == expected_term_counts_filename:
@@ -178,12 +180,12 @@ class TestPyGrams(unittest.TestCase):
                             'tfidf.pkl.bz2')
 
     @staticmethod
-    def termCountsOutputFolder():
-        return os.path.join('outputs', 'termcounts')
+    def termCountsOutputFolder(dir_name):
+        return os.path.join('outputs',dir_name, 'termcounts')
 
     @staticmethod
-    def termCountsFileName(data_source_name):
-        return os.path.join(TestPyGrams.termCountsOutputFolder(), data_source_name + '-term_counts.pkl.bz2')
+    def termCountsFileName(dir_name, name):
+        return os.path.join(TestPyGrams.termCountsOutputFolder(dir_name), name + '-term_counts.pkl.bz2')
 
     @mock.patch("scripts.data_factory.read_pickle", create=True)
     @mock.patch("scripts.utils.utils.dump", create=True)
@@ -491,8 +493,8 @@ class TestPyGrams(unittest.TestCase):
         patent_pickle_file_name = 'USPTO-random-100.pkl.bz2'
         patent_pickle_absolute_file_name = os.path.abspath(os.path.join('data', patent_pickle_file_name))
         output_file_name = 'test'
-        report_file_name = os.path.join('outputs', 'reports', output_file_name + '.txt')
-        json_file_name = os.path.join('outputs', 'reports', output_file_name + '.json')
+        report_file_name = os.path.join('outputs', 'test-mdf-0.05-200502-201808', 'reports', output_file_name + '.txt')
+        json_file_name = os.path.join('outputs', 'test-mdf-0.05-200502-201808','reports', output_file_name + '.json')
         pygrams.main([f'--outputs_name={output_file_name}', '-p=max', '-cpc=Y12',
                       '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds',
                       patent_pickle_file_name])
@@ -531,7 +533,6 @@ class TestPyGrams(unittest.TestCase):
         mock_open.assert_any_call(graph_report_name, 'w')
         mock_open.assert_any_call(json_file_name, 'w')
         mock_open.assert_any_call(js_file_name, 'w')
-
 
         actual_json = mock_json_dump.call_args_list[0][0][0]
         self.assertIn('nodes', actual_json)

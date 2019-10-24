@@ -26,15 +26,16 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                     counter += 1
 
     elif output_type == 'graph':
-        dir_path = path.join(outputs_dir, 'reports')
-        makedirs(dir_path, exist_ok=True)
+        makedirs(outputs_dir, exist_ok=True)
 
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
         graph = TermsGraph(dict_freqs_list, tfidf_reduce_obj)
-        name_and_path = path.join(dir_path, name + '_graph.txt')
-        graph.save_graph_report(name_and_path, nterms)
-        graph.save_graph("key-terms", 'data')
+        name_and_path_report = path.join(outputs_dir,'reports', name + '_graph.txt')
+        graph.save_graph_report(name_and_path_report, nterms)
+
+        dir_visuals = path.join(outputs_dir, 'visuals')
+        graph.save_graph(dir_visuals, "key-terms", 'data')
 
     elif output_type == 'wordcloud':
         dir_path = path.join(outputs_dir, 'wordclouds')

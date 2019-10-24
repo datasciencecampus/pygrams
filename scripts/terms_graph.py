@@ -90,7 +90,7 @@ class TermsGraph(object):
                 file.write(', '.join(out_str) + '\n')
                 print(', '.join(out_str))
 
-    def save_graph(self, fname, varname):
+    def save_graph(self, dir_path, fname, varname):
 
         graph = self.__graph
         links = graph['links']
@@ -102,12 +102,12 @@ class TermsGraph(object):
 
         graph['links'] = new_links
         graph['nodes'] = graph['nodes'][:self.MAX_NODES]
-        file_name = os.path.join('outputs', 'visuals', fname + '.js')
+        file_name = os.path.join(dir_path, fname + '.js')
         with open(file_name, 'w') as js_temp:
             js_temp.write(varname + " = '[")
             json.dump(graph, js_temp)
             js_temp.write("]'")
-        file_name_jason = os.path.join('outputs', 'reports', fname + '.json')
+        file_name_jason = os.path.join(dir_path.replace( 'visuals', 'reports', 1), fname + '.json')
         with open(file_name_jason, 'w') as js_temp:
             json.dump(graph, js_temp)
 
