@@ -107,7 +107,7 @@ class TermsGraph(object):
             js_temp.write(varname + " = '[")
             json.dump(graph, js_temp)
             js_temp.write("]'")
-        file_name_jason = os.path.join(dir_path.replace( 'visuals', 'reports', 1), fname + '.json')
+        file_name_jason = os.path.join(dir_path.replace('visuals', 'reports', 1), fname + '.json')
         with open(file_name_jason, 'w') as js_temp:
             json.dump(graph, js_temp)
 
