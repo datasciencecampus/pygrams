@@ -464,7 +464,7 @@ class TestPyGrams(unittest.TestCase):
         output_file_name = 'test'
         suffix = '-mdf-0.05-200502-201808'
         report_file_name = os.path.join('outputs',output_file_name+suffix, 'reports', output_file_name + '.txt')
-        json_file_name = os.path.join('outputs',output_file_name+suffix, 'reports', output_file_name + '.json')
+        json_file_name = os.path.join('outputs',output_file_name+suffix, 'json_config', output_file_name + '_keywords_config.json')
         pygrams.main([f'--outputs_name={output_file_name}', '-f=set', '-p=sum', '-cpc=Y12',
                       '--date_from=1999/03/12', '--date_to=2000/11/30', '-dh', 'publication_date', '-ds',
                       patent_pickle_file_name])
@@ -494,7 +494,7 @@ class TestPyGrams(unittest.TestCase):
         patent_pickle_absolute_file_name = os.path.abspath(os.path.join('data', patent_pickle_file_name))
         output_file_name = 'test'
         report_file_name = os.path.join('outputs', 'test-mdf-0.05-200502-201808', 'reports', output_file_name + '.txt')
-        json_file_name = os.path.join('outputs', 'test-mdf-0.05-200502-201808','reports', output_file_name + '.json')
+        json_file_name = os.path.join('outputs', 'test-mdf-0.05-200502-201808','json_config', output_file_name + '_keywords_config.json')
         pygrams.main([f'--outputs_name={output_file_name}', '-p=max', '-cpc=Y12',
                       '--date_from=1998/01/01', '--date_to=2001/12/31', '-dh', 'publication_date', '-ds',
                       patent_pickle_file_name])

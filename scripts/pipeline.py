@@ -37,6 +37,7 @@ class Pipeline(object):
         self.__date_dict = docs_mask_dict['date']
         self.__timeseries_date_dict = docs_mask_dict['timeseries_date']
         self.__timeseries_data = []
+        self.__timeseries_outputs=None
 
         self.__emergence_list = []
         self.__pick_method = pick_method
@@ -194,7 +195,7 @@ class Pipeline(object):
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
         self.__timeseries_intercept = []
-        self.__timeseries_derivatives = []
+        self.__timeseries_quarterly_derivatives = []
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
 
@@ -247,15 +248,15 @@ class Pipeline(object):
                     self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
                     derivatives = smooth_series_s[1].tolist()[0]
-                    self.__timeseries_derivatives.append(derivatives)
+                    self.__timeseries_quarterly_derivatives.append(derivatives)
 
                 utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, self.__cached_folder_name)
-                utils.pickle_object('derivatives', self.__timeseries_derivatives, self.__cached_folder_name)
+                utils.pickle_object('derivatives', self.__timeseries_quarterly_derivatives, self.__cached_folder_name)
 
             else:
                 self.__timeseries_quarterly_smoothed = utils.unpickle_object('smooth_series_s',
                                                                              self.__cached_folder_name)
-                self.__timeseries_derivatives = utils.unpickle_object('derivatives', self.__cached_folder_name)
+                self.__timeseries_quarterly_derivatives = utils.unpickle_object('derivatives', self.__cached_folder_name)
 
         if sma == 'savgol':
             for quarterly_values in tqdm(self.__timeseries_quarterly, unit='term',
@@ -288,7 +289,7 @@ class Pipeline(object):
                     continue
                 escore = em.calculate_escore(quarterly_values)
             elif emergence_index == 'gradients':
-                derivatives = self.__timeseries_derivatives[term_index][min_i:max_i]
+                derivatives = self.__timeseries_quarterly_derivatives[term_index][min_i:max_i]
                 escore = em.net_growth(quarterly_values, derivatives)
             else:
                 weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
@@ -299,10 +300,26 @@ class Pipeline(object):
         nterms2 = min(nterms, len(self.__emergence_list))
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
 
-        self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
-        self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
-        self.__declining.reverse()
+        self.__emergent_terms = [x[0] for x in self.__emergence_list[:nterms2]]
+        self.__declining_terms = [x[0] for x in self.__emergence_list[-nterms2:]]
+        self.__declining_terms.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
+
+        emergent_terms_series = {}
+        emergent_smooth_terms_series = {}
+        emergent_derivatives_terms_series = {}
+
+        for term in self.__emergent_terms:
+            idx = self.__term_ngrams.index(term)
+            emergent_terms_series[term] = self.__timeseries_quarterly[idx]
+            emergent_smooth_terms_series[term] = self.__timeseries_quarterly_smoothed[idx]
+            emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx]
+
+        self.__timeseries_outputs = {}
+        self.__timeseries_outputs['signal'] = emergent_terms_series
+        self.__timeseries_outputs['signal_smooth'] = emergent_smooth_terms_series
+        self.__timeseries_outputs['derivatives'] = emergent_derivatives_terms_series
+
 
     @staticmethod
     def label_prediction_simple(values):
@@ -445,11 +462,11 @@ class Pipeline(object):
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
             if output_type == 'multiplot':
-                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
+                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent_terms,
                                    self.__term_ngrams, lims=self.__lims, category='emergent',
                                    method=self.__emergence_index, output_name=outname)
 
-                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
+                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining_terms,
                                    self.__term_ngrams, lims=self.__lims, category='declining',
                                    method=self.__emergence_index, output_name=outname)
             else:
@@ -458,7 +475,7 @@ class Pipeline(object):
                                       name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
                                       date_dict=self.__date_dict, pick=self.__pick_method,
                                       doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics,
-                                      outputs_dir=self.__outputs_folder_name)
+                                      outputs_dir=self.__outputs_folder_name, timeseries_outputs=self.__timeseries_outputs)
 
     @property
     def term_score_tuples(self):
@@ -546,11 +563,11 @@ class Pipeline(object):
 
     def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
         if emergence == 'emergent':
-            terms = self.__emergent
+            terms = self.__emergent_terms
         elif emergence == 'stationary':
             terms = self.__stationary
         elif emergence == 'declining':
-            terms = self.__declining
+            terms = self.__declining_terms
         else:
             raise ValueError(f'Unrecognised value for emergence_type: {emergence}')
 

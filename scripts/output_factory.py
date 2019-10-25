@@ -1,3 +1,4 @@
+import csv
 import json
 from bz2 import BZ2File
 from os import makedirs, path
@@ -9,13 +10,23 @@ from scripts.utils import utils
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
-def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0, outputs_dir=None):
+def dict_to_csv(timeseries_outputs, key, outputs_dir):
+    dir_path_name = path.join(outputs_dir, 'emergent_'+key+'.csv')
+    my_dict = timeseries_outputs[key]
+    with open(dir_path_name, 'w') as f:
+        writer = csv.writer(f, delimiter=',')
+        for key, value in my_dict.items():
+            writer.writerow([key, value])
 
-    if output_type == 'report':
-        dir_path = path.join(outputs_dir, 'reports')
-        makedirs(dir_path, exist_ok=True)
-        filename_and_path = path.join(dir_path, name + '.txt')
+
+def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
+           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0, outputs_dir=None,
+           timeseries_outputs=None):
+    dir_path = path.join(outputs_dir, output_type)
+    makedirs(dir_path, exist_ok=True)
+
+    if output_type == 'reports':
+        filename_and_path = path.join(dir_path, name + '_keywords.txt')
         print()
         with open(filename_and_path, 'w') as file:
             counter = 1
@@ -24,7 +35,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                     file.write(f' {term:30} {score:f}\n')
                     print(f'{counter}. {term:30} {score:f}')
                     counter += 1
-
     elif output_type == 'graph':
         makedirs(outputs_dir, exist_ok=True)
 
@@ -45,23 +55,47 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         wordcloud = MultiCloudPlot(freqsin=dict_freqs, max_words=len(output))
         filename_and_path = path.join(dir_path, name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
+    elif output_type == 'timeseries':
+        if timeseries_outputs is not None:
+            dir_path = path.join(outputs_dir, 'timeseries')
+            dict_to_csv(timeseries_outputs, 'signal', dir_path)
+            dict_to_csv(timeseries_outputs, 'signal_smooth', dir_path)
+            dict_to_csv(timeseries_outputs, 'derivatives', dir_path)
 
-    elif output_type == 'termcounts':
-        dir_path = path.join(outputs_dir, 'termcounts')
-        makedirs(dir_path, exist_ok=True)
+            filename_and_path = path.join(dir_path, name + '_timeseries.txt')
+            with open(filename_and_path, 'w') as file:
+                print()
+                print('Emergent')
+                file.write('Emergent\n')
+                for tup in emergence_list[:nterms]:
+                    print(tup[0] + ": " + str(tup[1]))
+                    file.write(tup[0] + ": " + str(tup[1]) + '\n')
+                print()
+                file.write('\n')
 
-        term_counts_filename = path.join(dir_path, name + '-term_counts.pkl.bz2')
-        makedirs(path.dirname(term_counts_filename), exist_ok=True)
-        with BZ2File(term_counts_filename, 'wb') as pickle_file:
-            dump(timeseries_data, pickle_file, protocol=4)
+                print('Stationary')
+                file.write('Stationary\n')
+                stationary = utils.stationary_terms(emergence_list, nterms)
+                for tup in stationary:
+                    print(tup[0] + ": " + str(tup[1]))
+                    file.write(tup[0] + ": " + str(tup[1]) + '\n')
+                print()
+                file.write('\n')
+
+                print('Declining')
+                file.write('Declining' + '\n')
+                for tup in emergence_list[-nterms:]:
+                    print(tup[0] + ": " + str(tup[1]))
+                    file.write(tup[0] + ": " + str(tup[1]) + '\n')
+                print()
+                file.write('\n')
+
 
     elif output_type == 'json_config':
-        dir_path = path.join(outputs_dir, 'reports')
-        makedirs(dir_path, exist_ok=True)
-
+        # needs updating
         doc_pickle_file_name = path.abspath(doc_pickle_file_name)
-        report_name_and_path = path.join(dir_path, name + '.txt')
-        json_file_name = path.splitext(report_name_and_path)[0] + '.json'
+        report_name_and_path = path.join(dir_path, name + '_keywords.txt')
+        json_file_name = path.splitext(report_name_and_path)[0] + '_config.json'
 
         json_data = {
             'paths': {
@@ -84,8 +118,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         with open(json_file_name, 'w') as json_file:
             json.dump(json_data, json_file)
     elif output_type =='nmf':
-        dir_path = path.join(outputs_dir, 'reports')
-        makedirs(dir_path, exist_ok=True)
 
         # topic modelling
         topic_terms_to_print = 10
@@ -107,37 +139,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                     [feature_names[i] for i in term_weights.argsort()[:-topic_terms_to_print - 1:-1]])
                 print(topic_names)
                 file.write(topic_names + '\n')
-            print()
-            file.write('\n')
-    elif output_type == 'emergence_report':
-        dir_path = path.join(outputs_dir, 'reports')
-        makedirs(dir_path, exist_ok=True)
-
-        filename_and_path = path.join(dir_path, name + '_timeseries.csv')
-        with open(filename_and_path, 'w') as file:
-            print()
-            print('Emergent')
-            file.write('Emergent\n')
-            for tup in emergence_list[:nterms]:
-                print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1]) + '\n')
-            print()
-            file.write('\n')
-
-            print('Stationary')
-            file.write('Stationary\n')
-            stationary = utils.stationary_terms(emergence_list, nterms)
-            for tup in stationary:
-                print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1]) + '\n')
-            print()
-            file.write('\n')
-
-            print('Declining')
-            file.write('Declining' + '\n')
-            for tup in emergence_list[-nterms:]:
-                print(tup[0] + ": " + str(tup[1]))
-                file.write(tup[0] + ": " + str(tup[1]) + '\n')
             print()
             file.write('\n')
     else:

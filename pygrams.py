@@ -161,14 +161,12 @@ def main(supplied_args):
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
     outputs = args.output[:]
+    outputs.append('reports')
     outputs.append('json_config')
-    outputs.append('report')
-    if args.term_counts:
-        outputs.append('termcounts')
+    if args.timeseries:
+        outputs.append('timeseries')
     if args.n_nmf_topics > 0:
         outputs.append('nmf')
-    if args.timeseries:
-        outputs.append('emergence_report')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
