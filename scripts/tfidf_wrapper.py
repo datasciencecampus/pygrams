@@ -6,7 +6,7 @@ from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_o
 from scripts.utils import utils
 
 
-def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer()):
+def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), min_df=1):
     WordAnalyzer.init(
         tokenizer=tokenizer,
         preprocess=lowercase_strip_accents_and_ownership,
@@ -15,7 +15,7 @@ def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3,
     #TODO add option to increase uint8 to uint16 or 32 on user
     vectorizer = CountVectorizer(
         max_df=max_document_frequency,
-        min_df=1,
+        min_df=min_df,
         ngram_range=ngram_range,
         analyzer=WordAnalyzer.analyzer,
         dtype=np.uint8
@@ -88,4 +88,3 @@ class _TFIDF:
     @property
     def feature_names(self):
         return self.__feature_names
-
