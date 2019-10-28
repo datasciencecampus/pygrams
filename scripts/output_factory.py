@@ -36,8 +36,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                     print(f'{counter}. {term:30} {score:f}')
                     counter += 1
     elif output_type == 'graph':
-        makedirs(outputs_dir, exist_ok=True)
-
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
         graph = TermsGraph(dict_freqs_list, tfidf_reduce_obj)
@@ -48,16 +46,12 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         graph.save_graph(dir_visuals, "key-terms", 'data')
 
     elif output_type == 'wordcloud':
-        dir_path = path.join(outputs_dir, 'wordclouds')
-        makedirs(dir_path, exist_ok=True)
-
         dict_freqs = {p[0]: p[1] for p in output}
         wordcloud = MultiCloudPlot(freqsin=dict_freqs, max_words=len(output))
         filename_and_path = path.join(dir_path, name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
     elif output_type == 'timeseries':
         if timeseries_outputs is not None:
-            dir_path = path.join(outputs_dir, 'timeseries')
             dict_to_csv(timeseries_outputs, 'signal', dir_path)
             dict_to_csv(timeseries_outputs, 'signal_smooth', dir_path)
             dict_to_csv(timeseries_outputs, 'derivatives', dir_path)
