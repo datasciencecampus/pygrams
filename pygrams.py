@@ -134,7 +134,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
 
-    parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'quadratic', 'gradients'),
+    parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'net-growth'),
                         help="Emergence calculation to use")
     parser.add_argument("-sma", "--smoothing-alg", default='savgol', choices=('kalman', 'savgol'),
                         help="Time series smoothing to use")

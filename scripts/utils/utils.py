@@ -1,7 +1,7 @@
 import array as arr
-import matplotlib.pyplot as plt
+
 import numpy as np
-import pandas as pd
+
 
 from bz2 import BZ2File
 from os import path, makedirs
@@ -12,79 +12,6 @@ from gensim.scripts.glove2word2vec import glove2word2vec
 from gensim.test.utils import datapath, get_tmpfile
 from pandas import to_datetime, read_pickle
 from pandas.api.types import is_string_dtype
-import seaborn as sns
-
-
-def boxplots(term_score_tups, dir_name, nterms):
-    dir_name = dir_name.replace('cached', 'outputs', 1)
-    if not path.isdir(dir_name):
-        makedirs(dir_name)
-
-    tfidf = [x[0] for x in term_score_tups]
-
-    ngrams=[]
-    for x in term_score_tups:
-        if len(x[1].split())==1:
-            ngrams.append('uni')
-        elif len(x[1].split())==2:
-            ngrams.append('bi')
-        elif len(x[1].split())==3:
-            ngrams.append('tri')
-
-    original = ['Yes' if x < nterms else 'No' for x in range(len(term_score_tups))]
-
-    data = []
-    for a, b, c in zip(tfidf, ngrams, original):
-        data.append([a, b, c])
-
-    ngram_df = pd.DataFrame(data, columns=['tfidf', 'ngram', 'subset'])
-
-    sns.set(style="whitegrid")
-    ax = sns.boxplot(x="ngram", y="tfidf", hue="subset", data = ngram_df, palette = "Set3", whis=9)
-    ax.set_yscale('log', basey=2)
-    ax.set_title(r'n-gram sum tfidf range')
-
-    plt.savefig(path.join(dir_name, 'ngram_boxplots.png'))
-    plt.close()
-
-
-def plot_ngram_bars(ngrams1, ngrams2, dir_name):
-    dir_name = dir_name.replace('cached', 'outputs', 1)
-    if not path.isdir(dir_name):
-        makedirs(dir_name)
-    labels = ['uni-grams', 'bi-grams', 'tri-grams']
-
-    x = np.arange(len(labels))  # the label locations
-    width = 0.35  # the width of the bars
-
-    fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width / 2, ngrams1, width, label='original')
-    rects2 = ax.bar(x + width / 2, ngrams2, width, label='processed')
-
-    # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('counts')
-    ax.set_title('ngram counts original vs processed tf-idf matrix')
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.legend()
-
-    def autolabel(rects):
-        """Attach a text label above each bar in *rects*, displaying its height."""
-        for rect in rects:
-            height = rect.get_height()
-            ax.annotate('{}'.format(height),
-                        xy=(rect.get_x() + rect.get_width() / 2, height),
-                        xytext=(0, 3),  # 3 points vertical offset
-                        textcoords="offset points",
-                        ha='center', va='bottom')
-
-    autolabel(rects1)
-    autolabel(rects2)
-
-    fig.tight_layout()
-
-    plt.savefig(path.join(dir_name, 'ngram_counts.png'))
-    plt.close()
 
 
 def ngrams_count_tups(features_tups):
@@ -99,86 +26,6 @@ def ngrams_counts(features):
     twos = sum([1 for x in features if len(x.split()) == 2])
     threes = sum([1 for x in features if len(x.split()) == 3])
     return [ones, twos, threes]
-
-
-def tfidf_plot(tfidf_obj, message, dir_name=None):
-    count_mat = tfidf_obj.count_matrix
-    idf = tfidf_obj.idf
-    dir_name = dir_name.replace('cached', 'outputs', 1)
-    if not path.isdir(dir_name):
-        makedirs(dir_name)
-
-    return tfidf_plot2(count_mat, idf, message, dir_name)
-
-
-def tfidf_plot2(count_mat, idf, message, dir_name):
-    counts_arr_sorted = count_mat.toarray().sum(axis=0)
-    plt.scatter(counts_arr_sorted, idf, s=5)
-    plt.xlabel('sum_tf')
-    plt.ylabel('idf')
-    plt.title(r'sum_tf vs idf | ' + message)
-    plt.savefig(path.join(dir_name, '_'.join(message.split()) + '.png'))
-    plt.close()
-
-def scatter(arr1, arr2, xlab, ylab, title, dir_name):
-    dir_name = dir_name.replace('cached', 'outputs', 1)
-    if not path.isdir(dir_name):
-        makedirs(dir_name)
-    plt.scatter(arr1, arr2, s=5)
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
-    plt.title(title)
-    plt.savefig(path.join(dir_name, '_'.join(title.split()) + '.png'))
-    plt.close()
-
-
-def escore_slope_plot(escore_slope_tup, dir_name, fname='escores_slopes', method='net-growth'):
-    dir_name = dir_name.replace('cached', 'outputs', 1)
-    if not path.isdir(dir_name):
-        makedirs(dir_name)
-
-    escores = [x[0] for x in escore_slope_tup]
-    slopes = [x[1] for x in escore_slope_tup]
-
-    plt.scatter(escores, slopes, s=5)
-    plt.axhline(y=0, color='k', linestyle='--')
-    plt.axvline(x=0, color='k', linestyle='--')
-
-    # Add correlation line
-    axes = plt.gca()
-    m, b = np.polyfit(escores, slopes, 1)
-    X_plot = np.linspace(axes.get_xlim()[0], axes.get_xlim()[1], 100)
-    plt.plot(X_plot, m * X_plot + b, '-')
-
-    plt.xlabel('escores')
-    plt.ylabel('slopes')
-    plt.title(r'escores vs slopes 4 steps ahead | ' + method )
-    plt.savefig(path.join(dir_name, fname+'.png'))
-    plt.close()
-
-
-def histogram(count_matrix):
-    import matplotlib.mlab as mlab
-    import matplotlib.pyplot as plt
-    counts_arr_sorted = count_matrix.toarray().sum(axis=0)
-    num_bins = 100
-    mu = np.mean(counts_arr_sorted)  # mean of distribution
-    sigma = np.std(counts_arr_sorted)  # standard deviation of distribution
-    # the histogram of the data
-    n, bins, patches = plt.hist(counts_arr_sorted, num_bins, facecolor='blue', alpha=0.5)
-    # add df vs tf plots here
-    # add a 'best fit' line
-    y = mlab.normpdf(bins, mu, sigma)
-    plt.plot(bins, y, 'r--')
-    plt.yscale('log')
-    plt.xlabel('Sum of term counts')
-    plt.ylabel('Num Terms')
-    plt.title(r'Histogram of sum of term frequencies')
-    print(n)
-    print(bins)
-    print(patches)
-    plt.ylim(bottom=1)
-    plt.show()
 
 
 def fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters):

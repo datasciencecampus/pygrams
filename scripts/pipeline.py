@@ -20,6 +20,7 @@ from scripts.tfidf_mask import TfidfMask
 from scripts.tfidf_reduce import TfidfReduce
 from scripts.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
 from scripts.utils import utils
+from scripts.utils import utils_plot
 from scripts.vandv import ssm_reporting
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.predictor import evaluate_prediction
@@ -253,21 +254,25 @@ class Pipeline(object):
         # find indexes for date-range
         min_date = max_date = None
         if self.__timeseries_date_dict is not None:
-            min_date = self.__timeseries_date_dict['from']
-            max_date = self.__timeseries_date_dict['to']
+            min_date = scripts.utils.date_utils.weekly_to_quarterly(self.__timeseries_date_dict['from'])
+            max_date = scripts.utils.date_utils.weekly_to_quarterly(self.__timeseries_date_dict['to'])
 
         min_i = 0
         max_i = len(all_quarters)
+        print(min_date)
+        print(max_date)
+        print(all_quarters)
 
         for i, quarter in enumerate(all_quarters):
-            if min_date is not None and min_date < quarter:
-                break
             min_i = i
+            if min_date is not None and min_date <= quarter:
+                break
 
         for i, quarter in enumerate(all_quarters):
-            if max_date is not None and max_date < quarter:
-                break
             max_i = i
+            if max_date is not None and max_date <= quarter:
+                break
+
         self.__lims = [min_i, max_i]
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
@@ -318,7 +323,7 @@ class Pipeline(object):
         self.__emergence_list2=[]
         print(min_i)
         print(max_i)
-        for i in range (-15, 5):
+        for i in range (1):
             for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                    leave=False, unit_scale=True):
                 if term_weights[term_index] == 0.0:
@@ -343,7 +348,7 @@ class Pipeline(object):
                     continue
                 if emergence_index == 'porter':
                     escore = em.calculate_escore(quarterly_values)
-                elif emergence_index == 'gradients':
+                elif emergence_index == 'net-growth':
                     derivatives = self.__timeseries_derivatives[term_index][min_i + i:max_i + i]
                     escore = em.net_growth(quarterly_values, derivatives)
                 else:
@@ -370,12 +375,17 @@ class Pipeline(object):
         self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
         self.__declining.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
-        scripts.utils.utils.escore_slope_plot(self.__emergence_list_up, self.__cached_folder_name, fname='escores_emerging_no_'+emergence_index, method=emergence_index)
-        scripts.utils.utils.escore_slope_plot(self.__emergence_list_down, self.__cached_folder_name, fname='escores_declining_no_'+emergence_index, method=emergence_index)
-        scripts.utils.utils.escore_slope_plot(self.__emergence_list2, self.__cached_folder_name, fname='all_no_'+emergence_index, method=emergence_index)
+        scripts.utils.utils_plot.escore_slope_plot(self.__emergence_list_up, self.__cached_folder_name, fname='escores_emerging_no_'+emergence_index, method=emergence_index)
+        scripts.utils.utils_plot.escore_slope_plot(self.__emergence_list_down, self.__cached_folder_name, fname='escores_declining_no_'+emergence_index, method=emergence_index)
+        scripts.utils.utils_plot.escore_slope_plot(self.__emergence_list2, self.__cached_folder_name, fname='all_no_'+emergence_index, method=emergence_index)
 
         print(emergence_index + ' emergence hit: ' + str(emergence_hit_count) + ' | ' + str(emergence_len) + ' | ' + str(emergence_hit_count/emergence_len))
         print(emergence_index + ' decline hit: ' + str(decline_hit_count) + ' | ' + str(decline_len) + ' | ' + str(decline_hit_count/decline_len))
+
+        utils_plot.get_counts_plot(self.__timeseries_quarterly_smoothed, self.__emergence_list[:nterms2], self.__term_ngrams, self.__cached_folder_name,
+                             method=emergence_index)
+        utils_plot.get_counts_plot(self.__timeseries_quarterly_smoothed, self.__emergence_list[-nterms2:], self.__term_ngrams, self.__cached_folder_name,
+                             method=emergence_index, category='declining')
 
     @staticmethod
     def label_prediction_simple(values):
@@ -518,11 +528,11 @@ class Pipeline(object):
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
             if output_type == 'multiplot':
-                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
+                scripts.utils.utils_plot.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent[:30],
                                    self.__term_ngrams, lims=self.__lims, category='emergent',
                                    method=self.__emergence_index, output_name=outname)
 
-                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
+                scripts.utils.utils_plot.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining[:30],
                                    self.__term_ngrams, lims=self.__lims, category='declining',
                                    method=self.__emergence_index, output_name=outname)
             else:
@@ -536,77 +546,7 @@ class Pipeline(object):
     def term_score_tuples(self):
         return self.__term_score_tuples
 
-    def get_multiplot(self, timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
-                      category='emergent', output_name='multiplot'):
 
-        # libraries and data
-        import matplotlib.pyplot as plt
-        import pandas as pd
-
-        series_dict = {'x': range(len(timeseries[0]))}
-        for test_term in test_terms:
-            term_index = term_ngrams.index(test_term)
-            series_dict[term_ngrams[term_index]] = timeseries[term_index]
-
-        series_dict_smooth = {'x': range(len(timeseries_terms_smooth[0]))}
-        for test_term in test_terms:
-            term_index = term_ngrams.index(test_term)
-            series_dict_smooth[term_ngrams[term_index]] = timeseries_terms_smooth[term_index]
-
-        # make a data frame
-        df = pd.DataFrame(series_dict)
-        df_smooth = pd.DataFrame(series_dict_smooth)
-
-        # initialize the figure
-        plt.style.use('seaborn-darkgrid')
-
-        # create a color palette
-
-        # multiple line plot
-        fig, axs = plt.subplots(6, 5, figsize=(12, 10))
-        num = 0
-        for column in df.drop('x', axis=1):
-            num += 1
-
-            if num > len(test_terms):
-                break
-
-            # find the right spot on the plot
-            current_graph = axs[(num - 1) % 6, (num - 1) // 6]
-
-            # plot the lineplot
-            current_graph.plot(df['x'], df[column], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
-            current_graph.plot(df['x'], df_smooth[column], color='g', linestyle='-', marker='',
-                               label='smoothed ground truth')
-
-            current_graph.axvline(x=lims[0], color='k', linestyle='--')
-            current_graph.axvline(x=lims[1], color='k', linestyle='--')
-
-            # same limits for everybody!
-            current_graph.set_xlim((0, max(series_dict['x'])))
-
-            # not ticks everywhere
-            if num in range(26):
-                current_graph.tick_params(labelbottom='off')
-
-            current_graph.tick_params(labelsize=8)
-
-            # plt.tick_params(labelleft='off')
-
-            # add title
-            current_graph.title.set_text(column)
-            current_graph.title.set_fontsize(10)
-            current_graph.title.set_fontweight(0)
-
-        # general title
-        fig.suptitle(category + " keywords selection using the " + method + " index", fontsize=16, fontweight=0,
-                     color='black', style='italic')
-
-        plt.tight_layout(rect=(0, 0, 1, 0.95))
-
-        # axis title
-        plt.savefig(path.join('outputs', 'emergence', f'{output_name}-{category}-{method}.pdf'), dpi=300)
-        plt.savefig(path.join('outputs', 'emergence', f'{output_name}-{category}-{method}.png'), dpi=300)
 
     @property
     def timeseries_data(self):
