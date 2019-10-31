@@ -247,7 +247,7 @@ def main(supplied_args):
                 </html>
                 '''
 
-            base_file_name = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence)
+            base_file_name = os.path.join(dir_path, args.outputs_name + '_' + emergence)
 
             if args.normalised:
                 base_file_name += '_normalised'
