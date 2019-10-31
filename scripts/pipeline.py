@@ -315,9 +315,9 @@ class Pipeline(object):
 
         for term in self.__emergent_terms:
             idx = self.__term_ngrams.index(term)
-            emergent_terms_series[term] = self.__timeseries_quarterly[idx]
-            emergent_smooth_terms_series[term] = self.__timeseries_quarterly_smoothed[idx]
-            emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx]
+            emergent_terms_series[term] = self.__timeseries_quarterly[idx][self.__lims[0]: self.__lims[1]]
+            emergent_smooth_terms_series[term] = self.__timeseries_quarterly_smoothed[idx][self.__lims[0]: self.__lims[1]]
+            emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx][self.__lims[0]: self.__lims[1]]
 
         self.__timeseries_outputs = {}
         self.__timeseries_outputs['signal'] = emergent_terms_series
