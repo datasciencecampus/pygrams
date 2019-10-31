@@ -10,8 +10,8 @@ from scripts.utils import utils
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
-def dict_to_csv(timeseries_outputs, key, outputs_dir):
-    dir_path_name = path.join(outputs_dir, 'emergent_'+key+'.csv')
+def dict_to_csv(timeseries_outputs, key, outputs_dir, method):
+    dir_path_name = path.join(outputs_dir, 'emergent_'+key+'_'+method+'.csv')
     my_dict = timeseries_outputs[key]
     with open(dir_path_name, 'w') as f:
         writer = csv.writer(f, delimiter=',')
@@ -21,7 +21,7 @@ def dict_to_csv(timeseries_outputs, key, outputs_dir):
 
 def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
            timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0, outputs_dir=None,
-           timeseries_outputs=None):
+           timeseries_outputs=None, method='net-growth'):
     dir_path = path.join(outputs_dir, output_type)
     makedirs(dir_path, exist_ok=True)
 
@@ -52,11 +52,11 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
     elif output_type == 'timeseries':
         if timeseries_outputs is not None:
-            dict_to_csv(timeseries_outputs, 'signal', dir_path)
-            dict_to_csv(timeseries_outputs, 'signal_smooth', dir_path)
-            dict_to_csv(timeseries_outputs, 'derivatives', dir_path)
+            dict_to_csv(timeseries_outputs, 'signal', dir_path, method)
+            dict_to_csv(timeseries_outputs, 'signal_smooth', dir_path, method)
+            dict_to_csv(timeseries_outputs, 'derivatives', dir_path, method)
 
-            filename_and_path = path.join(dir_path, name + '_timeseries.txt')
+            filename_and_path = path.join(dir_path, name + '_' + method + '_index.txt')
             with open(filename_and_path, 'w') as file:
                 print()
                 print('Emergent')

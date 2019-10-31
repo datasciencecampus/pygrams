@@ -237,7 +237,7 @@ class Pipeline(object):
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
             self.__timeseries_quarterly.append(quarterly_values)
 
-        if emergence_index == 'gradients' or sma == 'kalman':
+        if emergence_index == 'net-growth' or sma == 'kalman':
             if cached_folder_name is None or not (
                     path.isfile(utils.pickle_name('smooth_series_s', self.__cached_folder_name))
                     and path.isfile(utils.pickle_name('derivatives', self.__cached_folder_name))):
@@ -292,7 +292,7 @@ class Pipeline(object):
                 if not em.is_emergence_candidate(quarterly_values):
                     continue
                 escore = em.calculate_escore(quarterly_values)
-            elif emergence_index == 'gradients':
+            elif emergence_index == 'net-growth':
                 derivatives = self.__timeseries_quarterly_derivatives[term_index][min_i:max_i]
                 escore = em.net_growth(quarterly_values, derivatives)
             else:
@@ -479,7 +479,8 @@ class Pipeline(object):
                                       name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
                                       date_dict=self.__date_dict, pick=self.__pick_method,
                                       doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics,
-                                      outputs_dir=self.__outputs_folder_name, timeseries_outputs=self.__timeseries_outputs)
+                                      outputs_dir=self.__outputs_folder_name, timeseries_outputs=self.__timeseries_outputs,
+                                      method=self.__emergence_index)
 
     @property
     def term_score_tuples(self):
