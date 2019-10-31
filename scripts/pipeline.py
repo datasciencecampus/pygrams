@@ -330,6 +330,9 @@ class Pipeline(object):
                     continue
                 term_ngram = self.__term_ngrams[term_index]
 
+                if term_ngram in WordAnalyzer.stemmed_stop_word_set_n:
+                    continue
+
                 known_values4 = self.__timeseries_quarterly_smoothed[term_index][max_i + i:max_i+4 + i]
                 x = range(len(known_values4))
                 values = [[x,y] for x, y in zip (x, known_values4)]
@@ -528,13 +531,17 @@ class Pipeline(object):
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
             if output_type == 'multiplot':
+
+                min_date = scripts.utils.date_utils.weekly_to_quarterly(self.__timeseries_date_dict['from'])
+                max_date = scripts.utils.date_utils.weekly_to_quarterly(self.__timeseries_date_dict['to'])
+
                 scripts.utils.utils_plot.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent[:30],
-                                   self.__term_ngrams, lims=self.__lims, category='emergent',
-                                   method=self.__emergence_index, output_name=outname)
+                                   self.__term_ngrams, lims=self.__lims, category='emerging',
+                                   method=self.__emergence_index, output_name=outname, min_date=min_date, max_date=max_date)
 
                 scripts.utils.utils_plot.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining[:30],
                                    self.__term_ngrams, lims=self.__lims, category='declining',
-                                   method=self.__emergence_index, output_name=outname)
+                                   method=self.__emergence_index, output_name=outname, min_date=min_date, max_date=max_date)
             else:
                 output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
                                       wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,

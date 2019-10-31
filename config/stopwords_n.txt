@@ -5,3 +5,5 @@ determination unit determine
 perform operation
 system provide
 provide novel
+application provide
+application disclose

@@ -7,11 +7,12 @@ import seaborn as sns
 
 
 def get_multiplot(timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
-                  category='emergent', output_name='multiplot'):
+                  category='emergent', output_name='multiplot', min_date=None, max_date=None):
     # libraries and data
     import matplotlib.pyplot as plt
     import pandas as pd
 
+    date_string = 'from ' + str(min_date)[:-2] +'-'+ str(min_date)[-2:]+ ' to ' + str(max_date)[:-2]+'-'+ str(max_date)[-2:]
     series_dict = {'x': range(len(timeseries[0]))}
     series_dict_smooth = {'x': range(len(timeseries_terms_smooth[0]))}
 
@@ -36,41 +37,56 @@ def get_multiplot(timeseries_terms_smooth, timeseries, test_terms, term_ngrams, 
     for column in df.drop('x', axis=1):
         num += 1
 
+        row_id = (num - 1) // 5
+        col_id = (num - 1) % 5
+
         if num > len(test_terms):
             break
 
         # find the right spot on the plot
-        current_graph = axs[(num - 1) % 6, (num - 1) // 6]
+        current_graph = axs[row_id, col_id]
 
         # plot the lineplot
         current_graph.plot(df['x'], df[column], color='b', marker='', linewidth=1.4, alpha=0.9, label=column)
-        current_graph.plot(df['x'], df_smooth[column], color='g', linestyle='-', marker='',
-                           label='smoothed ground truth')
+        current_graph.plot(df['x'], df_smooth[column], color='g', linestyle='-', marker='')
 
         current_graph.axvline(x=lims[0], color='k', linestyle='--')
         current_graph.axvline(x=lims[1], color='k', linestyle='--')
 
+
+
+
+        if col_id == 0:
+            current_graph.set_ylabel('patents')
+
+        if row_id == 5:
+            current_graph.set_xlabel('periods')
+        else:
+            current_graph.tick_params(labelbottom='off')
+
         # same limits for everybody!
-        current_graph.set_xlim((0, max(series_dict['x'])))
+        # current_graph.set_xlim((0, max(series_dict['x'])))
 
         # not ticks everywhere
-        if num in range(26):
-            current_graph.tick_params(labelbottom='off')
+        # if num in range(26):
+        #
 
         current_graph.tick_params(labelsize=8)
 
         # plt.tick_params(labelleft='off')
 
         # add title
-        current_graph.title.set_text(column)
+        current_graph.title.set_text(str(num) + '. ' + column)
         current_graph.title.set_fontsize(10)
         current_graph.title.set_fontweight(0)
 
     # general title
-    fig.suptitle(category + " keywords selection using the " + method + " index", fontsize=16, fontweight=0,
+    fig.suptitle(category + " terminology using the " + method + " index " + date_string, fontsize=16, fontweight=0,
                  color='black', style='italic')
 
     plt.tight_layout(rect=(0, 0, 1, 0.95))
+
+
 
     # axis title
     plt.savefig(path.join('outputs', 'emergence', f'{output_name}-{category}-{method}.pdf'), dpi=300)
