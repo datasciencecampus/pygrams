@@ -205,6 +205,9 @@ def main(supplied_args):
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
 
+        dir_path = os.path.join(outputs_name, 'emergence')
+        os.makedirs(dir_path, exist_ok=True)
+
         for emergence in ['emergent', 'declining']:
             print(f'Running pipeline for "{emergence}"')
 
@@ -224,8 +227,7 @@ def main(supplied_args):
                 # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
                 #                                                   'term2', 2, 4, 1, 3
                 #
-                dir_path = os.path.join(outputs_name, 'emergence')
-                os.makedirs(dir_path, exist_ok=True)
+
                 filename = os.path.join(dir_path,
                                         args.outputs_name + '_' + emergence + '_time_series.csv')
                 with open(filename, 'w') as f:
