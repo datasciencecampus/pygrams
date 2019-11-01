@@ -1,3 +1,4 @@
+from math import log10, floor
 from os import path
 
 import numpy as np
@@ -57,12 +58,10 @@ class Pipeline(object):
                 max_date = max(self.__dates)
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
 
-
-
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
-                                               tokenizer=LemmaTokenizer())
+                                               tokenizer=LemmaTokenizer(), min_df=floor(log10(dataframe.shape[0])))
             tfidf_mask_obj = TfidfMask(self.__tfidf_obj, ngram_range=ngram_range, uni_factor=0.8, unbias=True)
             self.__tfidf_obj.apply_weights(tfidf_mask_obj.tfidf_mask)
 
@@ -159,8 +158,8 @@ class Pipeline(object):
 
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-        self.__term_score_tuples = utils.stop_tup(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
-                                                  WordAnalyzer.stemmed_stop_word_set_n)
+        self.__term_score_tuples = utils.stop(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
+                                                  WordAnalyzer.stemmed_stop_word_set_n, tuples=True)
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
@@ -566,7 +565,8 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, state_space_eval=False):
+
         if emergence == 'emergent':
             terms = self.__emergent_terms
         elif emergence == 'stationary':
@@ -583,7 +583,7 @@ class Pipeline(object):
 
         html_results = ''
 
-        if ss_only:
+        if state_space_eval:
             # self.get_state_space_forecast(self.__timeseries_quarterly, self.__emergent, self.__term_ngrams)
             if train_test:
                 k_range = range(2, self.__M + 1)
