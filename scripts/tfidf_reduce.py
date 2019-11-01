@@ -55,16 +55,16 @@ class TfidfReduce(object):
         return ngrams_scores_tuple
 
     def collect_vector_for_feature(self, csc_mat):
-        mp_vec=[]
+        mp_vec = []
         for j in range(csc_mat.shape[1]):
             start_idx_ptr = csc_mat.indptr[j]
             end_idx_ptr = csc_mat.indptr[j + 1]
-            mpj=0
+            mpj = 0
             # iterate through rows with non-zero entries
             for i in range(start_idx_ptr, end_idx_ptr):
                 # row_idx = csc_mat.indices[i]
                 pij = csc_mat.data[i]
-                mpj+=pij
+                mpj += pij
             mp_vec.append(mpj)
         return np.array(mp_vec)
 
@@ -80,9 +80,9 @@ class TfidfReduce(object):
         if not tf_norm.getformat() == 'csc':
             print('problem')
 
-        N=tf_norm.shape[0]
-        tot_pij =  self.collect_vector_for_feature(tf_norm)
-        mp_vec = tot_pij/N
+        N = tf_norm.shape[0]
+        tot_pij = self.collect_vector_for_feature(tf_norm)
+        mp_vec = tot_pij / N
         tfidf_vec = self.collect_vector_for_feature(tfidf)
         ngram_vec = self.collect_vector_for_feature(count)
         probabilities_vec = mp_vec * N
@@ -103,12 +103,12 @@ class TfidfReduce(object):
         for j in range(tf_norm.shape[1]):
             start_idx_ptr = tf_norm.indptr[j]
             end_idx_ptr = tf_norm.indptr[j + 1]
-            entropy_j=0
+            entropy_j = 0
             # iterate through rows with non-zero entries
             for i in range(start_idx_ptr, end_idx_ptr):
                 # row_idx = csc_mat.indices[i]
                 pij = tf_norm.data[i]
-                entropy_j += pij * log(1/pij)
+                entropy_j += pij * log(1 / pij)
             entropy_vec.append(entropy_j)
 
         sat_vec = mp_vec / np.sqrt(np.array(variance_vec))

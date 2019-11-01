@@ -30,12 +30,13 @@ def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=
         filename_and_path = path.join(dir_path, name + '_keywords.txt')
         print()
         with open(filename_and_path, 'w') as file:
-            counter = 1
+            counter = 0
             for score, term in output:
                 if counter < nterms:
+                    counter += 1
                     file.write(f' {term:30} {score:f}\n')
                     print(f'{counter}. {term:30} {score:f}')
-                    counter += 1
+
     elif output_type == 'graph':
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
@@ -51,6 +52,7 @@ def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=
         wordcloud = MultiCloudPlot(freqsin=dict_freqs, max_words=len(output))
         filename_and_path = path.join(dir_path, name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
+
     elif output_type == 'timeseries':
         if timeseries_outputs is not None:
             dict_to_csv(timeseries_outputs, 'signal', dir_path, method)
@@ -85,7 +87,6 @@ def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=
                 print()
                 file.write('\n')
 
-
     elif output_type == 'json_config':
         # needs updating
         doc_pickle_file_name = path.abspath(doc_pickle_file_name)
@@ -112,8 +113,8 @@ def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=
 
         with open(json_file_name, 'w') as json_file:
             json.dump(json_data, json_file)
-    elif output_type =='nmf':
 
+    elif output_type =='nmf':
         # topic modelling
         topic_terms_to_print = 10
         nmf = nmf_topic_modelling(nmf_topics, tfidf_reduce_obj.tfidf_masked)
@@ -136,5 +137,6 @@ def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=
                 file.write(topic_names + '\n')
             print()
             file.write('\n')
+
     else:
         raise PygramsException("Bad output type: " + output_type)

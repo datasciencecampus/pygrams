@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
-import scripts.utils.date_utils as date_ut
+from scripts.utils.date_utils import generate_year_week_dates, weekly_to_quarterly, timeseries_weekly_to_quarterly
 from scripts.algorithms.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
 from scripts.algorithms.predictor_factory import PredictorFactory
@@ -52,7 +52,7 @@ class Pipeline(object):
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
                 self.__dates = None
             else:
-                self.__dates = date_ut.generate_year_week_dates(dataframe,docs_mask_dict['date_header'])
+                self.__dates = generate_year_week_dates(dataframe,docs_mask_dict['date_header'])
                 min_date = min(self.__dates)
                 max_date = max(self.__dates)
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
@@ -197,14 +197,14 @@ class Pipeline(object):
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
 
-        all_quarters, all_quarterly_values = self.__x = date_ut.timeseries_weekly_to_quarterly(
+        all_quarters, all_quarterly_values = self.__x = timeseries_weekly_to_quarterly(
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
         min_date = max_date = None
         if self.__timeseries_date_dict is not None:
-            min_date = date_ut.weekly_to_quarterly(self.__timeseries_date_dict['from'])
-            max_date = date_ut.weekly_to_quarterly(self.__timeseries_date_dict['to'])
+            min_date = weekly_to_quarterly(self.__timeseries_date_dict['from'])
+            max_date = weekly_to_quarterly(self.__timeseries_date_dict['to'])
 
         min_i = 0
         max_i = len(all_quarters)
@@ -227,7 +227,7 @@ class Pipeline(object):
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
-            non_zero_dates, quarterly_values = date_ut.timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
+            non_zero_dates, quarterly_values = timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
             self.__timeseries_quarterly.append(quarterly_values)
 
