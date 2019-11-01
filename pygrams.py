@@ -21,7 +21,6 @@ def get_args(command_line_arguments):
                                      conflict_handler='resolve')  # allows overridng of arguments
 
     # suppressed:________________________________________
-    parser.add_argument("-tc", "--term-counts", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-ih", "--id_header", default=None, help=argparse.SUPPRESS)
     parser.add_argument("-c", "--cite", default=False, action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("-pt", "--path", default='data', help=argparse.SUPPRESS)
@@ -134,7 +133,7 @@ def get_args(command_line_arguments):
     parser.add_argument("-stp", "--steps_ahead", type=int, default=5,
                         help="number of steps ahead to analyse for")
 
-    parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'quadratic', 'gradients'),
+    parser.add_argument("-ei", "--emergence-index", default='porter', choices=('porter', 'net-growth'),
                         help="Emergence calculation to use")
     parser.add_argument("-sma", "--smoothing-alg", default='savgol', choices=('kalman', 'savgol'),
                         help="Time series smoothing to use")
@@ -161,14 +160,12 @@ def main(supplied_args):
     argscheck = ArgsChecker(args, args_default)
     argscheck.checkargs()
     outputs = args.output[:]
+    outputs.append('reports')
     outputs.append('json_config')
-    outputs.append('report')
-    if args.term_counts:
-        outputs.append('termcounts')
+    if args.timeseries:
+        outputs.append('timeseries')
     if args.n_nmf_topics > 0:
         outputs.append('nmf')
-    if args.timeseries:
-        outputs.append('emergence_report')
 
     docs_mask_dict = argscheck.get_docs_mask_dict()
     terms_mask_dict = argscheck.get_terms_mask_dict()
@@ -193,6 +190,8 @@ def main(supplied_args):
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
                     nterms=args.num_ngrams_report, n_nmf_topics=args.n_nmf_topics)
 
+    outputs_name = pipeline.outputs_folder_name
+
     # emtech integration
     if args.timeseries:
         if 0 in args.predictor_names:
@@ -204,6 +203,9 @@ def main(supplied_args):
             predictors_to_run = [predictor_names[algs_codes]]
         else:
             predictors_to_run = [predictor_names[i] for i in algs_codes]
+
+        dir_path = os.path.join(outputs_name, 'emergence')
+        os.makedirs(dir_path, exist_ok=True)
 
         for emergence in ['emergent', 'declining']:
             print(f'Running pipeline for "{emergence}"')
@@ -224,7 +226,8 @@ def main(supplied_args):
                 # {'term1': [0,2,4,6], 'term2': [2,4,1,3]}          'term1', 0, 2, 4, 6
                 #                                                   'term2', 2, 4, 1, 3
                 #
-                filename = os.path.join('outputs', 'emergence',
+
+                filename = os.path.join(dir_path,
                                         args.outputs_name + '_' + emergence + '_time_series.csv')
                 with open(filename, 'w') as f:
                     w = csv.writer(f)
@@ -245,7 +248,7 @@ def main(supplied_args):
                 </html>
                 '''
 
-            base_file_name = os.path.join('outputs', 'emergence', args.outputs_name + '_' + emergence)
+            base_file_name = os.path.join(dir_path, args.outputs_name + '_' + emergence)
 
             if args.normalised:
                 base_file_name += '_normalised'

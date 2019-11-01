@@ -104,19 +104,24 @@ def convert_year_week_to_fractional_year(date_in_year_week_format, num_weeks_per
     return year + (week / num_weeks_per_year)
 
 
+def weekly_to_quarterly(date):
+    year = date // 100
+    week = date % 100
+    if 0 <= week < 13:
+        new_date = (year * 100) + 1
+    elif 13 <= week < 26:
+        new_date = (year * 100) + 4
+    elif 26 <= week < 39:
+        new_date = (year * 100) + 7
+    else:
+        new_date = (year * 100) + 10
+    return new_date
+
+
 def timeseries_weekly_to_quarterly(weekly_dates, weekly_values):
     dict_dates = {}
     for date, value in zip(weekly_dates, weekly_values):
-        year = date // 100
-        week = date % 100
-        if 0 <= week < 13:
-            new_date = (year * 100) + 1
-        elif 13 <= week < 26:
-            new_date = (year * 100) + 4
-        elif 26 <= week < 39:
-            new_date = (year * 100) + 7
-        else:
-            new_date = (year * 100) + 10
+        new_date = weekly_to_quarterly(date)
 
         if new_date in dict_dates:
             dict_dates[new_date] += value

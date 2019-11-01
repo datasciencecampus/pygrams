@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
-import scripts.utils.date_utils
+from scripts.utils.date_utils import generate_year_week_dates, weekly_to_quarterly, timeseries_weekly_to_quarterly
 from scripts.algorithms.ssm import StateSpaceModel
 from scripts.algorithms.emergence import Emergence
 from scripts.algorithms.predictor_factory import PredictorFactory
@@ -38,6 +38,7 @@ class Pipeline(object):
         self.__date_dict = docs_mask_dict['date']
         self.__timeseries_date_dict = docs_mask_dict['timeseries_date']
         self.__timeseries_data = []
+        self.__timeseries_outputs=None
 
         self.__emergence_list = []
         self.__pick_method = pick_method
@@ -46,6 +47,16 @@ class Pipeline(object):
             dataframe = data_factory.get(data_filename)
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
+
+            if docs_mask_dict['date_header'] is None:
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
+                self.__dates = None
+            else:
+                self.__dates = generate_year_week_dates(dataframe,docs_mask_dict['date_header'])
+                min_date = min(self.__dates)
+                max_date = max(self.__dates)
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
+
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
                                                max_document_frequency=max_df,
@@ -67,15 +78,6 @@ class Pipeline(object):
                       f'to {number_of_ngrams_after:,}')
 
             self.__cpc_dict = utils.cpc_dict(dataframe)
-            if docs_mask_dict['date_header'] is None:
-                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
-                self.__dates = None
-            else:
-                self.__dates = scripts.utils.date_utils.generate_year_week_dates(dataframe,
-                                                                                 docs_mask_dict['date_header'])
-                min_date = min(self.__dates)
-                max_date = max(self.__dates)
-                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
 
             utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
             utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
@@ -113,6 +115,8 @@ class Pipeline(object):
         #  union: if more entries after single, add / or
         #  intersection: if more entries after single, multiple / and
         #  then apply mask to tfidf object and df (i.e. remove rows with false or 0); do this in place
+
+        self.__outputs_folder_name = self.__cached_folder_name.replace('cached', 'outputs')
         print(f'Applying documents filter...')
         # docs weights( column, dates subset + time, citations etc.)
         doc_filters = DocumentsFilter(self.__dates, docs_mask_dict, self.__cpc_dict,
@@ -189,31 +193,32 @@ class Pipeline(object):
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
         self.__timeseries_intercept = []
-        self.__timeseries_derivatives = []
+        self.__timeseries_quarterly_derivatives = []
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
 
-        all_quarters, all_quarterly_values = self.__x = scripts.utils.date_utils.timeseries_weekly_to_quarterly(
+        all_quarters, all_quarterly_values = self.__x = timeseries_weekly_to_quarterly(
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
         min_date = max_date = None
         if self.__timeseries_date_dict is not None:
-            min_date = self.__timeseries_date_dict['from']
-            max_date = self.__timeseries_date_dict['to']
+            min_date = weekly_to_quarterly(self.__timeseries_date_dict['from'])
+            max_date = weekly_to_quarterly(self.__timeseries_date_dict['to'])
 
         min_i = 0
         max_i = len(all_quarters)
 
         for i, quarter in enumerate(all_quarters):
-            if min_date is not None and min_date < quarter:
-                break
             min_i = i
+            if min_date is not None and min_date <= quarter:
+                break
 
         for i, quarter in enumerate(all_quarters):
-            if max_date is not None and max_date < quarter:
-                break
             max_i = i
+            if max_date is not None and max_date <= quarter:
+                break
+
         self.__lims = [min_i, max_i]
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
@@ -222,12 +227,11 @@ class Pipeline(object):
                                leave=False, unit_scale=True):
             row_indices, row_values = utils.get_row_indices_and_values(term_counts_per_week_csc, term_index)
             weekly_iso_dates = [self.__weekly_iso_dates[x] for x in row_indices]
-            non_zero_dates, quarterly_values = scripts.utils.date_utils.timeseries_weekly_to_quarterly(weekly_iso_dates,
-                                                                                                       row_values)
+            non_zero_dates, quarterly_values = timeseries_weekly_to_quarterly(weekly_iso_dates, row_values)
             non_zero_dates, quarterly_values = utils.fill_missing_zeros(quarterly_values, non_zero_dates, all_quarters)
             self.__timeseries_quarterly.append(quarterly_values)
 
-        if emergence_index == 'gradients' or sma == 'kalman':
+        if emergence_index == 'net-growth' or sma == 'kalman':
             if cached_folder_name is None or not (
                     path.isfile(utils.pickle_name('smooth_series_s', self.__cached_folder_name))
                     and path.isfile(utils.pickle_name('derivatives', self.__cached_folder_name))):
@@ -242,15 +246,15 @@ class Pipeline(object):
                     self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
                     derivatives = smooth_series_s[1].tolist()[0]
-                    self.__timeseries_derivatives.append(derivatives)
+                    self.__timeseries_quarterly_derivatives.append(derivatives)
 
                 utils.pickle_object('smooth_series_s', self.__timeseries_quarterly_smoothed, self.__cached_folder_name)
-                utils.pickle_object('derivatives', self.__timeseries_derivatives, self.__cached_folder_name)
+                utils.pickle_object('derivatives', self.__timeseries_quarterly_derivatives, self.__cached_folder_name)
 
             else:
                 self.__timeseries_quarterly_smoothed = utils.unpickle_object('smooth_series_s',
                                                                              self.__cached_folder_name)
-                self.__timeseries_derivatives = utils.unpickle_object('derivatives', self.__cached_folder_name)
+                self.__timeseries_quarterly_derivatives = utils.unpickle_object('derivatives', self.__cached_folder_name)
 
         if sma == 'savgol':
             for quarterly_values in tqdm(self.__timeseries_quarterly, unit='term',
@@ -282,8 +286,8 @@ class Pipeline(object):
                 if not em.is_emergence_candidate(quarterly_values):
                     continue
                 escore = em.calculate_escore(quarterly_values)
-            elif emergence_index == 'gradients':
-                derivatives = self.__timeseries_derivatives[term_index][min_i:max_i]
+            elif emergence_index == 'net-growth':
+                derivatives = self.__timeseries_quarterly_derivatives[term_index][min_i:max_i]
                 escore = em.net_growth(quarterly_values, derivatives)
             else:
                 weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
@@ -294,10 +298,26 @@ class Pipeline(object):
         nterms2 = min(nterms, len(self.__emergence_list))
         self.__emergence_list.sort(key=lambda emergence: -emergence[1])
 
-        self.__emergent = [x[0] for x in self.__emergence_list[:nterms2]]
-        self.__declining = [x[0] for x in self.__emergence_list[-nterms2:]]
-        self.__declining.reverse()
+        self.__emergent_terms = [x[0] for x in self.__emergence_list[:nterms2]]
+        self.__declining_terms = [x[0] for x in self.__emergence_list[-nterms2:]]
+        self.__declining_terms.reverse()
         self.__stationary = [x[0] for x in utils.stationary_terms(self.__emergence_list, nterms2)]
+
+        emergent_terms_series = {}
+        emergent_smooth_terms_series = {}
+        emergent_derivatives_terms_series = {}
+
+        for term in self.__emergent_terms:
+            idx = self.__term_ngrams.index(term)
+            emergent_terms_series[term] = self.__timeseries_quarterly[idx][self.__lims[0]: self.__lims[1]]
+            emergent_smooth_terms_series[term] = self.__timeseries_quarterly_smoothed[idx][self.__lims[0]: self.__lims[1]]
+            emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx][self.__lims[0]: self.__lims[1]]
+
+        self.__timeseries_outputs = {}
+        self.__timeseries_outputs['signal'] = emergent_terms_series
+        self.__timeseries_outputs['signal_smooth'] = emergent_smooth_terms_series
+        self.__timeseries_outputs['derivatives'] = emergent_derivatives_terms_series
+
 
     @staticmethod
     def label_prediction_simple(values):
@@ -440,23 +460,29 @@ class Pipeline(object):
     def output(self, output_types, wordcloud_title=None, outname=None, nterms=50, n_nmf_topics=0):
         for output_type in output_types:
             if output_type == 'multiplot':
-                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent,
+                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__emergent_terms,
                                    self.__term_ngrams, lims=self.__lims, category='emergent',
                                    method=self.__emergence_index, output_name=outname)
 
-                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining,
+                self.get_multiplot(self.__timeseries_quarterly_smoothed, self.__timeseries_quarterly, self.__declining_terms,
                                    self.__term_ngrams, lims=self.__lims, category='declining',
                                    method=self.__emergence_index, output_name=outname)
             else:
-                output_factory.create(output_type, self.__term_score_tuples, emergence_list=self.__emergence_list,
+                output_factory.create(output_type, self.__term_score_tuples,self.__outputs_folder_name, emergence_list=self.__emergence_list,
                                       wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,
                                       name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
                                       date_dict=self.__date_dict, pick=self.__pick_method,
-                                      doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics)
+                                      doc_pickle_file_name=self.__data_filename, nmf_topics=n_nmf_topics,
+                                      timeseries_outputs=self.__timeseries_outputs,
+                                      method=self.__emergence_index)
 
     @property
     def term_score_tuples(self):
         return self.__term_score_tuples
+
+    @property
+    def outputs_folder_name(self):
+        return self.__outputs_folder_name
 
     def get_multiplot(self, timeseries_terms_smooth, timeseries, test_terms, term_ngrams, lims, method='Net Growth',
                       category='emergent', output_name='multiplot'):
@@ -535,12 +561,13 @@ class Pipeline(object):
         return self.__timeseries_data
 
     def run(self, predictors_to_run, emergence, normalized=False, train_test=False, state_space_eval=False):
+
         if emergence == 'emergent':
-            terms = self.__emergent
+            terms = self.__emergent_terms
         elif emergence == 'stationary':
             terms = self.__stationary
         elif emergence == 'declining':
-            terms = self.__declining
+            terms = self.__declining_terms
         else:
             raise ValueError(f'Unrecognised value for emergence_type: {emergence}')
 
