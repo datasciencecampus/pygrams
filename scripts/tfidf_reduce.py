@@ -4,6 +4,7 @@ import numpy as np
 from tqdm import tqdm
 
 from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
+from scripts.utils.pygrams_exception import PygramsException
 
 
 class TfidfReduce(object):
@@ -78,7 +79,7 @@ class TfidfReduce(object):
         count = ngram_count.tocsc()
 
         if not tf_norm.getformat() == 'csc':
-            print('problem')
+            raise PygramsException('Failed to convert tf_norm to csc format matrix')
 
         N = tf_norm.shape[0]
         tot_pij = self.collect_vector_for_feature(tf_norm)

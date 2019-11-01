@@ -421,7 +421,6 @@ class TestPyGrams(unittest.TestCase):
     @mock.patch("scripts.output_factory.BZ2File", create=True)
     @mock.patch("scripts.output_factory.makedirs", create=True)
     @mock.patch("os.path.isfile", create=True)
-    # @mock.patch("scripts.pipeline.utils.path.isfile", create=True)
     def test_unibitri_reduction_output_termcounts(self, mock_path_isfile, mock_of_makedirs,
                                                   mock_of_bz2file, mock_of_dump, mock_open,
                                                   mock_utils_bz2file, mock_utils_dump, mock_read_pickle):
@@ -439,7 +438,6 @@ class TestPyGrams(unittest.TestCase):
 
         pygrams.main(args)
 
-        # check the cached output of tfidf - the __tfidf_matrix field
         dumped_tfidf_file_name = os.path.join('cached', self.out_name + '-mdf-1.0-200052-200052', 'tfidf.pkl.bz2')
         self.dumped_tfidf = self.find_matching_pickle(mock_utils_dump, dumped_tfidf_file_name)
 
