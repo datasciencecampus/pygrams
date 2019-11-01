@@ -7,6 +7,7 @@ from pickle import dump
 from scripts.nmf_wrapper import nmf_topic_modelling
 from scripts.terms_graph import TermsGraph
 from scripts.utils import utils
+from scripts.utils.pygrams_exception import PygramsException
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
@@ -19,8 +20,8 @@ def dict_to_csv(timeseries_outputs, key, outputs_dir, method):
             writer.writerow([key, value])
 
 
-def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0, outputs_dir=None,
+def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None,
+           nterms=50, timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0,
            timeseries_outputs=None, method='net-growth'):
     dir_path = path.join(outputs_dir, output_type)
     makedirs(dir_path, exist_ok=True)
@@ -136,4 +137,4 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
             print()
             file.write('\n')
     else:
-        assert 0, "Bad output type: " + output_type
+        raise PygramsException("Bad output type: " + output_type)

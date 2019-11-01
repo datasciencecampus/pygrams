@@ -97,8 +97,7 @@ class TfidfReduce(object):
                 row_idx = tf_norm.indices[i]
                 pij = tf_norm.data[i]
                 vpj += (pij - mp_vec[j]) ** 2 * self.__lens[row_idx]
-            variance = vpj
-            variance_vec.append(variance)
+            variance_vec.append(vpj)
 
         entropy_vec = []
         for j in range(tf_norm.shape[1]):
