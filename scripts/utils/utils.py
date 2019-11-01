@@ -182,41 +182,20 @@ def normalize(ydata):
     return np.asarray([(_y - miny) / diff for _y in ydata])
 
 
-def stop(tokensin, unigrams, ngrams, digits=True):
+def stop(tokensin, unigrams, ngrams, digits=True, tuples=False):
     new_tokens = []
-    for token in tokensin:
+    for element in tokensin:
+        token = element[1] if tuples else element
         ngram = token.split()
+        if any([x.isdigit() for x in ngram]) and digits:
+            continue
         if len(ngram) == 1:
-            if ngram[0] not in unigrams and not ngram[0].isdigit():
-                new_tokens.append(token)
+            if ngram[0] not in unigrams:
+                new_tokens.append(element)
         else:
-            word_in_ngrams = False
-            for word in ngram:
-                if word in ngrams or (digits and word.isdigit()):
-                    word_in_ngrams = True
-                    break
-            if not word_in_ngrams:
-                new_tokens.append(token)
+            if token not in ngrams:
+                new_tokens.append(element)
     return new_tokens
-
-
-def stop_tup(tuples, unigrams, ngrams, digits=True):
-    new_tuples = []
-    for tuple in tuples:
-        token = tuple[1]
-        ngram = token.split()
-        if len(ngram) == 1:
-            if ngram[0] not in unigrams and not ngram[0].isdigit():
-                new_tuples.append(tuple)
-        else:
-            word_in_ngrams = False
-            for word in ngram:
-                if word in ngrams or (digits and word.isdigit()):
-                    word_in_ngrams = True
-                    break
-            if not word_in_ngrams:
-                new_tuples.append(tuple)
-    return new_tuples
 
 
 def checkdf(df, emtec, docs_mask_dict, text_header):

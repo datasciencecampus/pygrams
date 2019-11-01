@@ -5,7 +5,6 @@ from unittest.mock import Mock, MagicMock
 
 import numpy as np
 import pandas as pd
-
 import pygrams
 from scripts import FilePaths
 from scripts.text_processing import WordAnalyzer
@@ -27,11 +26,10 @@ class TestPyGrams(unittest.TestCase):
 
     def setUp(self):
         self.global_stopwords = '''the
-    '''
-        self.ngram_stopwords = '''with
-    '''
+'''
+        self.ngram_stopwords = '''patent with extra'''
         self.unigram_stopwords = '''of
-    '''
+'''
 
     def assertListAlmostEqual(self, list_a, list_b, places=7):
         self.assertEqual(len(list_a), len(list_b), 'Lists must be same length')
@@ -107,7 +105,7 @@ class TestPyGrams(unittest.TestCase):
                 return m
 
             elif file_name == FilePaths.ngram_stopwords_filename:
-                m.__enter__.return_value.read.return_value = self.ngram_stopwords
+                m.__enter__.return_value.readlines.return_value = self.ngram_stopwords.split('\n')
                 return m
 
             elif file_name == FilePaths.unigram_stopwords_filename:
@@ -427,9 +425,9 @@ class TestPyGrams(unittest.TestCase):
         pygrams.main(args)
 
         def assert_outputs(term_counts_per_week, feature_names, number_of_documents_per_week, week_iso_dates):
-            self.assertListEqual(feature_names, ['abstract', 'extra stuff', 'patent', 'with'])
+            self.assertListEqual(feature_names, ['abstract','of patent with', 'with extra stuff'])
             term_counts_as_lists = term_counts_per_week.todense().tolist()
-            self.assertListEqual(term_counts_as_lists[0], [1, 1, 1, 1])
+            self.assertListEqual(term_counts_as_lists[0], [1, 1, 1])
             self.assertListEqual(number_of_documents_per_week, [1])
             self.assertListEqual(week_iso_dates, [200052])
 
