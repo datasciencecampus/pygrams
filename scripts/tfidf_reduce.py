@@ -1,10 +1,8 @@
-from math import log, sqrt
-
+from math import log
 import numpy as np
 from tqdm import tqdm
 
 from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
-from scripts.utils.pygrams_exception import PygramsException
 
 
 class TfidfReduce(object):
