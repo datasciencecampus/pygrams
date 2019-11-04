@@ -55,60 +55,6 @@ class TfidfReduce(object):
             ngrams_scores_tuple.append((pick_value, ngram))
         return ngrams_scores_tuple
 
-    def collect_vector_for_feature(self, csc_mat):
-        vec = []
-        for j in range(csc_mat.shape[1]):
-            start_idx_ptr = csc_mat.indptr[j]
-            end_idx_ptr = csc_mat.indptr[j + 1]
-            j_total = 0
-            # iterate through rows with non-zero entries
-            for i in range(start_idx_ptr, end_idx_ptr):
-                # row_idx = csc_mat.indices[i]
-                counts_ij = csc_mat.data[i]
-                j_total += counts_ij
-            vec.append(j_total)
-        return np.array(vec)
-
-    def get_frequency_scores(self):
-        tfidf_norm = self.__tfidf_mat_normalized
-        tfidf_norm = tfidf_norm.tocsc()
-
-        if not tfidf_norm.getformat() == 'csc':
-            raise PygramsException('Failed to convert tf_norm to csc format matrix')
-
-        N = tfidf_norm.shape[0]
-        probabilities_vec = self.collect_vector_for_feature(tfidf_norm)
-        mp_vec = probabilities_vec / N
-
-        variance_vec = []
-        for j in range(tfidf_norm.shape[1]):
-            start_idx_ptr = tfidf_norm.indptr[j]
-            end_idx_ptr = tfidf_norm.indptr[j + 1]
-            vpj = 0
-            mpj = mp_vec[j]
-            # iterate through rows with non-zero entries
-            for i in range(start_idx_ptr, end_idx_ptr):
-                row_idx = tfidf_norm.indices[i]
-                pij = tfidf_norm.data[i]
-                vpj += (pij - mpj) ** 2 * self.__lens[row_idx]
-            variance_vec.append(vpj)
-
-        entropy_vec = []
-        for j in range(tfidf_norm.shape[1]):
-            start_idx_ptr = tfidf_norm.indptr[j]
-            end_idx_ptr = tfidf_norm.indptr[j + 1]
-            entropy_j = 0
-            # iterate through rows with non-zero entries
-            for i in range(start_idx_ptr, end_idx_ptr):
-                # row_idx = csc_mat.indices[i]
-                pij = tfidf_norm.data[i]
-                entropy_j += pij * log(1 / pij)
-            entropy_vec.append(entropy_j)
-
-        sat_vec = mp_vec / np.sqrt(np.array(variance_vec))
-
-        return probabilities_vec, variance_vec, entropy_vec, sat_vec
-
     def extract_ngrams_from_docset(self, pick_method, verbose=True, mp_vec=None, normalised=False):
 
         freq_matrix = self.__tfidf_mat_normalized if normalised else self.__tfidf_masked
