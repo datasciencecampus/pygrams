@@ -102,5 +102,5 @@ class TestGraph(unittest.TestCase):
 
         self.assertAlmostEqual(0.3813920347587772, self.__links[idx_1]['size'])
         self.assertAlmostEqual(0.7144144576377361, self.__links[idx_2]['size'])
-        self.assertAlmostEqual(0.4490717794261198, self.__links[idx_3]['size'])
+        self.assertAlmostEqual(0.44907177942611987, self.__links[idx_3]['size'])
         self.assertAlmostEqual(0.5741197010309195, self.__links[idx_4]['size'])
