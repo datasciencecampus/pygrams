@@ -53,13 +53,13 @@ class TfidfReduce(object):
             ngrams_scores_tuple.append((pick_value, ngram))
         return ngrams_scores_tuple
 
-    def extract_ngrams_from_docset(self, pick_method, verbose=True, mp_vec=None, normalised=False):
+    def extract_ngrams_from_docset(self, pick_method, verbose=True,  normalised=False):
 
-        freq_matrix = self.__tfidf_mat_normalized if normalised else self.__tfidf_masked
-        if freq_matrix.getformat() == 'csr':
-            freq_matrix = freq_matrix.tocsc()
+        # freq_matrix = self.__tfidf_mat_normalized if normalised else self.__tfidf_masked
+        if self.__tfidf_masked.getformat() == 'csr':
+            self.__tfidf_masked = self.__tfidf_masked.tocsc()
 
-        N = freq_matrix.shape[0]
+        N = self.__tfidf_masked.shape[0]
 
         ngrams_scores_tuple = []
         feature_iterator = self.__feature_names
@@ -67,10 +67,10 @@ class TfidfReduce(object):
             feature_iterator = tqdm(feature_iterator, leave=False, desc='Searching TFIDF', unit='ngram')
 
         for ngram_index, ngram in enumerate(feature_iterator):
-            start_idx_inptr = freq_matrix.indptr[ngram_index]
-            end_idx_inptr = freq_matrix.indptr[ngram_index + 1]
+            start_idx_inptr = self.__tfidf_masked.indptr[ngram_index]
+            end_idx_inptr = self.__tfidf_masked.indptr[ngram_index + 1]
 
-            non_zero_values_term = freq_matrix.data[start_idx_inptr:end_idx_inptr]
+            non_zero_values_term = self.__tfidf_masked.data[start_idx_inptr:end_idx_inptr]
             if len(non_zero_values_term) > 0:
                 if pick_method == 'median':
                     pick_value = np.median(non_zero_values_term)
@@ -85,7 +85,7 @@ class TfidfReduce(object):
                 elif pick_method == 'entropy':
                     pick_value = np.sum([pij * log(1 / pij) for pij in non_zero_values_term])
                 elif pick_method == 'variance':
-                    mpj = mp_vec[ngram_index]
+                    mpj = np.sum(non_zero_values_term)/N
                     pick_value = np.sum([(pij - mpj) ** 2 for pij in non_zero_values_term])
 
                 if np.isnan(pick_value):

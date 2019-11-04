@@ -66,13 +66,20 @@ class Pipeline(object):
 
             if prefilter_terms != 0:
                 tfidf_reduce_obj = TfidfReduce(self.__tfidf_obj.tfidf_matrix, self.__tfidf_obj.feature_names)
-                term_score_tuples = tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
-                num_tuples_to_retain = min(prefilter_terms, len(term_score_tuples))
+                term_score_mp = tfidf_reduce_obj.extract_ngrams_from_docset('mean_prob')
+                num_tuples_to_retain = min(prefilter_terms, len(term_score_mp))
 
-                feature_subset = sorted([x[1] for x in term_score_tuples[:num_tuples_to_retain]])
+                term_score_entropy = tfidf_reduce_obj.extract_ngrams_from_docset('entropy')
+                term_score_variance= tfidf_reduce_obj.extract_ngrams_from_docset('variance')
+
+                feature_subset_mp = sorted([x[1] for x in term_score_mp[:num_tuples_to_retain]])
+                feature_subset_variance = sorted([x[1] for x in term_score_variance[:num_tuples_to_retain]])
+                feature_subset_entropy = sorted([x[1] for x in term_score_entropy[:num_tuples_to_retain]])
+
+                feature_subset = set(feature_subset_mp).union(set(feature_subset_variance)).union(feature_subset_entropy)
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
-                self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+                self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, sorted(list(feature_subset)))
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
