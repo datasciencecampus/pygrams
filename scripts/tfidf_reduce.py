@@ -55,7 +55,6 @@ class TfidfReduce(object):
 
     def extract_ngrams_from_docset(self, pick_method, verbose=True,  normalised=False):
 
-        # freq_matrix = self.__tfidf_mat_normalized if normalised else self.__tfidf_masked
         if self.__tfidf_masked.getformat() == 'csr':
             self.__tfidf_masked = self.__tfidf_masked.tocsc()
 
