@@ -406,10 +406,10 @@ class TestPyGrams(unittest.TestCase):
         l2norm_tfidf_abstract = tfidf_abstract / l2norm
 
         def assert_tfidf_outputs(tfidf_matrix, feature_names):
-            self.assertListEqual(feature_names, ['abstract'])
+            self.assertListEqual(feature_names, ['abstract', 'one'])
             tfidf_as_lists = tfidf_matrix.todense().tolist()
-            self.assertListAlmostEqual(tfidf_as_lists[0], [l2norm_tfidf_abstract], places=4)
-            self.assertListAlmostEqual(tfidf_as_lists[1], [l2norm_tfidf_abstract], places=4)
+            self.assertListAlmostEqual([tfidf_as_lists[0][0]], [l2norm_tfidf_abstract], places=4)
+            self.assertListAlmostEqual([tfidf_as_lists[1][0]], [l2norm_tfidf_abstract], places=4)
 
         self.assertTfidfOutputs(assert_tfidf_outputs, mock_pickle_dump, mock_makedirs, max_df, 200051, 200052)
 
