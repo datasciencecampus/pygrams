@@ -91,6 +91,9 @@ class TermsGraph(object):
                 print(', '.join(out_str))
 
     def save_graph(self, dir_path, fname, varname):
+        os.makedirs(dir_path, exist_ok=True)
+        reports_dir_name = dir_path.replace('visuals', 'reports', 1)
+        os.makedirs(reports_dir_name, exist_ok=True)
 
         graph = self.__graph
         links = graph['links']
@@ -107,7 +110,8 @@ class TermsGraph(object):
             js_temp.write(varname + " = '[")
             json.dump(graph, js_temp)
             js_temp.write("]'")
-        file_name_jason = os.path.join(dir_path.replace('visuals', 'reports', 1), fname + '.json')
+
+        file_name_jason = os.path.join(reports_dir_name, fname + '.json')
         with open(file_name_jason, 'w') as js_temp:
             json.dump(graph, js_temp)
 

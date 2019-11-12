@@ -7,6 +7,7 @@ from pickle import dump
 from scripts.nmf_wrapper import nmf_topic_modelling
 from scripts.terms_graph import TermsGraph
 from scripts.utils import utils
+from scripts.utils.pygrams_exception import PygramsException
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
@@ -19,8 +20,8 @@ def dict_to_csv(timeseries_outputs, key, outputs_dir, method):
             writer.writerow([key, value])
 
 
-def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None, nterms=50,
-           timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0, outputs_dir=None,
+def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=None, tfidf_reduce_obj=None, name=None,
+           nterms=50, timeseries_data=None, date_dict=None, pick=None, doc_pickle_file_name=None, nmf_topics=0,
            timeseries_outputs=None, method='net-growth'):
     dir_path = path.join(outputs_dir, output_type)
     makedirs(dir_path, exist_ok=True)
@@ -29,12 +30,13 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         filename_and_path = path.join(dir_path, name + '_keywords.txt')
         print()
         with open(filename_and_path, 'w') as file:
-            counter = 1
+            counter = 0
             for score, term in output:
                 if counter < nterms:
+                    counter += 1
                     file.write(f' {term:30} {score:f}\n')
                     print(f'{counter}. {term:30} {score:f}')
-                    counter += 1
+
     elif output_type == 'graph':
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
@@ -50,6 +52,7 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
         wordcloud = MultiCloudPlot(freqsin=dict_freqs, max_words=len(output))
         filename_and_path = path.join(dir_path, name)
         wordcloud.plot_cloud(wordcloud_title, filename_and_path)
+
     elif output_type == 'timeseries':
         if timeseries_outputs is not None:
             dict_to_csv(timeseries_outputs, 'signal', dir_path, method)
@@ -84,7 +87,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                 print()
                 file.write('\n')
 
-
     elif output_type == 'json_config':
         # needs updating
         doc_pickle_file_name = path.abspath(doc_pickle_file_name)
@@ -111,8 +113,8 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
 
         with open(json_file_name, 'w') as json_file:
             json.dump(json_data, json_file)
-    elif output_type =='nmf':
 
+    elif output_type =='nmf':
         # topic modelling
         topic_terms_to_print = 10
         nmf = nmf_topic_modelling(nmf_topics, tfidf_reduce_obj.tfidf_masked)
@@ -135,5 +137,6 @@ def create(output_type, output, emergence_list=[], wordcloud_title=None, tfidf_r
                 file.write(topic_names + '\n')
             print()
             file.write('\n')
+
     else:
-        assert 0, "Bad output type: " + output_type
+        raise PygramsException("Bad output type: " + output_type)

@@ -88,7 +88,6 @@ class WordAnalyzer(object):
     stemmed_stop_word_set_uni = None
     stemmed_stop_word_set_glob = None
 
-
     @staticmethod
     def init(tokenizer, preprocess, ngram_range):
         WordAnalyzer.tokenizer = tokenizer
@@ -143,4 +142,4 @@ class WordAnalyzer(object):
                     if not has_punkt:
                         tokens_append(space_join(candidate_ngram))
 
-        return ut.stop(tokens,WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
+        return ut.stop(tokens, WordAnalyzer.stemmed_stop_word_set_uni, WordAnalyzer.stemmed_stop_word_set_n)
