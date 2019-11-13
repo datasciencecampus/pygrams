@@ -200,7 +200,7 @@ class Pipeline(object):
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
         self.__timeseries_intercept = []
-        self.__timeseries_quarterly_derivatives = []
+        self.__timeseries_quarterly_derivatives = None
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
 
@@ -216,15 +216,17 @@ class Pipeline(object):
         min_i = 0
         max_i = len(all_quarters)
 
-        for i, quarter in enumerate(all_quarters):
-            min_i = i
-            if min_date is not None and min_date <= quarter:
-                break
+        if min_date is not None:
+            for i, quarter in enumerate(all_quarters):
+                min_i = i
+                if min_date >= quarter:
+                    break
 
-        for i, quarter in enumerate(all_quarters):
-            max_i = i
-            if max_date is not None and max_date <= quarter:
-                break
+        if max_date is not None:
+            for i, quarter in enumerate(all_quarters):
+                max_i = i
+                if max_date <= quarter:
+                    break
 
         self.__lims = [min_i, max_i]
         self.__timeseries_quarterly_smoothed = None if sma is None else []
@@ -242,6 +244,9 @@ class Pipeline(object):
             if cached_folder_name is None or not (
                     path.isfile(utils.pickle_name('smooth_series_s', self.__cached_folder_name))
                     and path.isfile(utils.pickle_name('derivatives', self.__cached_folder_name))):
+
+                self.__timeseries_quarterly_derivatives = []
+
                 for term_index, quarterly_values in tqdm(enumerate(self.__timeseries_quarterly), unit='term',
                                                          desc='smoothing quarterly timeseries with kalman filter',
                                                          leave=False, unit_scale=True,
@@ -318,13 +323,15 @@ class Pipeline(object):
             idx = self.__term_ngrams.index(term)
             emergent_terms_series[term] = self.__timeseries_quarterly[idx][self.__lims[0]: self.__lims[1]]
             emergent_smooth_terms_series[term] = self.__timeseries_quarterly_smoothed[idx][self.__lims[0]: self.__lims[1]]
-            emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx][self.__lims[0]: self.__lims[1]]
 
-        self.__timeseries_outputs = {}
-        self.__timeseries_outputs['signal'] = emergent_terms_series
-        self.__timeseries_outputs['signal_smooth'] = emergent_smooth_terms_series
-        self.__timeseries_outputs['derivatives'] = emergent_derivatives_terms_series
+            if self.__timeseries_quarterly_derivatives is not None:
+                emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx][self.__lims[0]: self.__lims[1]]
 
+        self.__timeseries_outputs = {
+            'signal': emergent_terms_series,
+            'signal_smooth': emergent_smooth_terms_series,
+            'derivatives': emergent_derivatives_terms_series
+        }
 
     @staticmethod
     def label_prediction_simple(values):
