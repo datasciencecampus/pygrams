@@ -219,7 +219,7 @@ class Pipeline(object):
         if min_date is not None:
             for i, quarter in enumerate(all_quarters):
                 min_i = i
-                if min_date >= quarter:
+                if min_date <= quarter:
                     break
 
         if max_date is not None:
