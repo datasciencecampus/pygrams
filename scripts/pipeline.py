@@ -53,9 +53,9 @@ class Pipeline(object):
                 self.__dates = None
             else:
                 self.__dates = generate_year_week_dates(dataframe,docs_mask_dict['date_header'])
-                min_quarterly_date = min(self.__dates)
-                max_quarterly_date = max(self.__dates)
-                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_quarterly_date}-{max_quarterly_date}')
+                min_date = min(self.__dates)
+                max_date = max(self.__dates)
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
 
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
@@ -99,10 +99,10 @@ class Pipeline(object):
             self.__cpc_dict = utils.unpickle_object('cpc_dict', self.__cached_folder_name)
 
             if self.__dates is not None:
-                min_quarterly_date = min(self.__dates)
-                max_quarterly_date = max(self.__dates)
-                print(f'Document year-week dates range from {min_quarterly_date // 100}-{(min_quarterly_date % 100):02d} '
-                      f'to {max_quarterly_date // 100}-{(max_quarterly_date % 100):02d}')
+                min_date = min(self.__dates)
+                max_date = max(self.__dates)
+                print(f'Document year-week dates range from {min_date // 100}-{(min_date % 100):02d} '
+                      f'to {max_date // 100}-{(max_date % 100):02d}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
