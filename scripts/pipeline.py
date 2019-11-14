@@ -53,9 +53,9 @@ class Pipeline(object):
                 self.__dates = None
             else:
                 self.__dates = generate_year_week_dates(dataframe,docs_mask_dict['date_header'])
-                min_date = min(self.__dates)
-                max_date = max(self.__dates)
-                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_date}-{max_date}')
+                min_quarterly_date = min(self.__dates)
+                max_quarterly_date = max(self.__dates)
+                self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}-{min_quarterly_date}-{max_quarterly_date}')
 
             self.__tfidf_obj = tfidf_from_text(text_series=dataframe[text_header],
                                                ngram_range=ngram_range,
@@ -99,10 +99,10 @@ class Pipeline(object):
             self.__cpc_dict = utils.unpickle_object('cpc_dict', self.__cached_folder_name)
 
             if self.__dates is not None:
-                min_date = min(self.__dates)
-                max_date = max(self.__dates)
-                print(f'Document year-week dates range from {min_date // 100}-{(min_date % 100):02d} '
-                      f'to {max_date // 100}-{(max_date % 100):02d}')
+                min_quarterly_date = min(self.__dates)
+                max_quarterly_date = max(self.__dates)
+                print(f'Document year-week dates range from {min_quarterly_date // 100}-{(min_quarterly_date % 100):02d} '
+                      f'to {max_quarterly_date // 100}-{(max_quarterly_date % 100):02d}')
 
             WordAnalyzer.init(
                 tokenizer=LemmaTokenizer(),
@@ -208,27 +208,27 @@ class Pipeline(object):
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
-        min_date = max_date = None
+        min_quarterly_date = max_quarterly_date = None
         if self.__timeseries_date_dict is not None:
-            min_date = weekly_to_quarterly(self.__timeseries_date_dict['from'])
-            max_date = weekly_to_quarterly(self.__timeseries_date_dict['to'])
+            min_quarterly_date = weekly_to_quarterly(self.__timeseries_date_dict['from'])
+            max_quarterly_date = weekly_to_quarterly(self.__timeseries_date_dict['to'])
 
-        min_i = 0
-        max_i = len(all_quarters)
+        min_index = 0
+        max_index = len(all_quarters)
 
-        if min_date is not None:
-            for i, quarter in enumerate(all_quarters):
-                min_i = i
-                if min_date <= quarter:
+        if min_quarterly_date is not None:
+            for index, quarterly_date in enumerate(all_quarters):
+                min_index = index
+                if min_quarterly_date <= quarterly_date:
                     break
 
-        if max_date is not None:
-            for i, quarter in enumerate(all_quarters):
-                max_i = i
-                if max_date <= quarter:
+        if max_quarterly_date is not None:
+            for index, quarterly_date in enumerate(all_quarters):
+                max_index = index
+                if max_quarterly_date <= quarterly_date:
                     break
 
-        self.__lims = [min_i, max_i]
+        self.__lims = [min_index, max_index]
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
@@ -276,7 +276,7 @@ class Pipeline(object):
                 smooth_series_no_negatives = np.clip(smooth_series, a_min=0, a_max=None)
                 self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
-        em = Emergence(all_quarterly_values[min_i:max_i])
+        em = Emergence(all_quarterly_values[min_index:max_index])
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             if term_weights[term_index] == 0.0:
@@ -284,11 +284,11 @@ class Pipeline(object):
             term_ngram = self.__term_ngrams[term_index]
 
             if self.__timeseries_quarterly_smoothed is not None:
-                quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
+                quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_index:max_index]
             else:
-                quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
+                quarterly_values = list(self.__timeseries_quarterly[term_index])[min_index:max_index]
 
-            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(
+            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_index:max_index])) < float(
                     patents_per_quarter_threshold):
                 continue
 
@@ -299,7 +299,7 @@ class Pipeline(object):
                     continue
                 escore = em.calculate_escore(quarterly_values)
             elif emergence_index == 'net-growth':
-                derivatives = self.__timeseries_quarterly_derivatives[term_index][min_i:max_i]
+                derivatives = self.__timeseries_quarterly_derivatives[term_index][min_index:max_index]
                 escore = em.net_growth(quarterly_values, derivatives)
             else:
                 weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
