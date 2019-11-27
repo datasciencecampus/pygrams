@@ -10,6 +10,7 @@ from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score
 class Emergence(object):
 
     def __init__(self, timeseries_all):
+
         self.BASE_TERM2ALL_RATIO_THRESHOLD = 0.15
         self.ACTIVE2BASE_RATIO_THRESHOLD = 2
         self.MIN_DOCS_FOR_EMERGENCE = 7
@@ -29,6 +30,7 @@ class Emergence(object):
             self.__sum_sqrt_total_counts_567 = None
 
     def is_emergence_candidate(self, timeseries_term):
+        zero_division_adjust = 0.001
         num_term_records = len(timeseries_term)
 
         num_records_base_all = sum(self.__timeseries_all[-self.NUM_PERIODS:-self.NUM_PERIODS_ACTIVE])
@@ -37,9 +39,9 @@ class Emergence(object):
         if num_records_base_term == 0:
             return False
 
-        base2all_below_threshold = num_records_base_term / num_records_base_all < self.BASE_TERM2ALL_RATIO_THRESHOLD
+        base2all_below_threshold = num_records_base_term / (num_records_base_all + zero_division_adjust) < self.BASE_TERM2ALL_RATIO_THRESHOLD
         at_least_n_recs = num_term_records >= self.MIN_DOCS_FOR_EMERGENCE
-        active2base_ratio = num_records_active_term / num_records_base_term
+        active2base_ratio = num_records_active_term / (num_records_base_term + zero_division_adjust)
 
         return at_least_n_recs and active2base_ratio > self.ACTIVE2BASE_RATIO_THRESHOLD and base2all_below_threshold \
                and self.has_multiple_author_sets()
