@@ -24,6 +24,20 @@ The app pipeline (more details in the user option section):
    2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
 8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
+## Unofficial Installation guide
+
+Use Python 3
+
+Run the following command to install dependencies
+
+`pip install -r requirements.txt`
+
+Install punkt data tokeniser
+
+`python -m nltk.downloader punkt averaged_perceptron_tagger wordnet`
+
+//TODO: Add docker file
+
 ## Installation guide
 
 pyGrams.py has been developed to work on both Windows and MacOS. To install:
@@ -516,4 +530,3 @@ project by Iryna Herasymuk is used to generate the force directed graph output.
 
 Various 3rd party libraries are used in this project; these are listed
 on the [dependencies](https://github.com/datasciencecampus/pygrams/network/dependencies) page, whose contributions we gratefully acknowledge. 
-
