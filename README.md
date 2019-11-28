@@ -35,7 +35,9 @@ Navigate to root directory of the project and build the docker image
 `docker build -t pygrams:1.0`
 
 `-t` - tags the image 
+
 `pygrams` - image name 
+
 `1.0` - image label 
 
 Run the built docker image using
