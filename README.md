@@ -36,6 +36,12 @@ Install punkt data tokeniser
 
 `python -m nltk.downloader punkt averaged_perceptron_tagger wordnet`
 
+Test if all dependencies have been set by running `pygrams.py` script and that it shows no errors. 
+
+`python pygrams.py`
+
+Look at **[User guide](#User-guide)** on instructions to run it.
+
 //TODO: Add docker file
 
 ## Installation guide
