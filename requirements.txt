@@ -60,7 +60,7 @@ mccabe==0.6.1
 more-itertools==4.1.0
 msrest==0.6.6
 msrestazure==0.4.34
-mysql-connector==2.1.6
+mysql-connector==2.2.9
 numpy==1.16.2
 oauthlib==3.0.1
 pandas==0.24.2
