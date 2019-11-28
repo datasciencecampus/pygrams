@@ -26,7 +26,27 @@ The app pipeline (more details in the user option section):
 
 ## Unofficial Installation guide
 
-Use Python 3
+### Run using Docker
+
+Ensure that [docker](https://docs.docker.com/v17.09/engine/installation/) is installed on your machine.
+
+Navigate to root directory of the project and build the docker image
+
+`docker build -t pygrams:1.0`
+
+`-t` - tags the image
+`pygrams` - image name
+`1.0` - image label
+
+Run the built docker image using
+
+`docker run pygrams:1.0`
+
+You will see the same output as when you run `python pygrams.py`
+
+//TODO: Pass params when running docker image
+
+### Without docker
 
 Run the following command to install dependencies
 
@@ -42,7 +62,6 @@ Test if all dependencies have been set by running `pygrams.py` script and that i
 
 Look at **[User guide](#User-guide)** on instructions to run it.
 
-//TODO: Add docker file
 
 ## Installation guide
 
