@@ -4,6 +4,5 @@ ADD . /pygrams
 WORKDIR /pygrams
 
 RUN pip install -e .
-RUN python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 
 ENTRYPOINT [ "python", "./pygrams.py" ]
