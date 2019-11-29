@@ -24,48 +24,33 @@ The app pipeline (more details in the user option section):
    2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
 8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
-## Unofficial Installation guide
+## Installation guide
 
-### Run using Docker
+### Setup using Docker
 
 Ensure that [docker](https://docs.docker.com/v17.09/engine/installation/) is installed on your machine.
 
 Navigate to root directory of the project and build the docker image
 
-`docker build -t pygrams:1.0`
+`docker build -t pygrams`
 
 `-t` - tags the image 
 
-`pygrams` - image name 
-
-`1.0` - image label 
+`pygrams` - image tag 
 
 Run the built docker image using
 
-`docker run pygrams:1.0`
+`docker run pygrams`
 
 You will see the same output as when you run `python pygrams.py`
 
-//TODO: Pass params when running docker image
+If you would like to pass parameters when running the program as described in **[User guide](#User-guide)**, append the parameters at the end of `docker run`:
 
-### Without docker
+`docker run pygrams -mn=1 -mx=3`
 
-Run the following command to install dependencies
+Have a look at **[User guide](#User-guide)** for further runtime parameters.
 
-`pip install -r requirements.txt`
-
-Install punkt data tokeniser
-
-`python -m nltk.downloader punkt averaged_perceptron_tagger wordnet`
-
-Test if all dependencies have been set by running `pygrams.py` script and that it shows no errors. 
-
-`python pygrams.py`
-
-Look at **[User guide](#User-guide)** on instructions to run it.
-
-
-## Installation guide
+### Setup without Docker
 
 pyGrams.py has been developed to work on both Windows and MacOS. To install:
 

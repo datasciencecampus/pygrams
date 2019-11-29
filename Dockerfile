@@ -6,4 +6,4 @@ WORKDIR /pygrams
 RUN pip install -r requirements.txt
 RUN python -m nltk.downloader punkt averaged_perceptron_tagger wordnet
 
-CMD [ "python", "./pygrams.py" ]
+ENTRYPOINT [ "python", "./pygrams.py" ]
