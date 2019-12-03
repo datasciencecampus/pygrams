@@ -1,3 +1,4 @@
+from math import log
 import numpy as np
 from tqdm import tqdm
 
@@ -5,9 +6,13 @@ from scripts.utils.date_utils import tfidf_with_dates_to_weekly_term_counts
 
 
 class TfidfReduce(object):
-    def __init__(self, tfidf_masked, feature_names):
+    def __init__(self, tfidf_masked, feature_names, tfidf_obj=None, lens=None):
         self.__tfidf_masked = tfidf_masked
         self.__feature_names = feature_names
+        self.__lens = lens
+        if tfidf_obj is not None:
+            self.__tfidf_mat = tfidf_obj.tfidf_matrix
+            self.__tfidf_mat_normalized = self.__normalized_count_matrix(lens, self.__tfidf_mat.copy())
 
     @property
     def feature_names(self):
@@ -16,6 +21,17 @@ class TfidfReduce(object):
     @property
     def tfidf_masked(self):
         return self.__tfidf_masked
+
+    def __normalized_count_matrix(self, lens, csr_mat):
+        csr_mat.data = np.array([np.float32(round(x)) for x in csr_mat.data])
+        for i in range(csr_mat.shape[0]):
+            start_idx_ptr = csr_mat.indptr[i]
+            end_idx_ptr = csr_mat.indptr[i + 1]
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+                # row_idx = csc_mat.indices[i]
+                csr_mat.data[j] /= lens[i]
+        return csr_mat
 
     def extract_ngrams_from_row(self, row_num):
         if self.__tfidf_masked.getformat() == 'csc':
@@ -37,18 +53,12 @@ class TfidfReduce(object):
             ngrams_scores_tuple.append((pick_value, ngram))
         return ngrams_scores_tuple
 
-    def extract_ngrams_from_docset(self, pick_method, verbose=True):
+    def extract_ngrams_from_docset(self, pick_method, verbose=True,  normalised=False):
+
         if self.__tfidf_masked.getformat() == 'csr':
             self.__tfidf_masked = self.__tfidf_masked.tocsc()
 
-        if pick_method == 'median':
-            pick_func = np.median
-        elif pick_method == 'avg':
-            pick_func = np.average
-        elif pick_method == 'max':
-            pick_func = np.max
-        else:
-            pick_func = np.sum
+        N = self.__tfidf_masked.shape[0]
 
         ngrams_scores_tuple = []
         feature_iterator = self.__feature_names
@@ -61,7 +71,21 @@ class TfidfReduce(object):
 
             non_zero_values_term = self.__tfidf_masked.data[start_idx_inptr:end_idx_inptr]
             if len(non_zero_values_term) > 0:
-                pick_value = pick_func(non_zero_values_term)
+                if pick_method == 'median':
+                    pick_value = np.median(non_zero_values_term)
+                elif pick_method == 'avg':
+                    pick_value = np.average(non_zero_values_term)
+                elif pick_method == 'max':
+                    pick_value = np.max(non_zero_values_term)
+                elif pick_method == 'sum':
+                    pick_value = np.sum(non_zero_values_term)
+                elif pick_method == 'mean_prob':
+                    pick_value = np.sum(non_zero_values_term)/N
+                elif pick_method == 'entropy':
+                    pick_value = np.sum([pij * log(1 / pij) for pij in non_zero_values_term])
+                elif pick_method == 'variance':
+                    mpj = np.sum(non_zero_values_term)/N
+                    pick_value = np.sum([(pij - mpj) ** 2 for pij in non_zero_values_term])
 
                 if np.isnan(pick_value):
                     pick_value = 0

@@ -88,4 +88,3 @@ class _TFIDF:
     @property
     def feature_names(self):
         return self.__feature_names
-
