@@ -30,6 +30,8 @@ The app pipeline (more details in the user option section):
 
 Ensure that [docker](https://docs.docker.com/v17.09/engine/installation/) is installed on your machine.
 
+#### To build your own Docker image
+
 Navigate to root directory of the project and build the docker image
 
 `docker build -t pygrams`
@@ -38,17 +40,24 @@ Navigate to root directory of the project and build the docker image
 
 `pygrams` - image tag 
 
-Run the built docker image using
+#### To use a pre-built Docker image
+
+The latest version of pyGrams has been added to [docker.io](docker.io) at [https://hub.docker.com/r/datasciencecampus/pygrams](https://hub.docker.com/r/datasciencecampus/pygrams). To use this:
+
+`docker pull datasciencecampus/pygrams`
+
+#### To run the Docker image
+
+Run the built or pulled docker image using
 
 `docker run pygrams`
-
-You will see the same output as when you run `python pygrams.py`
 
 If you would like to pass parameters when running the program as described in **[User guide](#User-guide)**, append the parameters at the end of `docker run`:
 
 `docker run pygrams -mn=1 -mx=3`
 
 Have a look at **[User guide](#User-guide)** for further runtime parameters.
+
 
 ### Setup without Docker
 
