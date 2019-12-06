@@ -497,7 +497,7 @@ It continues with a detailed description of the arguments:
 
 ### Patent data
 
-Patent data was obtained from the [United States Patent and Trademark Office (USPTO)](https://www.uspto.gov) through the [Bulk Data Storage System (BDSS)](https://bulkdata.uspto.gov). In particular we used the `Patent Grant Full Text Data/APS (JAN 1976 - PRESENT)` dataset, using the data from 2004 onwards in XML 4.* format.
+Patent data was obtained from the [United States Patent and Trademark Office (USPTO)](https://www.uspto.gov) through the Bulk Data Storage System (BDSS). In particular, we used the `Patent Grant Full Text Data/APS (JAN 1976 - PRESENT)` dataset, using the data from 2004 onwards in XML 4.* format.
 
 ### scikit-learn usage
 
