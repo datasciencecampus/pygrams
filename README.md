@@ -26,6 +26,41 @@ The app pipeline (more details in the user option section):
 
 ## Installation guide
 
+### Setup using Docker
+
+Ensure that [docker](https://docs.docker.com/v17.09/engine/installation/) is installed on your machine.
+
+#### To build your own Docker image
+
+Navigate to root directory of the project and build the docker image
+
+`docker build -t pygrams`
+
+`-t` - tags the image 
+
+`pygrams` - image tag 
+
+#### To use a pre-built Docker image
+
+The latest version of pyGrams has been added to [docker.io](docker.io) at [https://hub.docker.com/r/datasciencecampus/pygrams](https://hub.docker.com/r/datasciencecampus/pygrams). To use this:
+
+`docker pull datasciencecampus/pygrams`
+
+#### To run the Docker image
+
+Run the built or pulled docker image using
+
+`docker run pygrams`
+
+If you would like to pass parameters when running the program as described in **[User guide](#User-guide)**, append the parameters at the end of `docker run`:
+
+`docker run pygrams -mn=1 -mx=3`
+
+Have a look at **[User guide](#User-guide)** for further runtime parameters.
+
+
+### Setup without Docker
+
 pyGrams.py has been developed to work on both Windows and MacOS. To install:
 
 1. Please make sure Python 3.6 is installed and set in your path.  
@@ -516,4 +551,3 @@ project by Iryna Herasymuk is used to generate the force directed graph output.
 
 Various 3rd party libraries are used in this project; these are listed
 on the [dependencies](https://github.com/datasciencecampus/pygrams/network/dependencies) page, whose contributions we gratefully acknowledge. 
-
