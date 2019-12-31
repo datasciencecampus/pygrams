@@ -129,12 +129,12 @@ Datasets should contain the following columns:
 |Date              |       Optional      | Compulsory for emergence  |
 |Other headers     |       Optional      | Can filter by content     |
 
-#### Selecting the column header names (-th, -dh)
+#### Selecting the text and date column header names (-th, -dh)
 
-When loading a document dataset, you will need to provide the column header names for each, using:
+When loading a document dataset, it is **mandatory** to provide the column header names for each, using:
 
 - `-th`: free text field column (default is 'abstract')
-- `-dh`: date column (default is 'date', format is 'YYYY/MM/DD')
+- `-dh`: date column (default is None as pyGrams can also work as a keywords extraction only without timeseries analysis), format is 'YYYY/MM/DD'
 
 For example, for a corpus of book blurbs you could use:
 
