@@ -52,7 +52,7 @@ def get_args(command_line_arguments):
 
     # Document column header names
     parser.add_argument("-th", "--text_header", default='abstract', help="the column name for the free text")
-    parser.add_argument("-dh", "--date_header", default=None, help="the column name for the date")
+    parser.add_argument("-dh", "--date_header", default='date', help="the column name for the date")
 
     # Word filters
     parser.add_argument("-fc", "--filter_columns", default=None,
