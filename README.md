@@ -133,7 +133,7 @@ Datasets should contain the following columns:
 
 When loading a document dataset, you will need to provide the column header names for each, using:
 
-- `-th`: free text field column (default is 'text')
+- `-th`: free text field column (default is 'abstract')
 - `-dh`: date column (default is 'date', format is 'YYYY/MM/DD')
 
 For example, for a corpus of book blurbs you could use:
