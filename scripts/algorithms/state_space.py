@@ -13,6 +13,7 @@ class StateSpaceModelObject(object):
         self.__num_prediction_periods = num_prediction_periods
 
         self.__alpha, self.__mse = StateSpaceModel(self.__history).run_smooth_forecast(k=self.__num_prediction_periods)
+
     @property
     def configuration(self):
         return None
