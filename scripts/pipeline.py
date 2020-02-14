@@ -200,7 +200,7 @@ class Pipeline(object):
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
         self.__timeseries_quarterly = []
         self.__timeseries_intercept = []
-        self.__timeseries_quarterly_derivatives = []
+        self.__timeseries_quarterly_derivatives = None
         self.__timeseries_quarterly_smoothed = []
         self.__term_nonzero_dates = []
 
@@ -208,25 +208,27 @@ class Pipeline(object):
             self.__weekly_iso_dates, self.__number_of_patents_per_week)
 
         # find indexes for date-range
-        min_date = max_date = None
+        min_quarterly_date = max_quarterly_date = None
         if self.__timeseries_date_dict is not None:
-            min_date = weekly_to_quarterly(self.__timeseries_date_dict['from'])
-            max_date = weekly_to_quarterly(self.__timeseries_date_dict['to'])
+            min_quarterly_date = weekly_to_quarterly(self.__timeseries_date_dict['from'])
+            max_quarterly_date = weekly_to_quarterly(self.__timeseries_date_dict['to'])
 
-        min_i = 0
-        max_i = len(all_quarters)
+        min_index = 0
+        max_index = len(all_quarters)
 
-        for i, quarter in enumerate(all_quarters):
-            min_i = i
-            if min_date is not None and min_date <= quarter:
-                break
+        if min_quarterly_date is not None:
+            for index, quarterly_date in enumerate(all_quarters):
+                min_index = index
+                if min_quarterly_date <= quarterly_date:
+                    break
 
-        for i, quarter in enumerate(all_quarters):
-            max_i = i
-            if max_date is not None and max_date <= quarter:
-                break
+        if max_quarterly_date is not None:
+            for index, quarterly_date in enumerate(all_quarters):
+                max_index = index
+                if max_quarterly_date <= quarterly_date:
+                    break
 
-        self.__lims = [min_i, max_i]
+        self.__lims = [min_index, max_index]
         self.__timeseries_quarterly_smoothed = None if sma is None else []
 
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term',
@@ -242,6 +244,9 @@ class Pipeline(object):
             if cached_folder_name is None or not (
                     path.isfile(utils.pickle_name('smooth_series_s', self.__cached_folder_name))
                     and path.isfile(utils.pickle_name('derivatives', self.__cached_folder_name))):
+
+                self.__timeseries_quarterly_derivatives = []
+
                 for term_index, quarterly_values in tqdm(enumerate(self.__timeseries_quarterly), unit='term',
                                                          desc='smoothing quarterly timeseries with kalman filter',
                                                          leave=False, unit_scale=True,
@@ -271,7 +276,7 @@ class Pipeline(object):
                 smooth_series_no_negatives = np.clip(smooth_series, a_min=0, a_max=None)
                 self.__timeseries_quarterly_smoothed.append(smooth_series_no_negatives.tolist())
 
-        em = Emergence(all_quarterly_values[min_i:max_i])
+        em = Emergence(all_quarterly_values[min_index:max_index])
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
                                leave=False, unit_scale=True):
             if term_weights[term_index] == 0.0:
@@ -279,11 +284,11 @@ class Pipeline(object):
             term_ngram = self.__term_ngrams[term_index]
 
             if self.__timeseries_quarterly_smoothed is not None:
-                quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_i:max_i]
+                quarterly_values = list(self.__timeseries_quarterly_smoothed[term_index])[min_index:max_index]
             else:
-                quarterly_values = list(self.__timeseries_quarterly[term_index])[min_i:max_i]
+                quarterly_values = list(self.__timeseries_quarterly[term_index])[min_index:max_index]
 
-            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_i:max_i])) < float(
+            if len(quarterly_values) == 0 or max(list(self.__timeseries_quarterly[term_index][min_index:max_index])) < float(
                     patents_per_quarter_threshold):
                 continue
 
@@ -294,7 +299,7 @@ class Pipeline(object):
                     continue
                 escore = em.calculate_escore(quarterly_values)
             elif emergence_index == 'net-growth':
-                derivatives = self.__timeseries_quarterly_derivatives[term_index][min_i:max_i]
+                derivatives = self.__timeseries_quarterly_derivatives[term_index][min_index:max_index]
                 escore = em.net_growth(quarterly_values, derivatives)
             else:
                 weekly_values = term_counts_per_week_csc.getcol(term_index).todense().ravel().tolist()[0]
@@ -318,13 +323,15 @@ class Pipeline(object):
             idx = self.__term_ngrams.index(term)
             emergent_terms_series[term] = self.__timeseries_quarterly[idx][self.__lims[0]: self.__lims[1]]
             emergent_smooth_terms_series[term] = self.__timeseries_quarterly_smoothed[idx][self.__lims[0]: self.__lims[1]]
-            emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx][self.__lims[0]: self.__lims[1]]
 
-        self.__timeseries_outputs = {}
-        self.__timeseries_outputs['signal'] = emergent_terms_series
-        self.__timeseries_outputs['signal_smooth'] = emergent_smooth_terms_series
-        self.__timeseries_outputs['derivatives'] = emergent_derivatives_terms_series
+            if self.__timeseries_quarterly_derivatives is not None:
+                emergent_derivatives_terms_series[term] = self.__timeseries_quarterly_derivatives[idx][self.__lims[0]: self.__lims[1]]
 
+        self.__timeseries_outputs = {
+            'signal': emergent_terms_series,
+            'signal_smooth': emergent_smooth_terms_series,
+            'derivatives': emergent_derivatives_terms_series
+        }
 
     @staticmethod
     def label_prediction_simple(values):
