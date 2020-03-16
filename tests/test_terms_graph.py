@@ -53,10 +53,10 @@ class TestGraph(unittest.TestCase):
         cls.__nodes = graph['nodes']
 
     def test_num_nodes(self):
-        self.assertEquals(50, len(self.__nodes))
+        self.assertEqual(50, len(self.__nodes))
 
     def test_num_links(self):
-        self.assertEquals(182, len(self.__links))
+        self.assertEqual(182, len(self.__links))
 
     def test_terms_in_nodes(self):
         texts = [x['text'] for x in self.__nodes]
