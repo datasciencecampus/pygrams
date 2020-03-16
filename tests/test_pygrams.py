@@ -1,6 +1,3 @@
-# import matplotlib
-# matplotlib.rcParams['backend_fallback'] = False
-
 import os
 import unittest
 from unittest import mock

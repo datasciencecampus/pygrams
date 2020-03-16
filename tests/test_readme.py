@@ -1,7 +1,3 @@
-import matplotlib
-# matplotlib.use('TkAgg')
-matplotlib.rcParams['backend_fallback'] = False
-
 import os
 import sys
 import unittest
