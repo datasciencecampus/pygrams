@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('TkAgg')
+
 from math import log10, floor
 from os import path
 
