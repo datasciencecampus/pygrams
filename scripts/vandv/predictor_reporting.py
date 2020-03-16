@@ -1,6 +1,3 @@
-import matplotlib
-matplotlib.use("TkAgg")
-
 import math
 from math import sqrt
 from statistics import stdev

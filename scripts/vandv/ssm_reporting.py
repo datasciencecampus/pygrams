@@ -1,6 +1,3 @@
-import matplotlib
-matplotlib.use('TkAgg')
-
 from statistics import stdev, mean
 
 import matplotlib.pyplot as plt
