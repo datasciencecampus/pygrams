@@ -1,3 +1,4 @@
+import numpy as np
 from tqdm import tqdm
 
 from scripts.algorithms.predictor_factory import PredictorFactory as factory
@@ -43,6 +44,10 @@ def evaluate_prediction(timeseries_terms, term_ngrams, predictor_names, test_ter
         results[predictor_name] = {}
 
         for test_term in tqdm(test_terms, unit='term', desc='Validating prediction with ' + predictor_name):
+             if np.isnan(smoothed_training_values[test_term]).any():
+                print(f'Skipping "{test_term}" due to NaN in timeseries')
+                results[predictor_name][test_term] = (None, None, np.array([0] * num_prediction_periods), len(smoothed_training_values))
+                continue
 
             model = factory.predictor_factory(predictor_name, test_term, smoothed_training_values[test_term],
                                               num_prediction_periods)
