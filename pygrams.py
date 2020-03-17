@@ -8,10 +8,7 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
-predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters','ssm',
-                   'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
-                   'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
-                   'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
+predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters', 'SSM']
 
 
 def get_args(command_line_arguments):

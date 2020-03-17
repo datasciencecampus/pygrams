@@ -21,7 +21,7 @@ The app pipeline (more details in the user option section):
 5. **Mask the TFIDF Matrix** Apply the filters to the TFIDF matrix
 6. **[Emergence](#emergence-calculations)**
    1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations, curve fitting, or calculations designed to favour exponential like emergence. 
-   2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, LSTMs. 
+   2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, state-space models.
 8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
 
 ## Installation guide
@@ -131,10 +131,10 @@ Datasets should contain the following columns:
 
 #### Selecting the text and date column header names (-th, -dh)
 
-When loading a document dataset, it is **mandatory** to provide the column header names for each, using:
+When loading a document dataset, it is **mandatory** to provide the date column header name, with the text heading having an assumed default:
 
-- `-th`: free text field column (default is 'abstract')
-- `-dh`: date column (default is None as pyGrams can also work as a keywords extraction only without timeseries analysis), format is 'YYYY/MM/DD'
+- `-th`: free text field column ('text heading'; default is 'abstract')
+- `-dh`: date column ('date heading'; default is None as pyGrams can also work as a keywords extraction only without timeseries analysis), format of dates is 'YYYY/MM/DD'
 
 For example, for a corpus of book blurbs you could use:
 
@@ -305,12 +305,7 @@ The full list of options is included below, with multiple inputs are allowed.
 4. Cubic
 5. ARIMA
 6. Holt-Winters
-7. LSTM-multiLA-stateful
-8. LSTM-multiLA-stateless
-9. LSTM-1LA-stateful
-10. LSTM-1LA-stateless
-11. LSTM-multiM-1LA-stateful
-12. LSTM-multiM-1LA-stateless
+7. SSM
 
 #### Other options
 
@@ -421,19 +416,21 @@ python pygrams.py -h
 The help output is included below. This starts with a summary of arguments:
 
 ```
-usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
+usage: pygrams.py [-h] [-ds DOC_SOURCE] [-uc USE_CACHE] [-th TEXT_HEADER]
                   [-dh DATE_HEADER] [-fc FILTER_COLUMNS]
-                  [-fb {union,intersection}]
                   [-st SEARCH_TERMS [SEARCH_TERMS ...]]
-                  [-stthresh SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...]]
-                  [-df DATE_FROM] [-dt DATE_TO] [-mn {1,2,3}] [-mx {1,2,3}]
+                  [-stthresh SEARCH_TERMS_THRESHOLD] [-df DATE_FROM]
+                  [-dt DATE_TO] [-tsdf TIMESERIES_DATE_FROM]
+                  [-tsdt TIMESERIES_DATE_TO] [-mn {1,2,3}] [-mx {1,2,3}]
                   [-mdf MAX_DOCUMENT_FREQUENCY] [-ndl] [-pt PREFILTER_TERMS]
-                  [-t] [-o [{graph,wordcloud} [{graph,wordcloud} ...]]]
+                  [-o [{graph,wordcloud,multiplot} [{graph,wordcloud,multiplot} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
                   [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-ts]
                   [-pns PREDICTOR_NAMES [PREDICTOR_NAMES ...]] [-nts NTERMS]
-                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD] [-cf] [-nrm]
+                  [-mpq MINIMUM_PER_QUARTER] [-stp STEPS_AHEAD]
+                  [-ei {porter,net-growth}] [-sma {kalman,savgol}] [-exp]
+                  [-nrm]
 
 extract popular n-grams (words or short phrases) from a corpus of documents
 ```
@@ -443,9 +440,8 @@ It continues with a detailed description of the arguments:
   -ds DOC_SOURCE, --doc_source DOC_SOURCE
                         the document source to process (default: USPTO-
                         random-1000.pkl.bz2)
-  -it INPUT_TFIDF, --input_tfidf INPUT_TFIDF
-                        Load a pickled TFIDF output instead of creating TFIDF
-                        by processing a document source (default: None)
+  -uc USE_CACHE, --use_cache USE_CACHE
+                        Cache file to use, to speed up queries (default: None)
   -th TEXT_HEADER, --text_header TEXT_HEADER
                         the column name for the free text (default: abstract)
   -dh DATE_HEADER, --date_header DATE_HEADER
@@ -453,15 +449,11 @@ It continues with a detailed description of the arguments:
   -fc FILTER_COLUMNS, --filter_columns FILTER_COLUMNS
                         list of columns with binary entries by which to filter
                         the rows (default: None)
-  -fb {union,intersection}, --filter_by {union,intersection}
-                        Returns filter: intersection where all are 'Yes' or
-                        '1'or union where any are 'Yes' or '1' in the defined
-                        --filter_columns (default: union)
   -st SEARCH_TERMS [SEARCH_TERMS ...], --search_terms SEARCH_TERMS [SEARCH_TERMS ...]
                         Search terms filter: search terms to restrict the
                         tfidf dictionary. Outputs will be related to search
                         terms (default: [])
-  -stthresh SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...], --search_terms_threshold SEARCH_TERMS_THRESHOLD [SEARCH_TERMS_THRESHOLD ...]
+  -stthresh SEARCH_TERMS_THRESHOLD, --search_terms_threshold SEARCH_TERMS_THRESHOLD
                         Provides the threshold of how related you want search
                         terms to be Values between 0 and 1: 0.8 is considered
                         high (default: 0.75)
@@ -469,6 +461,12 @@ It continues with a detailed description of the arguments:
                         The first date for the document cohort in YYYY/MM/DD
                         format (default: None)
   -dt DATE_TO, --date_to DATE_TO
+                        The last date for the document cohort in YYYY/MM/DD
+                        format (default: None)
+  -tsdf TIMESERIES_DATE_FROM, --timeseries-date-from TIMESERIES_DATE_FROM
+                        The first date for the document cohort in YYYY/MM/DD
+                        format (default: None)
+  -tsdt TIMESERIES_DATE_TO, --timeseries-date-to TIMESERIES_DATE_TO
                         The last date for the document cohort in YYYY/MM/DD
                         format (default: None)
   -mn {1,2,3}, --min_ngrams {1,2,3}
@@ -486,7 +484,7 @@ It continues with a detailed description of the arguments:
                         score before pickling initial TFIDF (removes 'noise'
                         terms before main processing pipeline starts)
                         (default: 100000)
-  -o [{graph,wordcloud} [{graph,wordcloud} ...]], --output [{graph,wordcloud} [{graph,wordcloud} ...]]
+  -o [{graph,wordcloud,multiplot} [{graph,wordcloud,multiplot} ...]], --output [{graph,wordcloud,multiplot} [{graph,wordcloud,multiplot} ...]]
                         Note that this can be defined multiple times to get
                         more than one output. (default: [])
   -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
@@ -506,16 +504,12 @@ It continues with a detailed description of the arguments:
   -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
                         the desired cpc classification (for patents only)
                         (default: None)
-  -ts, --timeseries
-                        denote whether emerging technology should be forecast
+  -ts, --timeseries     denote whether timeseries analysis should take place
                         (default: False)
   -pns PREDICTOR_NAMES [PREDICTOR_NAMES ...], --predictor_names PREDICTOR_NAMES [PREDICTOR_NAMES ...]
-                        0. All, 1. Naive, 2. Linear, 3. Quadratic, 4. Cubic,
-                        5. ARIMA, 6. Holt-Winters, 7. LSTM-multiLA-stateful,
-                        8. LSTM-multiLA-stateless, 9. LSTM-1LA-stateful, 10.
-                        LSTM-1LA-stateless, 11. LSTM-multiM-1LA-stateful, 12.
-                        LSTM-multiM-1LA-stateless; multiple inputs are
-                        allowed. (default: [2])
+                        0. All standard predictors, 1. Naive, 2. Linear, 3.
+                        Quadratic, 4. Cubic, 5. ARIMA, 6. Holt-Winters, 7.
+                        SSM; multiple inputs are allowed. (default: [2])
   -nts NTERMS, --nterms NTERMS
                         number of terms to analyse (default: 25)
   -mpq MINIMUM_PER_QUARTER, --minimum-per-quarter MINIMUM_PER_QUARTER
@@ -523,7 +517,13 @@ It continues with a detailed description of the arguments:
                         term (default: 15)
   -stp STEPS_AHEAD, --steps_ahead STEPS_AHEAD
                         number of steps ahead to analyse for (default: 5)
-  -cf, --curve-fitting  analyse using curve or not (default: False)
+  -ei {porter,net-growth}, --emergence-index {porter,net-growth}
+                        Emergence calculation to use (default: porter)
+  -sma {kalman,savgol}, --smoothing-alg {kalman,savgol}
+                        Time series smoothing to use (default: savgol)
+  -exp, --exponential_fitting
+                        analyse using exponential type fit or not (default:
+                        False)
   -nrm, --normalised    analyse using normalised patents counts or not
                         (default: False)
 ```
