@@ -8,10 +8,7 @@ from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
 
-predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters','ssm',
-                   'LSTM-multiLA-stateful', 'LSTM-multiLA-stateless',
-                   'LSTM-1LA-stateful', 'LSTM-1LA-stateless',
-                   'LSTM-multiM-1LA-stateful', 'LSTM-multiM-1LA-stateless']
+predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters', 'SSM']
 
 
 def get_args(command_line_arguments):
@@ -172,14 +169,9 @@ def main(supplied_args):
 
     doc_source_file_name = os.path.join(args.path, args.doc_source)
 
-    if args.use_cache is None:
-        pickled_tfidf_folder_name = None
-    else:
-        pickled_tfidf_folder_name = args.use_cache
-
     pipeline = Pipeline(doc_source_file_name, docs_mask_dict, pick_method=args.pick,
                         ngram_range=(args.min_ngrams, args.max_ngrams), text_header=args.text_header,
-                        cached_folder_name=pickled_tfidf_folder_name,
+                        cached_folder_name=args.use_cache,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
                         output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,

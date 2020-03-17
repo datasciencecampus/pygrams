@@ -1,7 +1,8 @@
+from itertools import product
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-from itertools import product
 
 
 class StateSpaceModel:
@@ -27,12 +28,12 @@ class StateSpaceModel:
         ncolZ = Z.shape[1]
 
         Agamma = A[:, :ncA0 - 1]
-        alpha_hat     = np.matrix(np.vstack([-999.0]*ncolZ * k).reshape(ncolZ, k))
-        mse_alpha_hat = np.matrix(np.vstack([-999.0]*ncolZ*ncolZ * k).reshape(ncolZ, ncolZ * k))
+        alpha_hat = np.matrix(np.vstack([-999.0] * ncolZ * k).reshape(ncolZ, k))
+        mse_alpha_hat = np.matrix(np.vstack([-999.0] * ncolZ * ncolZ * k).reshape(ncolZ, ncolZ * k))
 
         aux = np.vstack([-gamma, 1]).reshape(ncA0, 1)
-        alpha = np.matmul(A,  aux)
-        alpha_hat[: , 0] = alpha
+        alpha = np.matmul(A, aux)
+        alpha_hat[:, 0] = alpha
 
         m1 = np.matmul(Agamma, mse_gamma)
         m2 = np.matmul(m1, np.transpose(Agamma))
@@ -40,10 +41,10 @@ class StateSpaceModel:
 
         mse_alpha_hat[:, 0:ncolZ] = msealpha
         if k > 1:
-            for i in range(1,k):
+            for i in range(1, k):
                 alpha_hat[:, i] = TT * alpha
-                mse_alpha_hat[: , ((i - 1) * ncolZ ): (ncolZ * i)] = TT * msealpha * TT.transpose()
-                TT = np.matmul(TT,  TT)
+                mse_alpha_hat[:, ((i - 1) * ncolZ): (ncolZ * i)] = TT * msealpha * TT.transpose()
+                TT = np.matmul(TT, TT)
             return alpha_hat, mse_alpha_hat
         return None, None
 
@@ -142,7 +143,11 @@ class StateSpaceModel:
             E = aux2 - np.matmul(Z, A)
             EE[:, (i * ncA0):((i + 1) * ncA0)] = E
             EEgam = np.matrix(E[:, 0:lTT]).reshape(1, lTT)
+
             D = np.matmul(Z, np.matmul(P, np.transpose(Z))) + GGt
+            if np.isnan(D[[0]].item()):
+                return None
+
             DD[i] = D
             Dinv = 1 / D
             K = np.matmul(TT, np.matmul(P, np.matmul(np.transpose(Z), Dinv)))
@@ -259,13 +264,17 @@ class StateSpaceModel:
     def run_smoothing(self, sigma_gnu=[0.001, 0.01, 0.1], sigma_eta=[0.001, 0.01, 0.1], delta=[0.5, 0.9]):
         opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
         dfk_out = self.dfk_llm_vard(opt_param)
+        if dfk_out is None:
+            return None, None, np.zeros(shape=(2, len(self.timeseries))), None
+
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
-        MSE = sum([((x-y)*(x-y)) for x,y in zip(self.timeseries, alphahat[0].tolist()[0])])/len(self.timeseries)
+        MSE = sum([((x - y) * (x - y)) for x, y in zip(self.timeseries, alphahat[0].tolist()[0])]) / len(
+            self.timeseries)
 
-        if MSE < 1.0 and sum(self.timeseries)/len(self.timeseries) > 1.5:
-            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
-            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5,1.0, 1.5]
+        if MSE < 1.0 and sum(self.timeseries) / len(self.timeseries) > 1.5:
+            sigma_gnu = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5, 1.0, 1.5]
+            sigma_eta = [0.0001, 0.001, 0.01, 0.1, 0.25, 0.5, 1.0, 1.5]
             delta = [0.3, 0.6, 0.9, 1.2, 1.5]
             opt_param = self.param_estimator(sigma_gnu, sigma_eta, delta)
             dfk_out = self.dfk_llm_vard(opt_param)

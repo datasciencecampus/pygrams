@@ -27,7 +27,7 @@ class TestDataFactory(unittest.TestCase):
 
     def test_reads_pickles(self):
         df = factory.get('data/USPTO-random-100.pkl.bz2')
-        self.assertEquals(len(df['abstract']), 100)
+        self.assertEqual(len(df['abstract']), 100)
 
 
 if __name__ == '__main__':
