@@ -21,6 +21,7 @@ class StateSpaceModelTests(unittest.TestCase):
         if os.name == 'nt':
             np.testing.assert_almost_equal(expected_smooth_series_no_negatives, smooth_series_no_negatives)
             np.testing.assert_almost_equal(expected_derivatives, derivatives)
+            self.fail('Checking Windows OS is detected')
 
     def test_run_smoothing_single_one(self):
         quarterly_values = [1] + ([0] * 1000)
