@@ -61,7 +61,8 @@ Pre-created datasets of 100, 1,000, 10,000, 100,000, and 500,000 patents are ava
 
 For example, to load the 10,000 pickled dataset for patents, use:
 
-```
+```python
+# Python
 python pygrams.py -ds=USPTO-random-10000.pkl.bz2
 ```
 
@@ -89,7 +90,8 @@ When loading a document dataset, you will need to provide the column header name
 
 For example, for a corpus of book blurbs you could use:
 
-```
+```python
+# Python
 python pygrams.py -th='blurb' -dh='published_date'
 ```
 
@@ -97,7 +99,8 @@ python pygrams.py -th='blurb' -dh='published_date'
 
 In order save processing time, at various stages of the pipeline, we cache data structures that are costly and slow to compute, like the compressed tf-idf matrix, the timeseries matrix, the smooth series and its derivatives from kalman filter and others:
 
-```
+```python
+# Python
 python pygrams.py -uc all-mdf-0.05-200501-201841
 ```
 
@@ -111,13 +114,15 @@ An n-gram is a contiguous sequence of n items ([source](https://en.wikipedia.org
 
 The following arguments will set the n-gram limit to be, e.g. unigrams, bigrams, and trigrams (the default):
 
-```
+```python
+# Python
 python pygrams.py -mn=1 -mx=3
 ```
 
 To analyse only unigrams:
 
-```
+```python
+# Python
 python pygrams.py -mn=1 -mx=1
 ```
 
@@ -127,7 +132,8 @@ Terms identified are filtered by the maximum number of documents that use this t
 
 For example, to set the maximum document frequency to 5% (the default), use:
 
-```
+```python
+# Python
 python pygrams.py -mdf 0.05
 ```
 
@@ -150,13 +156,19 @@ The total number of terms can easily exceed 1,000,000 and slow down pygrams with
 irrelevant terms. To circumvent this, a prefilter is applied as soon as the TFIDF matrix is created
 which will retain the highest scoring terms by TFIDF (as is calculated and reported at the end of the main pipeline).
 The default is to retain the top 100,000 terms; setting it to 0 will disable it, viz:
-```
+
+```python
+# Python
 python pygrams.py -pt 0
 ```
+
 Or changed to a different threshold such as 10,000 terms (using the longer argument name for comparison):
-```
+
+```python
+# Python
 python pygrams.py -prefilter_terms 10000
 ```
+
 Note that the prefilter will change TFIDF results as it will remove rare n-grams - which will
 result in bi-grams & tri-grams having increased scores when rare uni-grams and bi-grams are removed, as we
 unbias results to avoid double or triple counting contained n-grams.
@@ -169,13 +181,15 @@ unbias results to avoid double or triple counting contained n-grams.
 
 This argument can be used to filter documents to a certain timeframe. For example, the below will restrict the document cohort to only those from 20 Feb 2000 up to now (the default start date being 1 Jan 1900).
 
-```
+```python
+# Python
 python pygrams.py -dh publication_date -df=2000/02/20
 ```
 
 The following will restrict the document cohort to only those between 1 March 2000 and 31 July 2016.
 
-```
+```python
+# Python
 python pygrams.py -dh publication_date -df=2000/03/01 -dt=2016/07/31
 ```
 
@@ -186,7 +200,8 @@ If you want to filter results, such as for female, British in the example below,
 - `-fh`: the list of column names (default is None)
 - `-fb`: the type of filter (choices are `'union'` (default), where all fields need to be 'yes', or `'intersection'`, where any field can be 'yes') 
 
-```
+```python
+# Python
 python pygrams.py -fh=['female','british'] -fb='union'
 ```
 
@@ -197,7 +212,8 @@ This filter assumes that values are '0'/'1', or 'Yes'/'No'.
 
 This subsets the chosen patents dataset to a particular Cooperative Patent Classification (CPC) class, for example Y02. The Y02 classification is for "technologies or applications for mitigation or adaptation against climate change". An example script is:
 
-```
+```python
+# Python
 python pygrams.py -cpc=Y02 -ds=USPTO-random-10000.pkl.bz2
 ```
 
@@ -210,7 +226,9 @@ In the console the number of subset patents will be stated. For example, for `py
 #### Search terms filter (-st)
 
 This subsets the TFIDF term dictionary by only keeping terms related to the given search terms.
-```
+
+```python
+# Python
 python pygrams.py -st pharmacy medicine chemist
 ```
 
@@ -222,7 +240,8 @@ python pygrams.py -st pharmacy medicine chemist
 
 An option to choose between popular or emergent terminology outputs. Popular terminology is the default option; emergent terminology can be used by typing:
 
-```
+```python
+# Python
 python pygrams.py -ts
 ```
 
@@ -230,7 +249,8 @@ python pygrams.py -ts
 
 An option to choose between quadratic fitting, [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) or gradients from state-space model using kalman filter smoothing  emergence indexes. Porter is used by default; quadratic fitting can be used instead, for example:
 
-```
+```python
+# Python
 python pygrams.py -ts -ei quadratic
 ```
 
@@ -238,7 +258,8 @@ python pygrams.py -ts -ei quadratic
 
 An option designed to favour exponential like emergence, based on a yearly weighting function that linearly increases from zero, for example:
 
-```
+```python
+# Python
 python pygrams.py -ts -exp
 ```
 
@@ -252,9 +273,10 @@ Various options are available to control how emergence is forecasted.
 
 The forecast method is selected using argument pns, in this case corresponding to Linear (2=default) and Holt-Winters (6). 
 
-```
-Python pygrams.py -pns=2
-Python pygrams.py -pns=6
+```python
+# Python
+python pygrams.py -pns=2
+python pygrams.py -pns=6
 ```
 
 The full list of options is included below, with multiple inputs are allowed.
@@ -277,32 +299,37 @@ The full list of options is included below, with multiple inputs are allowed.
 
 number of terms to analyse (default: 25)
 
-```
-Python pygrams.py -nts=25
+```python
+# Python
+python pygrams.py -nts=25
 ```
 
 minimum number of patents per quarter referencing a term (default: 15)
 
-```
-Python pygrams.py -mpq=15
+```python
+# Python
+python pygrams.py -mpq=15
 ```
 
 number of steps ahead to analyse for (default: 5) 
 
-```
-Python pygrams.py -stp=5
+```python
+# Python
+python pygrams.py -stp=5
 ```
 
 analyse using test or not (default: False)
 
-```
-Python pygrams.py -tst=False
+```python
+# Python
+python pygrams.py -tst=False
 ```
 
 analyse using normalised patents counts or not (default: False)
 
-```
-Python pygrams.py -nrm=False
+```python
+# Python
+python pygrams.py -nrm=False
 ```
 
 <a id="outputs"> </a>
@@ -311,13 +338,16 @@ Python pygrams.py -nrm=False
 
 Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud or 'graph summary'.
 
-```
+```python
+# Python
 python pygrams.py -o wordcloud
 python pygrams.py -o graph
 ```
 
 Time series analysis also supports a multiplot to present up to 30 terms time series (emergent and declining), output in the `outputs/emergence` folder:
-```
+
+```python
+# Python
 python pygrams.py -ts -dh 'publication_date' -o multiplot
 ```
 
@@ -380,13 +410,15 @@ This output provides an interactive HTML graph. The graph shows connections betw
 
 A help function details the range and usage of these command line arguments:
 
-```
+```python
+# Python
 python pygrams.py -h
 ```
 
 The help output is included below. This starts with a summary of arguments:
 
-```
+```python
+# Python
 usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
                   [-dh DATE_HEADER] [-fc FILTER_COLUMNS]
                   [-fb {union,intersection}]
@@ -403,8 +435,11 @@ usage: pygrams.py [-h] [-ds DOC_SOURCE] [-it INPUT_TFIDF] [-th TEXT_HEADER]
 
 extract popular n-grams (words or short phrases) from a corpus of documents
 ```
+
 It continues with a detailed description of the arguments:
-```
+
+```python
+# Python
   -h, --help            show this help message and exit
   -ds DOC_SOURCE, --doc_source DOC_SOURCE
                         the document source to process (default: USPTO-
