@@ -1,0 +1,13 @@
+- title: Documentation
+  items:
+  - id: installation
+  - id: quick_start
+  - id: contributing
+
+# n title:, 1 items: per title:, n id: per items:
+# - title: A
+#   items:
+#   - id: B
+#   - id: C
+# - title: D
+#   - id: E
