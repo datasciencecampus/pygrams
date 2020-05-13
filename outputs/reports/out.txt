@@ -1,0 +1,249 @@
+ semiconductor device           3001.085456
+ electronic device              2776.873008
+ semiconductor substrate        2561.796468
+ light source                   2547.901689
+ pharmaceutical composition     2418.931267
+ mobile device                  2317.067037
+ electrically connect           2137.091407
+ main body                      1817.975840
+ display device                 1813.679534
+ base station                   1781.731060
+ top surface                    1635.503338
+ liquid crystal display         1534.928785
+ dielectric layer               1510.279808
+ upper surface                  1506.261353
+ pharmaceutically acceptable salt 1474.533347
+ semiconductor layer            1462.925723
+ circuit board                  1443.075317
+ input signal                   1442.626568
+ gate electrode                 1406.325317
+ internal combustion engine     1403.663806
+ memory cell                    1403.639084
+ control signal                 1378.829906
+ computer program product       1366.284703
+ longitudinal axis              1344.180224
+ computer system                1337.796076
+ inner surface                  1327.660154
+ output signal                  1312.245112
+ bottom surface                 1265.164491
+ communication device           1240.012518
+ conductive layer               1222.161721
+ power supply                   1198.248267
+ support member                 1164.753271
+ display panel                  1155.932100
+ image form                     1127.714814
+ memory device                  1124.964595
+ user interface                 1121.716018
+ semiconductor chip             1106.045586
+ storage device                 1104.682049
+ image data                     1101.505655
+ mobile terminal                1099.675809
+ closed position                1078.116730
+ light emit diode               1073.502991
+ computing device               1049.362740
+ light emit device              1038.520894
+ insulating layer               1034.846625
+ user equipment                 1033.289763
+ motor vehicle                  1023.693311
+ thin film transistor           1019.279874
+ metal layer                    1015.190771
+ integrate circuit              1008.396043
+ fluid communication            1002.838314
+ longitudinal direction         989.107336
+ carbon atom                    984.814494
+ mobile station                 975.906772
+ image processing               958.772613
+ wireless device                942.135501
+ client device                  927.359576
+ wireless communication system  912.995387
+ power source                   911.836180
+ print circuit board            908.822084
+ optical fiber                  905.046760
+ communication network          904.999310
+ axial direction                901.052062
+ image sensor                   892.312679
+ recording medium               889.389640
+ network device                 887.895560
+ clock signal                   875.271550
+ communication system           872.175656
+ user device                    870.580571
+ electric motor                 858.141355
+ data line                      834.577882
+ information processing         824.944046
+ output terminal                823.548710
+ integrated circuit             817.425975
+ upper portion                  814.544245
+ control device                 792.990258
+ electronic component           792.329123
+ support structure              789.652025
+ low surface                    785.482961
+ control circuit                779.965368
+ wireless communication device  779.429235
+ medical device                 778.249979
+ control system                 773.312585
+ pixel electrode                765.314537
+ light emit element             762.970913
+ front surface                  758.667158
+ base plate                     754.923111
+ optical element                753.897051
+ base portion                   750.207298
+ active layer                   749.286578
+ far provide                    748.747132
+ base member                    744.017606
+ wireless network               737.524764
+ active region                  735.610415
+ output voltage                 731.331911
+ low portion                    728.860446
+ hydrogen atom                  723.163588
+ heat exchanger                 721.433896
+ optical axis                   721.069867
+ heat sink                      721.021179
+ compute device                 711.380713
+ image forming                  707.517855
+ data packet                    702.610973
+ electrically couple            697.259687
+ organic light emit             696.103472
+ following step                 674.394257
+ body portion                   672.975839
+ display screen                 672.932948
+ crystal display device         662.653988
+ laser beam                     659.830927
+ printed circuit board          657.813956
+ access point                   656.493904
+ time period                    653.733973
+ outer surface                  653.157780
+ drain region                   651.130992
+ receive data                   649.232270
+ conductivity type              643.635617
+ gate line                      641.861310
+ graphical user interface       632.812644
+ semiconductor wafer            632.070016
+ virtual machine                625.810652
+ input terminal                 625.391659
+ channel region                 623.627639
+ mobile communication device    623.485966
+ electrical contact             619.506023
+ liquid crystal layer           616.669896
+ drain electrode                616.237459
+ light guide plate              611.633892
+ data store                     611.513377
+ reference voltage              610.543030
+ received signal                600.420354
+ following formula              595.071141
+ conductive material            592.017754
+ reference signal               590.255077
+ wireless communication         590.022586
+ main surface                   582.529687
+ operating system               581.325830
+ magnetic field                 577.413420
+ signal line                    575.524876
+ audio signal                   574.083008
+ distinct cultivar              573.933267
+ semiconductor memory device    569.746452
+ electrical connector           569.235067
+ combustion chamber             567.151576
+ optical system                 564.923274
+ input device                   564.351510
+ external device                561.192702
+ effective amount               560.050547
+ insulating film                558.453316
+ fuel cell                      553.984524
+ support surface                552.959969
+ central axis                   552.898695
+ portable electronic device     552.794021
+ data stream                    552.118600
+ drive shaft                    551.964105
+ bit line                       551.108763
+ inner wall                     548.622592
+ data signal                    547.367947
+ source region                  544.346024
+ data structure                 540.912040
+ nucleic acid molecule          539.728010
+ alkyl group                    533.603980
+ imaging device                 531.777076
+ light beam                     531.579069
+ predetermined number           531.564078
+ output shaft                   531.549247
+ web page                       530.624397
+ barrier layer                  529.059233
+ electrical signal              528.138390
+ data processing system         526.299686
+ semiconductor die              520.284368
+ amino acid sequence            517.482833
+ store data                     516.774867
+ field effect transistor        514.314361
+ source electrode               513.381041
+ frequency band                 512.253827
+ electrical connection          510.940542
+ rear surface                   508.161170
+ bottom portion                 507.279513
+ central portion                507.021562
+ semiconductor material         505.553190
+ emit light                     504.682151
+ exterior surface               504.455089
+ gate structure                 503.066207
+ back surface                   502.590842
+ optical signal                 501.940162
+ storage system                 500.770555
+ gas turbine engine             498.505439
+ storage medium                 498.399970
+ communication channel          497.344513
+ valve body                     495.922724
+ electrode layer                493.898393
+ adhesive layer                 492.304483
+ user input                     490.644053
+ contact surface                490.464567
+ data storage device            490.432150
+ far configure                  488.030245
+ light emit                     484.726795
+ silicon substrate              482.986763
+ active ingredient              482.041913
+ controller configure           481.384123
+ temperature sensor             478.295077
+ therapeutic agent              477.860040
+ data set                       477.805839
+ dielectric material            475.843522
+ power supply voltage           475.305963
+ input image                    473.226795
+ digital signal                 472.801592
+ input voltage                  470.863249
+ word line                      468.820565
+ predetermined value            468.323338
+ digital image                  468.062628
+ direction perpendicular        466.580140
+ semiconductor structure        466.062653
+ vertical direction             465.315556
+ radial direction               460.818996
+ bottom wall                    459.776055
+ record medium                  458.316449
+ aqueous solution               457.968077
+ data block                     456.610148
+ switching element              455.548201
+ insulate layer                 455.461770
+ insulation layer               454.313544
+ vehicle body                   448.912861
+ gate insulating film           447.523252
+ top portion                    447.516845
+ computer program               444.401155
+ circumferential direction      443.523478
+ light-emitting element         442.920742
+ time interval                  441.042160
+ nucleic acid sequence          439.819790
+ battery pack                   438.264790
+ heating element                437.826122
+ transparent substrate          437.614525
+ generate base                  437.000282
+ computer readable medium       436.509553
+ interior surface               435.770541
+ transmit data                  434.267368
+ base substrate                 430.231493
+ user terminal                  429.937923
+ touch panel                    429.784324
+ portable device                428.845029
+ memory cell array              428.100909
+ network element                427.888626
+ threshold voltage              426.732399
+ host cell                      423.569119
+ intermediate layer             422.041989
+ video signal                   417.984281
+ particularly useful            416.893004
