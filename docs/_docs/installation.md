@@ -14,8 +14,8 @@ pyGrams.py has been developed to work on both Windows and MacOS.
 
 Please make sure Python 3.6 is installed and set in your path.  To check the Python version default for your system, run the following in command line/terminal:
 
-```python
-# Python
+```bash
+# Bash
 python --version
 ```
 
@@ -23,8 +23,8 @@ python --version
 
 To install pyGrams packages and dependencies, from the root directory (./pyGrams) run:
 
-```python
-# Python 
+```bash
+# Bash 
 pip install -e .
 ```
 
