@@ -1,0 +1,28 @@
+<div class="footerContainer">
+  <div id="footer_wrap" class="wrapper footerWrapper">
+    <div class="footerBlocks">
+      <div id="fb_oss" class="footerSection fbOpenSourceFooter">
+        <img class="DSCOSSLogoSvg" height="20px" src="{{ '/static/favicon.png' | relative_url }}" alt="{{ site.title }}" title="{{ site.title }}" />
+
+        <h2>Data Science Campus</h2>
+      </div>
+      <div class="footerSection">
+        <a class="footerLink" href="https://github.com/datasciencecampus/" target="_blank">GitHub</a>
+        <a class="footerLink" href="https://twitter.com/datascicampus" target="_blank">Twitter</a>
+        <a class="footerLink" href="https://facebook.github.io/prophet/" target="_blank">GitHub Pages template adapted from Facebook</a>
+      </div>
+      <div class="footerSection rightAlign">
+        <a class="footerLink" href="https://github.com/{{ site.ghrepo }}" target="_blank">Contribute to this project on GitHub</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '{{ site.gacode }}', 'auto');
+  ga('send', 'pageview');
+</script>
