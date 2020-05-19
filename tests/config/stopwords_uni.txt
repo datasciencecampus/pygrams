@@ -1,3 +1,0 @@
-etc
-cover
-adjacent
