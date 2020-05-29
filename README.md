@@ -521,11 +521,6 @@ Patent data was obtained from the [United States Patent and Trademark Office (US
 
 Sections of this code are based on [scikit-learn](https://github.com/scikit-learn/scikit-learn) sources.
 
-### WebGenresForceDirectedGraph
-
-The [WebGenresForceDirectedGraph](https://github.com/Aeternia-ua/WebGenresForceDirectedGraph) 
-project by Iryna Herasymuk is used to generate the force directed graph output.
-
 ### 3rd Party Library Usage
 
 Various 3rd party libraries are used in this project; these are listed
