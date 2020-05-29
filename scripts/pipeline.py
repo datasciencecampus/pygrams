@@ -1,5 +1,7 @@
 from math import log10, floor
 from os import path
+import threading
+import time
 
 import numpy as np
 from scipy.signal import savgol_filter
@@ -48,6 +50,12 @@ class Pipeline(object):
             utils.checkdf(dataframe, calculate_timeseries, docs_mask_dict, text_header)
             utils.remove_empty_documents(dataframe, text_header)
 
+            # self.__done = False
+            # start = time.time()
+            # t = threading.Thread(target=utils.processing_animation(self.__done))
+            # t.start()
+            print('Please wait, processing TFIDF matrix. This may take a while... ')
+
             if docs_mask_dict['date_header'] is None:
                 self.__cached_folder_name = path.join('cached', output_name + f'-mdf-{max_df}')
                 self.__dates = None
@@ -89,6 +97,9 @@ class Pipeline(object):
             utils.pickle_object('tfidf', self.__tfidf_obj, self.__cached_folder_name)
             utils.pickle_object('dates', self.__dates, self.__cached_folder_name)
             utils.pickle_object('cpc_dict', self.__cpc_dict, self.__cached_folder_name)
+
+            time.sleep(10)
+            self.__done = True
 
         else:
             print(f'Reading document and TFIDF from pickle {cached_folder_name}')

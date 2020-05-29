@@ -22,7 +22,7 @@ The app pipeline (more details in the user option section):
 6. **[Emergence](#emergence-calculations)**
    1. **[Emergence Calculations](#emergence-calculations)** Options include [Porter 2018](https://www.researchgate.net/publication/324777916_Emergence_scoring_to_identify_frontier_RD_topics_and_key_players) emergence calculations, curve fitting, or calculations designed to favour exponential like emergence. 
    2. **[Emergence Forecasts](#emergence-forecasts)** Options include ARIMA, linear and quadratic regression, Holt-Winters, state-space models.
-8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a 'graph summary', word cloud and an html document as emergence report.
+8. **[Outputs](#outputs)** The default 'report' output is a ranked and scored list of 'popular' ngrams or emergent ones if selected. Other outputs include a word cloud and an html document as emergence report.
 
 ## Installation guide
 
@@ -341,11 +341,10 @@ Python pygrams.py -nrm=False
 
 ### Outputs (-o)
 
-Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud or 'graph summary'.
+Pygrams outputs a report of top ranked terms (popular or emergent). Additional command line arguments provide alternative options, for example a word cloud.
 
 ```
 python pygrams.py -o wordcloud
-python pygrams.py -o graph
 ```
 
 Time series analysis also supports a multiplot to present up to 30 terms time series (emergent and declining), output in the `outputs/emergence` folder:
@@ -357,7 +356,6 @@ The output options generate:
 
 - Report is a text file containing top n terms (default is 250 terms, see `-np` for more details)
 - `wordcloud`: a word cloud containing top n terms (default is 250 terms, see `-nd` for more details)
-- `graph`: a summary graph containing top n terms (default is 250 terms, see `-nf` for more details) linked to the most common co-located terms
 
 Note that all outputs are generated in the `outputs` subfolder. Below are some example outputs:
 
@@ -381,18 +379,6 @@ The report will output the top n number of terms (default is 250) and their asso
 #### Wordcloud ('wordcloud')
 
 A wordcloud, or tag cloud, is a novel visual representation of text data, where words (tags) importance is shown with font size and colour. Here is a [wordcloud](https://raw.githubusercontent.com/datasciencecampus/pygrams/master/outputs/wordclouds/wordcloud_tech.png) using patent data. The greater the TFIDF score, the larger the font size of the term.
-
-#### Graph summary ('graph')
-
-This output provides an interactive HTML graph. The graph shows connections between terms that are generally found in the same documents.
-
-| Term                       | Connections                                                  |
-| -------------------------- | ------------------------------------------------------------ |
-| semiconductor substrate    | dielectric layer: 0.16, conductive layer: 0.14, insulating film: 0.14, semiconductor structure: 0.13, channel region: 0.13, gate dielectric layer: 0.12, gate electrode: 0.11, doped region: 0.11, gate stack: 0.10, isolation region: 0.09 |
-| pharmaceutical composition | pharmaceutically acceptable salt: 0.82, general formula: 0.22, pharmaceutically acceptable carrier: 0.16, novel compound: 0.16, as define : 0.15, treat disease: 0.15, active ingredient: 0.13, intermediate useful: 0.13, treatment and/or prevention: 0.13, inflammatory disease: 0.13 |
-| mobile device              | mobile application: 0.12, mobile device base: 0.12, medium device: 0.08, communication device: 0.08, second mobile device: 0.07, optical imaging lens: 0.06, medium content: 0.06, base station: 0.06, digital content: 0.06, communication network: 0.05 |
-| memory cell                | bit line  : 0.61, memory cell array: 0.45, memory device: 0.25, memory array: 0.14, memory block: 0.13, control gate: 0.12, word line : 0.11, flash memory device: 0.11, second memory cell: 0.11, memory cell arrange: 0.10 |
-
 
 ### Folder structure
 
@@ -423,7 +409,7 @@ usage: pygrams.py [-h] [-ds DOC_SOURCE] [-uc USE_CACHE] [-th TEXT_HEADER]
                   [-dt DATE_TO] [-tsdf TIMESERIES_DATE_FROM]
                   [-tsdt TIMESERIES_DATE_TO] [-mn {1,2,3}] [-mx {1,2,3}]
                   [-mdf MAX_DOCUMENT_FREQUENCY] [-ndl] [-pt PREFILTER_TERMS]
-                  [-o [{graph,wordcloud,multiplot} [{graph,wordcloud,multiplot} ...]]]
+                  [-o [{wordcloud,multiplot} [{wordcloud,multiplot} ...]]]
                   [-on OUTPUTS_NAME] [-wt WORDCLOUD_TITLE] [-nltk NLTK_PATH]
                   [-np NUM_NGRAMS_REPORT] [-nd NUM_NGRAMS_WORDCLOUD]
                   [-nf NUM_NGRAMS_FDG] [-cpc CPC_CLASSIFICATION] [-ts]
@@ -484,7 +470,7 @@ It continues with a detailed description of the arguments:
                         score before pickling initial TFIDF (removes 'noise'
                         terms before main processing pipeline starts)
                         (default: 100000)
-  -o [{graph,wordcloud,multiplot} [{graph,wordcloud,multiplot} ...]], --output [{graph,wordcloud,multiplot} [{graph,wordcloud,multiplot} ...]]
+  -o [{wordcloud,multiplot} [{wordcloud,multiplot} ...]], --output [{wordcloud,multiplot} [{wordcloud,multiplot} ...]]
                         Note that this can be defined multiple times to get
                         more than one output. (default: [])
   -on OUTPUTS_NAME, --outputs_name OUTPUTS_NAME
@@ -497,9 +483,6 @@ It continues with a detailed description of the arguments:
                         number of ngrams to return for report (default: 250)
   -nd NUM_NGRAMS_WORDCLOUD, --num_ngrams_wordcloud NUM_NGRAMS_WORDCLOUD
                         number of ngrams to return for wordcloud (default:
-                        250)
-  -nf NUM_NGRAMS_FDG, --num_ngrams_fdg NUM_NGRAMS_FDG
-                        number of ngrams to return for fdg graph (default:
                         250)
   -cpc CPC_CLASSIFICATION, --cpc_classification CPC_CLASSIFICATION
                         the desired cpc classification (for patents only)
@@ -537,10 +520,6 @@ Patent data was obtained from the [United States Patent and Trademark Office (US
 ### scikit-learn usage
 
 Sections of this code are based on [scikit-learn](https://github.com/scikit-learn/scikit-learn) sources.
-
-### Knockout JavaScript library
-
-The [Knockout](http://knockoutjs.com/) JavaScript library is used with our force-directed graph output.
 
 ### WebGenresForceDirectedGraph
 

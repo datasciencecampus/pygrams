@@ -37,6 +37,7 @@ def create(output_type, output, outputs_dir, emergence_list=[], wordcloud_title=
                     file.write(f' {term:30} {score:f}\n')
                     print(f'{counter}. {term:30} {score:f}')
 
+    #TODO: Old code, remove or replace with chord diagram at some point
     elif output_type == 'graph':
         dict_freqs = dict([(p[0], (p[1])) for p in output])
         dict_freqs_list = list(dict_freqs.items())[:nterms]
