@@ -532,27 +532,6 @@ class TestPyGrams(unittest.TestCase):
         }
         self.assertEqual(expected_json, actual_json)
 
-    @mock.patch("scripts.terms_graph.json.dump", create=True)
-    @mock.patch("scripts.terms_graph.open", create=True)
-    def test_graph_creation(self, mock_open, mock_json_dump):
-        fname = 'other'
-        suffix='-mdf-0.05-200502-201808'
-        js_file_name = os.path.join('outputs', fname+suffix, 'visuals', 'key-terms.js')
-        json_file_name = os.path.join('outputs', fname+suffix, 'reports', 'key-terms.json')
-        graph_report_name = os.path.join('outputs', fname+suffix, 'reports', fname + '_graph.txt')
-
-        test_args = ['--doc_source', 'USPTO-random-100.pkl.bz2', '--date_header', 'publication_date', '-o', 'graph',
-                     '--outputs_name', fname]
-        pygrams.main(test_args)
-
-        mock_open.assert_any_call(graph_report_name, 'w')
-        mock_open.assert_any_call(json_file_name, 'w')
-        mock_open.assert_any_call(js_file_name, 'w')
-
-        actual_json = mock_json_dump.call_args_list[0][0][0]
-        self.assertIn('nodes', actual_json)
-        self.assertIn('links', actual_json)
-
     @mock.patch("os.path.isfile", create=True)
     def test_reports_unsupported_df_format(self, mock_path_isfile):
 
