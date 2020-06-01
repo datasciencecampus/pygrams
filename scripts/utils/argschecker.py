@@ -92,10 +92,6 @@ class ArgsChecker:
             print(f"at least 10 ngrams needed for report, {self.args.num_ngrams_report} chosen")
             app_exit = True
 
-        if self.args.num_ngrams_fdg < 10:
-            print(f"at least 10 ngrams needed for FDG, {self.args.num_ngrams_fdg} chosen")
-            app_exit = True
-
         if self.args.focus_source != self.args.focus_source:
             if self.args.focus is None:
                 print('argument [-fs] can only be used when focus is applied [-f]')
@@ -112,11 +108,6 @@ class ArgsChecker:
                 print(self.args.wordcloud_title)
                 print('arguments [-wt] [-nd] can only be used when output includes wordcloud '
                       '[-o] "wordcloud"')
-                app_exit = True
-
-        if self.args.num_ngrams_fdg != self.args_default.num_ngrams_fdg:
-            if 'fdg' not in self.args.output:
-                print('argument [-nf] can only be used when output includes fdg [-o] "fdg"')
                 app_exit = True
 
         if self.args.table_name != self.args_default.table_name:

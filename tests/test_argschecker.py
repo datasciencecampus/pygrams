@@ -18,12 +18,10 @@ class TestArgsChecker(unittest.TestCase):
         self.args.max_ngrams = 3
         self.args.num_ngrams_wordcloud = 20
         self.args.num_ngrams_report = 22
-        self.args.num_ngrams_fdg = 23
         self.args.wordcloud_title = 'default title'
         self.args.table_name = 'default table name'
 
         self.args_default = MagicMock()
-        self.args_default.num_ngrams_fdg = 23
         self.args_default.num_ngrams_report = 22
         self.args_default.num_ngrams_wordcloud = 20
         self.args_default.wordcloud_title = 'default title'
