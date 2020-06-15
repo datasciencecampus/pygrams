@@ -4,6 +4,7 @@ import os
 import sys
 import time
 
+
 from scripts.pipeline import Pipeline
 from scripts.utils.argschecker import ArgsChecker
 from scripts.utils.pygrams_exception import PygramsException
@@ -94,7 +95,7 @@ def get_args(command_line_arguments):
     # select outputs
 
     parser.add_argument("-o", "--output", nargs='*', default=[],
-                        choices=['graph', 'wordcloud', 'multiplot'],  # suppress table output option
+                        choices=['wordcloud', 'multiplot'],  # suppress table output option
                         help="Note that this can be defined multiple times to get more than one output. ")
 
     # file names etc.
@@ -108,8 +109,6 @@ def get_args(command_line_arguments):
                         help="number of ngrams to return for report")
     parser.add_argument("-nd", "--num_ngrams_wordcloud", type=int, default=250,
                         help="number of ngrams to return for wordcloud")
-    parser.add_argument("-nf", "--num_ngrams_fdg", type=int, default=250,
-                        help="number of ngrams to return for fdg graph")
 
     # PATENT SPECIFIC SUPPORT
     parser.add_argument("-cpc", "--cpc_classification", default=None,

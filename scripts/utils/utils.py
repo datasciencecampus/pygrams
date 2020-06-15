@@ -2,6 +2,9 @@ import array as arr
 from bz2 import BZ2File
 from os import path, makedirs
 from pickle import dump
+import itertools
+import sys
+import time
 
 import numpy as np
 from gensim.models import KeyedVectors
@@ -223,3 +226,13 @@ def remove_empty_documents(data_frame, text_header):
     num_docs_after_sift = data_frame.shape[0]
     num_docs_sifted = num_docs_before_sift - num_docs_after_sift
     print(f'Dropped {num_docs_sifted:,} from {num_docs_before_sift:,} docs due to empty text field')
+
+
+def processing_animation(done):
+    for c in itertools.cycle(['|', '/', '-', '\\']):
+        if done:
+            break
+        sys.stdout.write('\rPlease wait, processing TFIDF matrix. This may take a while... ' + c)
+        sys.stdout.flush()
+        time.sleep(0.1)
+    sys.stdout.write('\rDone!     ')
