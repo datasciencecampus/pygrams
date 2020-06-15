@@ -4,7 +4,6 @@
 [![LICENSE.](https://img.shields.io/badge/license-OGL--3-blue.svg?style=flat)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 
 
-
 <p align="center"><img align="center" src="meta/images/pygrams-logo.png" width="400px"></p>
 
 ## Description of tool
