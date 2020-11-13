@@ -50,7 +50,8 @@ install:
 
 script:
   # for codecov support
-  - pip install pytest pytest-cov
+  - pip install -U pytest
+  - pip install -U pytest-cov
   # to report installed packages
   - pip freeze
   # command to run tests
