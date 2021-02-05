@@ -80,7 +80,8 @@ pyGrams.py has been developed to work on both Windows and MacOS. To install:
    ```
 
    This will install all the libraries and then download their required datasets (namely NLTK's data). Once installed, 
-   setup will run some tests. If the tests pass, the app is ready to run. If any of the tests fail, please email [ons.patent.explorer@gmail.com](mailto:ons.patent.explorer@gmail.com) with a screenshot of the failure so that we may get back to you, or alternatively open a [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
+   setup will run some tests. If the tests pass, the app is ready to run. If any of the tests fail, open a
+   [GitHub issue here](https://github.com/datasciencecampus/pyGrams/issues).
 
 ### System Performance
 
