@@ -68,10 +68,12 @@ def setup_package():
             'Programming Language :: Python :: 3.6',
         ],
 
-        install_requires=['matplotlib', 'numpy', 'scipy==1.2.1', 'wordcloud', 'pandas', 'tqdm', 'nltk', 'scikit-learn',
-                          'xlrd', 'python-Levenshtein', 'gensim==3.4.0', 'statsmodels', 'keras', 'tensorflow',
-                          'keras_tqdm', 'patsy', 'humanfriendly', 'psutil', 'jinja2', 'urllib3==1.22'],
-        extras_require={'test': ['beautifulsoup4', 'pytest']},
+        install_requires=['matplotlib==3.1.1', 'numpy==1.17.1', 'scipy==1.2.1', 'wordcloud==1.5.0', 'pandas==0.25.1',
+                          'tqdm==4.35.0', 'nltk==3.4.5', 'scikit-learn==0.21.3', 'xlrd=1.2.0',
+                          'python-Levenshtein==0.12.0', 'gensim==3.4.0', 'statsmodels==0.10.1', 'keras==2.2.5',
+                          'tensorflow==1.14.0', 'keras_tqdm==2.0.1', 'patsy==0.5.1', 'humanfriendly==4.18',
+                          'psutil==5.6.3', 'jinja2==2.10.1', 'urllib3==1.22'],
+        extras_require={'test': ['beautifulsoup4==4.8.0', 'pytest==5.0.1']},
         python_requires='>=3.6',
         cmdclass={
             'install': CustomInstaller,
