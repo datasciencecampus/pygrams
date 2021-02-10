@@ -69,7 +69,7 @@ def setup_package():
         ],
 
         install_requires=['matplotlib==3.1.1', 'numpy==1.17.1', 'scipy==1.2.1', 'wordcloud==1.5.0', 'pandas==0.25.1',
-                          'tqdm==4.35.0', 'nltk==3.4.5', 'scikit-learn==0.21.3', 'xlrd=1.2.0',
+                          'tqdm==4.35.0', 'nltk==3.4.5', 'scikit-learn==0.21.3', 'xlrd==1.2.0',
                           'python-Levenshtein==0.12.0', 'gensim==3.4.0', 'statsmodels==0.10.1', 'keras==2.2.5',
                           'tensorflow==1.14.0', 'keras_tqdm==2.0.1', 'patsy==0.5.1', 'humanfriendly==4.18',
                           'psutil==5.6.3', 'jinja2==2.10.1', 'urllib3==1.22'],
