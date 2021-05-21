@@ -49,6 +49,7 @@ install:
   - pip install -e .[test]
 
 script:
+  - env
   # for codecov support
   - pip install -U pytest
   - pip install -U pytest-cov
