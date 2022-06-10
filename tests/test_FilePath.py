@@ -2,7 +2,7 @@ import os.path
 import platform
 import unittest
 
-from scripts import FilePaths
+from pygrams import FilePaths
 
 
 class TestFilePaths(unittest.TestCase):

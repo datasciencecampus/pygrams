@@ -31,7 +31,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 """
-import scripts.utils.utils as ut
+import pygrams.utils.utils as ut
 import string
 
 from nltk import word_tokenize, PorterStemmer, pos_tag
@@ -39,7 +39,7 @@ from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import strip_accents_ascii
 
-from scripts import FilePaths
+from pygrams import FilePaths
 
 
 class LemmaTokenizer(object):

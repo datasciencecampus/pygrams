@@ -2,10 +2,10 @@ import unittest
 
 import pandas as pd
 
-from scripts import FilePaths
-from scripts.filter_terms import FilterTerms
-from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wrapper import tfidf_from_text
+from pygrams import FilePaths
+from pygrams.filter_terms import FilterTerms
+from pygrams.text_processing import LemmaTokenizer
+from pygrams.tfidf_wrapper import tfidf_from_text
 from tests.support import assert_list_almost_equal
 
 

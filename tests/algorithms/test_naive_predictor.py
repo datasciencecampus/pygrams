@@ -9,7 +9,7 @@ import unittest
 
 import numpy.testing as np_test
 
-from scripts.algorithms.naive_predictor import NaivePredictor
+from pygrams.algorithms.naive_predictor import NaivePredictor
 
 
 class NaivePredictorTests(unittest.TestCase):

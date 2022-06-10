@@ -6,9 +6,9 @@ from unittest.mock import Mock, MagicMock
 import numpy as np
 import pandas as pd
 import pygrams
-from scripts import FilePaths
-from scripts.text_processing import WordAnalyzer
-from scripts.utils.pygrams_exception import PygramsException
+from pygrams import FilePaths
+from pygrams.text_processing import WordAnalyzer
+from pygrams.utils.pygrams_exception import PygramsException
 
 
 def bz2file_fake(file_name, state):

@@ -1,4 +1,4 @@
-from scripts.text_processing import StemTokenizer
+from pygrams.text_processing import StemTokenizer
 
 
 class Dice(object):

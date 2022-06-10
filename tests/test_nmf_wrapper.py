@@ -3,10 +3,10 @@ import unittest
 import pandas as pd
 from numpy.testing import assert_almost_equal
 
-from scripts import FilePaths
-from scripts.nmf_wrapper import nmf_topic_modelling
-from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wrapper import tfidf_from_text
+from pygrams import FilePaths
+from pygrams.nmf_wrapper import nmf_topic_modelling
+from pygrams.text_processing import LemmaTokenizer
+from pygrams.tfidf_wrapper import tfidf_from_text
 
 
 class TestNMFWrapper(unittest.TestCase):

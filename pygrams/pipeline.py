@@ -1,6 +1,5 @@
 from math import log10, floor
 from os import path
-import threading
 import time
 
 import numpy as np
@@ -8,23 +7,23 @@ from scipy.signal import savgol_filter
 from sklearn.linear_model import LinearRegression
 from tqdm import tqdm
 
-import scripts.data_factory as data_factory
-import scripts.output_factory as output_factory
-from scripts.utils.date_utils import generate_year_week_dates, weekly_to_quarterly, timeseries_weekly_to_quarterly
-from scripts.algorithms.ssm import StateSpaceModel
-from scripts.algorithms.emergence import Emergence
-from scripts.algorithms.predictor_factory import PredictorFactory
-from scripts.documents_filter import DocumentsFilter
-from scripts.filter_terms import FilterTerms
-from scripts.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
-from scripts.tfidf_mask import TfidfMask
-from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
-from scripts.utils import utils
-from scripts.vandv import ssm_reporting
-from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
-from scripts.vandv.predictor import evaluate_prediction
-from scripts.vandv.predictor_reporting import report_prediction_as_graphs_html
+import pygrams.data_factory as data_factory
+import pygrams.output_factory as output_factory
+from pygrams.utils.date_utils import generate_year_week_dates, weekly_to_quarterly, timeseries_weekly_to_quarterly
+from pygrams.algorithms.ssm import StateSpaceModel
+from pygrams.algorithms.emergence import Emergence
+from pygrams.algorithms.predictor_factory import PredictorFactory
+from pygrams.documents_filter import DocumentsFilter
+from pygrams.filter_terms import FilterTerms
+from pygrams.text_processing import LemmaTokenizer, WordAnalyzer, lowercase_strip_accents_and_ownership
+from pygrams.tfidf_mask import TfidfMask
+from pygrams.tfidf_reduce import TfidfReduce
+from pygrams.tfidf_wrapper import tfidf_subset_from_features, tfidf_from_text
+from pygrams.utils import utils
+from pygrams.vandv import ssm_reporting
+from pygrams.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
+from pygrams.vandv.predictor import evaluate_prediction
+from pygrams.vandv.predictor_reporting import report_prediction_as_graphs_html
 
 
 class Pipeline(object):
@@ -176,7 +175,7 @@ class Pipeline(object):
         # if other outputs
         self.__term_score_tuples = self.__tfidf_reduce_obj.extract_ngrams_from_docset(pick_method)
         self.__term_score_tuples = utils.stop(self.__term_score_tuples, WordAnalyzer.stemmed_stop_word_set_uni,
-                                                  WordAnalyzer.stemmed_stop_word_set_n, tuples=True)
+                                              WordAnalyzer.stemmed_stop_word_set_n, tuples=True)
 
         # todo: no output method; just if statements to call output functions...?
         #  Only supply what they each directly require
@@ -493,7 +492,7 @@ class Pipeline(object):
                                    self.__term_ngrams, lims=self.__lims, category='declining',
                                    method=self.__emergence_index, output_name=outname)
             else:
-                output_factory.create(output_type, self.__term_score_tuples,self.__outputs_folder_name, emergence_list=self.__emergence_list,
+                output_factory.create(output_type, self.__term_score_tuples, self.__outputs_folder_name, emergence_list=self.__emergence_list,
                                       wordcloud_title=wordcloud_title, tfidf_reduce_obj=self.__tfidf_reduce_obj,
                                       name=outname, nterms=nterms, timeseries_data=self.__timeseries_data,
                                       date_dict=self.__date_dict, pick=self.__pick_method,

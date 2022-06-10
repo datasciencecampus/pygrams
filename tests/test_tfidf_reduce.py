@@ -3,8 +3,8 @@ import unittest
 
 import pandas as pd
 
-from scripts.pipeline import Pipeline
-from scripts.utils.date_utils import date_to_year_week
+from pygrams.pipeline import Pipeline
+from pygrams.utils.date_utils import date_to_year_week
 from tests import support
 
 

@@ -7,7 +7,7 @@ if sys_pf == 'darwin':
 
 import unittest
 import numpy.testing as np_test
-from scripts.algorithms.polynomial_predictor import PolynomialPredictor
+from pygrams.algorithms.polynomial_predictor import PolynomialPredictor
 
 
 class PolynomialPredictorTests(unittest.TestCase):

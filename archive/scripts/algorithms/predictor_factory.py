@@ -1,14 +1,14 @@
 # from scripts.algorithms.state_space import StateSpaceModel
 import numpy as np
 
-from scripts.algorithms.arima import ARIMAForecast
-from scripts.algorithms.holtwinters_predictor import HoltWintersPredictor
-from scripts.algorithms.linear_predictor import LinearPredictor
-from scripts.algorithms.lstm import LstmForecasterMultipleLookAhead, LstmForecasterSingleLookAhead, \
+from pygrams.algorithms.arima import ARIMAForecast
+from pygrams.algorithms.holtwinters_predictor import HoltWintersPredictor
+from pygrams.algorithms.linear_predictor import LinearPredictor
+from pygrams.algorithms import LstmForecasterMultipleLookAhead, LstmForecasterSingleLookAhead, \
     LstmForecasterMultipleModelSingleLookAhead
-from scripts.algorithms.naive_predictor import NaivePredictor
-from scripts.algorithms.polynomial_predictor import PolynomialPredictor
-from scripts.algorithms.state_space import StateSpaceModelObject
+from pygrams.algorithms.naive_predictor import NaivePredictor
+from pygrams.algorithms.polynomial_predictor import PolynomialPredictor
+from pygrams.algorithms.state_space import StateSpaceModelObject
 
 
 class PredictorFactory(object):

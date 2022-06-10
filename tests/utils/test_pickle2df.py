@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 
-from scripts.utils.pickle2df import PatentsPickle2DataFrame
+from pygrams.utils.pickle2df import PatentsPickle2DataFrame
 
 
 class TestPatentsPickle2DataFrame(unittest.TestCase):

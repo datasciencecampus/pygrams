@@ -1,8 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 
-from scripts.algorithms.predictor_factory import PredictorFactory as factory
-from scripts.utils.date_utils import timeseries_weekly_to_quarterly
+from pygrams.algorithms.predictor_factory import PredictorFactory as factory
 
 
 # TODO quarterly values, should become timeseries

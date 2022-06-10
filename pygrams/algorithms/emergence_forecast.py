@@ -1,4 +1,4 @@
-from scripts.algorithms.arima import ARIMAForecast
+from pygrams.algorithms.arima import ARIMAForecast
 
 
 class EmergenceForecast(object):

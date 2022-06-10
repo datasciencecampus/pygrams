@@ -2,8 +2,8 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
-from scripts.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
-from scripts.utils import utils
+from pygrams.text_processing import StemTokenizer, lowercase_strip_accents_and_ownership, WordAnalyzer
+from pygrams.utils import utils
 
 
 def tfidf_from_text(text_series, ngram_range=(1, 3), max_document_frequency=0.3, tokenizer=StemTokenizer(), min_df=1):

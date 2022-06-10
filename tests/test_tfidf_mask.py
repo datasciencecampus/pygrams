@@ -2,14 +2,14 @@ import unittest
 
 import pandas as pd
 
-from scripts import FilePaths
-from scripts.documents_filter import DocumentsFilter
-from scripts.filter_terms import FilterTerms
-from scripts.text_processing import StemTokenizer
-from scripts.tfidf_mask import TfidfMask
-from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import tfidf_from_text
-from scripts.utils import utils
+from pygrams import FilePaths
+from pygrams.documents_filter import DocumentsFilter
+from pygrams.filter_terms import FilterTerms
+from pygrams.text_processing import StemTokenizer
+from pygrams.tfidf_mask import TfidfMask
+from pygrams.tfidf_reduce import TfidfReduce
+from pygrams.tfidf_wrapper import tfidf_from_text
+from pygrams.utils import utils
 # text for record 95, the only Y02 in set
 # An engine control system with a variable turbocharger may include an engine
 # including a cylinder generating power by combustion of a fuel, a variable
@@ -21,7 +21,7 @@ from scripts.utils import utils
 # driving region, and a deceleration driving region from a fuel amount supplied to
 # the cylinder and a required torque of the engine, and controlling opening of the
 # vane and an injection timing of fuel injected into the cylinder.
-from scripts.utils.date_utils import generate_year_week_dates
+from pygrams.utils.date_utils import generate_year_week_dates
 
 
 class TestTfidfMask(unittest.TestCase):

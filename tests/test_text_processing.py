@@ -2,7 +2,7 @@ import unittest
 
 from nltk import word_tokenize
 
-from scripts.text_processing import StemTokenizer, WordAnalyzer, \
+from pygrams.text_processing import StemTokenizer, WordAnalyzer, \
     lowercase_strip_accents_and_ownership, LemmaTokenizer
 
 # Sample abstracts taken from the USPTO Bulk Download Service: https://bulkdata.uspto.gov

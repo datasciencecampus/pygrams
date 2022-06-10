@@ -4,7 +4,7 @@ import numpy as np
 import pylab as plt
 from scipy.optimize import curve_fit
 
-from scripts.utils.utils import fsigmoid, fsigmoid_derivative, fit_score
+from pygrams.utils.utils import fsigmoid, fsigmoid_derivative, fit_score
 
 
 class Emergence(object):

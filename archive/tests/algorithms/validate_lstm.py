@@ -12,7 +12,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from scripts.algorithms.lstm import LstmForecasterMultipleModelSingleLookAhead
+from pygrams.algorithms import LstmForecasterMultipleModelSingleLookAhead
 
 
 class LstmTest(unittest.TestCase):

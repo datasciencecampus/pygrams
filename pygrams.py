@@ -5,9 +5,9 @@ import sys
 import time
 
 
-from scripts.pipeline import Pipeline
-from scripts.utils.argschecker import ArgsChecker
-from scripts.utils.pygrams_exception import PygramsException
+from pygrams.pipeline import Pipeline
+from pygrams.utils.argschecker import ArgsChecker
+from pygrams.utils.pygrams_exception import PygramsException
 
 predictor_names = ['All standard predictors', 'Naive', 'Linear', 'Quadratic', 'Cubic', 'ARIMA', 'Holt-Winters', 'SSM']
 
@@ -266,6 +266,6 @@ if __name__ == '__main__':
         seconds = diff % 60
 
         print('')
-        print(f"pyGrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
+        print(f"pygrams query took {hours}:{minutes:02d}:{seconds:02d} to complete")
     except PygramsException as err:
-        print(f"pyGrams error: {err.message}")
+        print(f"pygrams error: {err.message}")

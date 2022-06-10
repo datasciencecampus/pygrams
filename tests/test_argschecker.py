@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 
 import pandas as pd
 
-from scripts.utils.argschecker import ArgsChecker
-from scripts.utils.pygrams_exception import PygramsException
+from pygrams.utils.argschecker import ArgsChecker
+from pygrams.utils.pygrams_exception import PygramsException
 
 
 class TestArgsChecker(unittest.TestCase):

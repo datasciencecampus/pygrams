@@ -1,6 +1,6 @@
 import numpy as np
 
-from scripts.algorithms.ssm import StateSpaceModel
+from pygrams.algorithms.ssm import StateSpaceModel
 
 
 class StateSpaceModelObject(object):

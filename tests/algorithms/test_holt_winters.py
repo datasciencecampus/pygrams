@@ -2,7 +2,7 @@ import unittest
 
 import numpy.testing as np_test
 
-from scripts.algorithms.holtwinters_predictor import HoltWintersPredictor
+from pygrams.algorithms.holtwinters_predictor import HoltWintersPredictor
 
 
 class HoltWintersTests(unittest.TestCase):

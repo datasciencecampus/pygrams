@@ -1,7 +1,6 @@
 import unittest
-import numpy as np
 
-from scripts.algorithms.emergence import Emergence
+from pygrams.algorithms.emergence import Emergence
 
 
 class ExponentialEmergenceTests(unittest.TestCase):

@@ -2,7 +2,7 @@ import os
 
 from pandas import read_pickle, read_excel, read_csv
 
-from scripts.utils.pygrams_exception import PygramsException
+from pygrams.utils.pygrams_exception import PygramsException
 
 
 def get(doc_source_file_name):

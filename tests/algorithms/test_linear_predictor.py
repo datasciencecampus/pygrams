@@ -5,7 +5,7 @@ if sys_pf == 'darwin':
 
 import unittest
 import numpy.testing as np_test
-from scripts.algorithms.linear_predictor import LinearPredictor
+from pygrams.algorithms.linear_predictor import LinearPredictor
 
 
 class LinearPredictorTests(unittest.TestCase):

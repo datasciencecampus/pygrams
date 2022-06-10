@@ -2,8 +2,7 @@ import unittest
 
 import pandas as pd
 
-from scripts import FilePaths
-from scripts import data_factory as factory
+from pygrams import FilePaths, data_factory as factory
 
 
 class TestDataFactory(unittest.TestCase):

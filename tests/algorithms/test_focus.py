@@ -1,8 +1,8 @@
 import unittest
 
-from scripts.algorithms.term_focus import TermFocus
-from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wrapper import tfidf_from_text
+from pygrams.algorithms.term_focus import TermFocus
+from pygrams.text_processing import LemmaTokenizer
+from pygrams.tfidf_wrapper import tfidf_from_text
 from tests.utils import ReferenceData
 
 

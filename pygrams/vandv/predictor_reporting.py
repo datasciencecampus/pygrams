@@ -8,8 +8,8 @@ from scipy.stats import trim_mean
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from tqdm import tqdm
 
-from scripts.utils.date_utils import year_week_to_gregorian
-from scripts.vandv.graphs import plot_to_html_image
+from pygrams.utils.date_utils import year_week_to_gregorian
+from pygrams.vandv.ssm_reporting import plot_to_html_image
 
 
 def extract_rmse(predicted_values, test_term, test_values, training_values):

@@ -3,8 +3,8 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from emerging_tech.scripts.algorithms.emergence import Emergence
-from scripts.algorithms.emergence_forecast import EmergenceForecast
+from pygrams.algorithms.emergence import Emergence
+from pygrams.algorithms.emergence_forecast import EmergenceForecast
 
 
 class VV(object):

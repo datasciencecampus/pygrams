@@ -3,9 +3,9 @@ import unittest
 import pandas as pd
 from pandas.io.excel import register_writer
 
-from scripts.text_processing import LemmaTokenizer
-from scripts.tfidf_wrapper import tfidf_from_text
-from scripts.utils.table_output import table_output
+from pygrams.text_processing import LemmaTokenizer
+from pygrams.tfidf_wrapper import tfidf_from_text
+from pygrams.utils.table_output import table_output
 from tests.utils import ReferenceData
 
 

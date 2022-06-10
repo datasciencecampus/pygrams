@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import os
 
-from scripts.algorithms.ssm import StateSpaceModel
+from pygrams.algorithms.ssm import StateSpaceModel
 
 
 class StateSpaceModelTests(unittest.TestCase):

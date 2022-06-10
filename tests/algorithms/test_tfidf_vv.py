@@ -4,9 +4,9 @@ import unittest
 import Levenshtein as Lev
 import pandas as pd
 
-from scripts import FilePaths
-from scripts.text_processing import StemTokenizer
-from scripts.tfidf_wrapper import tfidf_from_text
+from pygrams import FilePaths
+from pygrams.text_processing import StemTokenizer
+from pygrams.tfidf_wrapper import tfidf_from_text
 from tests.utils.DiceScore import Dice
 from tests.vvcode.abstracts2pickle import us_vv_patents_pickle_name
 

@@ -5,7 +5,7 @@ import numpy as np
 from gensim.models import KeyedVectors
 from tqdm import tqdm
 
-import scripts.utils.utils as ut
+import pygrams.utils.utils as ut
 
 
 class FilterTerms(object):

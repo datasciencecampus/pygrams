@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from scripts.utils.import_patstat import convert_patstat_data_to_data_frame
+from pygrams.utils.import_patstat import convert_patstat_data_to_data_frame
 
 
 def create_df_with_unused_columns(df_dict, unused_keys):

@@ -4,14 +4,14 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from scripts import FilePaths
-from scripts.filter_terms import FilterTerms
-from scripts.terms_graph import TermsGraph
-from scripts.text_processing import StemTokenizer
-from scripts.tfidf_mask import TfidfMask
-from scripts.tfidf_reduce import TfidfReduce
-from scripts.tfidf_wrapper import tfidf_from_text
-from scripts.utils import utils
+from pygrams import FilePaths
+from pygrams.filter_terms import FilterTerms
+from pygrams.terms_graph import TermsGraph
+from pygrams.text_processing import StemTokenizer
+from pygrams.tfidf_mask import TfidfMask
+from pygrams.tfidf_reduce import TfidfReduce
+from pygrams.tfidf_wrapper import tfidf_from_text
+from pygrams.utils import utils
 
 
 class TestGraph(unittest.TestCase):

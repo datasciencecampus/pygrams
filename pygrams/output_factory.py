@@ -1,14 +1,12 @@
 import csv
 import json
-from bz2 import BZ2File
 from os import makedirs, path
-from pickle import dump
 
-from scripts.nmf_wrapper import nmf_topic_modelling
-from scripts.terms_graph import TermsGraph
-from scripts.utils import utils
-from scripts.utils.pygrams_exception import PygramsException
-from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
+from pygrams.nmf_wrapper import nmf_topic_modelling
+from pygrams.terms_graph import TermsGraph
+from pygrams.utils import utils
+from pygrams.utils.pygrams_exception import PygramsException
+from pygrams.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 
 def dict_to_csv(timeseries_outputs, key, outputs_dir, method):

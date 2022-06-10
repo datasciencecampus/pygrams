@@ -3,8 +3,8 @@ from os import path
 
 import pandas as pd
 
-from scripts.utils.date_utils import date_to_year_week
-from scripts.utils.pygrams_exception import PygramsException
+from pygrams.utils.date_utils import date_to_year_week
+from pygrams.utils.pygrams_exception import PygramsException
 
 
 class ArgsChecker:

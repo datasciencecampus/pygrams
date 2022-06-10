@@ -2,7 +2,7 @@ import unittest
 
 from bs4 import BeautifulSoup
 
-from scripts.vandv.ssm_reporting import html_table, summary_html_table
+from pygrams.vandv.ssm_reporting import html_table, summary_html_table
 
 
 def extract_table_text_from_html(soup):

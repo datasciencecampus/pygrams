@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 from scipy.sparse import csc_matrix
 
-from scripts.algorithms.emergence import Emergence
-from scripts.utils.date_utils import timeseries_weekly_to_yearly
-from scripts.utils.utils import get_row_indices_and_values, fill_missing_zeros
+from pygrams.algorithms.emergence import Emergence
+from pygrams.utils.date_utils import timeseries_weekly_to_yearly
+from pygrams.utils.utils import get_row_indices_and_values, fill_missing_zeros
 
 
 class EmergenceTests(unittest.TestCase):

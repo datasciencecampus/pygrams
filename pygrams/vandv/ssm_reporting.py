@@ -6,7 +6,7 @@ import pandas as pd
 from scipy.stats import trim_mean
 from tqdm import tqdm
 
-from scripts.vandv.graphs import plot_to_html_image
+from pygrams.vandv.graphs import plot_to_html_image
 
 
 def __html_table_from_dataframe(df, term_style='{:.0%}', highlight_max=True, first_col=1):

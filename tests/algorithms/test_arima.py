@@ -7,7 +7,7 @@ import unittest
 
 import numpy.testing as np_test
 
-from scripts.algorithms.arima import ARIMAForecast
+from pygrams.algorithms.arima import ARIMAForecast
 
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)

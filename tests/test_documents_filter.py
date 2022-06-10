@@ -2,10 +2,10 @@ import unittest
 
 import pandas as pd
 
-from scripts import FilePaths
-from scripts.documents_filter import DocumentsFilter
-from scripts.utils import utils
-from scripts.utils.date_utils import date_to_year_week, generate_year_week_dates
+from pygrams import FilePaths
+from pygrams.documents_filter import DocumentsFilter
+from pygrams.utils import utils
+from pygrams.utils.date_utils import date_to_year_week, generate_year_week_dates
 
 
 class TestDocumentsFilter(unittest.TestCase):

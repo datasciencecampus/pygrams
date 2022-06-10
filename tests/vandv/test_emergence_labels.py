@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from scripts.vandv.emergence_labels import map_prediction_to_emergence_label
+from pygrams.vandv import map_prediction_to_emergence_label
 
 RAPIDLY_EMERGENT = 'rapidly emergent'
 EMERGENT = 'emergent'

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from scripts.algorithms.term_focus import TermFocus
+from pygrams.algorithms.term_focus import TermFocus
 
 
 def table_output(tfidf, tfidf_random, num_ngrams, args, ngram_multiplier, writer, citation_count_dict=None):
