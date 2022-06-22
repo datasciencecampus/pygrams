@@ -115,15 +115,6 @@ class ArgsChecker:
                 print('argument [-tn] can only be used when output includes table [-o] "table"')
                 app_exit = True
 
-        invalid_predictor_names = []
-        for i in self.args.predictor_names:
-            if i >= 13:
-                invalid_predictor_names.append(i)
-
-        if len(invalid_predictor_names) > 0:
-            print(f"invalid predictor name number(s) {' '.join(str(e) for e in invalid_predictor_names)} provided (must be between 0 and 12)")
-            app_exit = True
-
         if self.args.timeseries and self.args.use_cache is None and self.args.date_header is None:
             print(f"date_header is None")
             print(f"Cannot calculate emergence without a specifying a date column")
