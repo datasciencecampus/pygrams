@@ -31,7 +31,7 @@ def read_bq(doc_source_file_name):
 
 def get(doc_source_file_name):
 
-    if not os.path.isfile(doc_source_file_name):
+    if not os.path.isfile(doc_source_file_name) and not doc_source_file_name.endswith('.bq'):
         raise PygramsException('file: ' + doc_source_file_name + ' does not exist in data folder')
 
     if doc_source_file_name.endswith('.pkl.bz2') or doc_source_file_name.endswith('.pkl'):
