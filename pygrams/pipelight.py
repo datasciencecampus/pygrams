@@ -34,11 +34,11 @@ class Pipelight(object):
         dataframe = data_factory.get(data_filename)
         utils.remove_empty_documents(dataframe, text_header)
 
-        text = dataframe[text_header]
+        pg_text = dataframe[text_header]
         dates = dataframe[docs_mask_dict['date_header']]
         self.__dates = generate_year_week_dates(dataframe, docs_mask_dict['date_header'])
         stop_from_file=['first', 'plurality', 'etc']
-        my_stop_words = text.ENGLISH_STOP_WORDS.union(stop_from_file)
+        my_stop_words = ENGLISH_STOP_WORDS.union(stop_from_file)
 
         # calculate tfidf
 
@@ -52,7 +52,7 @@ class Pipelight(object):
             strip_accents='ascii',
             stop_words=my_stop_words
         )
-        count_matrix = vectorizer.fit_transform(text)
+        count_matrix = vectorizer.fit_transform(pg_text)
 
         tfidf_transformer = TfidfTransformer(smooth_idf=False, norm=None)
         tfidf = tfidf_transformer.fit_transform(count_matrix)

@@ -39,7 +39,7 @@ def get_args(command_line_arguments):
     # end __________________________________________________
 
     # Input files
-    parser.add_argument("-ds", "--doc_source", default='USPTO-random-100000.pkl.bq',
+    parser.add_argument("-ds", "--doc_source", default='USPTO-random-100000.pkl.bz2',
                         help="the document source to process")
     parser.add_argument("-uc", "--use_cache", default=None,
                         help="Cache file to use, to speed up queries")
