@@ -70,7 +70,7 @@ def setup_package():
 
         install_requires=['matplotlib==3.2.1', 'numpy==1.16.2', 'scipy==1.2.1', 'wordcloud==1.7.0', 'pandas==1.0.4', 'tqdm==4.46.1', 'nltk==3.5', 
                           'scikit-learn==0.23.1', 'xlrd==1.2.0', 'python-Levenshtein==0.12.0', 'gensim==3.4.0', 'statsmodels==0.11.1',
-                          'patsy==0.5.1', 'humanfriendly==8.2', 'psutil==5.7.0', 'Jinja2==2.11.3', 'urllib3==1.26.5'],
+                          'patsy==0.5.1', 'humanfriendly==8.2', 'psutil==5.7.0', 'Jinja2==2.11.3', 'urllib3==1.26.17'],
         extras_require={'test': ['beautifulsoup4==4.9.1', 'pytest==4.3.1']},
         python_requires='>=3.6',
         cmdclass={
